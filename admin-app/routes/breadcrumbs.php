@@ -23,7 +23,6 @@ Breadcrumbs::macro('resource', function (string $name, string $title, ?string $p
 
         Breadcrumbs::for("{$name}.show", function (BreadcrumbTrail $trail, $model, $item) use ($name) {
             $trail->parent("{$name}.index", $model, $item);
-            \Log::info("{$name}.show");
             if (Route::has("{$name}.show")) {
                 $trail->push($item->name ?? $model, route("{$name}.show", [$model, $item]));
             } else {
@@ -68,9 +67,7 @@ Breadcrumbs::resource('admin.role', 'Roles');
 Breadcrumbs::resource('admin.user', 'Users');
 Breadcrumbs::resource('admin.media', 'Media');
 Breadcrumbs::resource('admin.menu', 'Menu');
-Breadcrumbs::resource('admin.providers', 'Fornitori');
-Breadcrumbs::resource('admin.offers', 'Offerte');
-Breadcrumbs::resource('admin.notifications', 'notifications');
+
 
 
 

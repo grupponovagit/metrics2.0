@@ -12,11 +12,11 @@ class CustomVerifyEmail extends BaseVerifyEmail
         $verificationUrl = $this->verificationUrl($notifiable);
 
         return (new MailMessage)
-                    ->subject('Template | Verifica il tuo indirizzo email')
+                    ->subject('Metrics | Verifica il tuo indirizzo email')
                     ->greeting('Ciao!')
                     ->line('Grazie Per Esserti Registrato! Per favore clicca sul pulsante qui sotto per verificare il tuo indirizzo email.')
                     ->action('Verifica Email', $verificationUrl)
-                    ->line('Se non sei stato tu a creare un account su Risparmiami, ignora questa email.')
+                    ->line('Se non sei stato tu a creare un account su Metrics, ignora questa email.')
                     ->salutation('Cordiali saluti, Il Team di ' . config('app.name'));
     }
 }
