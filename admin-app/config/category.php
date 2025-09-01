@@ -11,4 +11,9 @@ return [
         'categories' => 'categories',
         'model_has_categories' => 'model_has_categories',
     ],
+
+    'column_names' => [
+        'model_morph_key' => 'model_id',
+        'model_morph_type' => 'model_type',
+    ],
 ];

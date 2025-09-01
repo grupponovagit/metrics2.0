@@ -14,7 +14,7 @@
         </li>
         <div>
             <p class="text-center mb-4 font-bold text-md">
-                Admin Dashboard per App Smartphone
+                Metrics 2.0
             </p>
         </div>
 
