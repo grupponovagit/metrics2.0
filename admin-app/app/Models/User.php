@@ -69,21 +69,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Consent::class);
     }
 
-    /**
-     * Get the contracts for the user.
-     */
-    public function contracts()
-    {
-        return $this->hasMany(Contract::class);
-    }
 
-    /**
-     * Get the offers associated with the user's provider.
-     */
-    public function offers()
-    {
-        return $this->hasManyThrough(Offer::class, Provider::class, 'id', 'provider_id', 'id', 'id');
-    }
+
+
 
     public function sendEmailVerificationNotification()
     {
@@ -93,12 +81,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
-    }
-
-    public function notifications()
-    {
-        return $this->belongsToMany(Notification::class, 'notification_user')
-            ->withPivot('is_read', 'read_at')
-            ->withTimestamps();
     }
 }

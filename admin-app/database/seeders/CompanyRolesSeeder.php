@@ -72,18 +72,23 @@ class CompanyRolesSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        // Assicuriamoci che il ruolo super-admin esista
+        $superAdminRole = Role::firstOrCreate(['name' => 'super-admin']);
+
         // Definire la struttura dei ruoli con i loro permessi
         $rolesStructure = [
-            // Livello 1 - Top Management
+            // Livello 1 - Top Management (Super Admin)
             'CEO' => [
                 'level' => 1.9,
                 'description' => 'Chief Executive Officer - Accesso completo',
-                'permissions' => 'all' // Accesso a tutto
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
             'CFO' => [
                 'level' => 1.11,
-                'description' => 'Chief Financial Officer - Accesso completo',
-                'permissions' => 'all' // Accesso a tutto
+                'description' => 'Chief Financial Officer - Accesso completo', 
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
             
             // Livello 2
@@ -139,9 +144,10 @@ class CompanyRolesSeeder extends Seeder
             'CTO' => [
                 'level' => 6.2,
                 'description' => 'Chief Technology Officer - Accesso completo',
-                'permissions' => 'all'
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
-            'CMO' => [
+            'MARKETING' => [
                 'level' => 6.4,
                 'description' => 'Chief Marketing Officer',
                 'permissions' => [
@@ -189,15 +195,17 @@ class CompanyRolesSeeder extends Seeder
             ],
             
             // Livello 7
-            'SVILUPPO' => [
+            'IT' => [
                 'level' => 7.1,
                 'description' => 'Team Sviluppo - Accesso completo',
-                'permissions' => 'all'
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
             'WAR_ROOM' => [
                 'level' => 7.3,
                 'description' => 'War Room - Accesso completo',
-                'permissions' => 'all'
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
             'PM_MANDATO' => [
                 'level' => 7.6,
@@ -251,10 +259,11 @@ class CompanyRolesSeeder extends Seeder
 
             // Aggiungere metadati al ruolo (livello e descrizione)
             if (!$role->hasPermissionTo('admin user')) {
-                if ($roleData['permissions'] === 'all') {
-                    // Per ruoli con accesso completo, assegna tutti i permessi
-                    $role->givePermissionTo(Permission::all());
-                } else {
+                if ($roleData['permissions'] === 'super-admin') {
+                    // Per i super admin, assegna il ruolo super-admin
+                    // Il Gate::before nel AuthServiceProvider darà accesso completo
+                    $role->givePermissionTo('admin user');
+                } elseif (is_array($roleData['permissions'])) {
                     // Assegna solo i permessi specificati
                     foreach ($roleData['permissions'] as $permission) {
                         if (Permission::where('name', $permission)->exists()) {

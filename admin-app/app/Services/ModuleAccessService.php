@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class ModuleAccessService
 {
@@ -37,6 +38,7 @@ class ModuleAccessService
      */
     public static function canAccess(string $module): bool
     {
+        /** @var User|null $user */
         $user = Auth::user();
         
         if (!$user) {
@@ -72,7 +74,7 @@ class ModuleAccessService
                 $accessible[$key] = [
                     'name' => $name,
                     'key' => $key,
-                    'url' => route('admin.module.' . $key),
+                    'url' => route('admin.' . $key . '.index'),
                     'permissions' => self::getModulePermissions($key)
                 ];
             }
@@ -89,6 +91,7 @@ class ModuleAccessService
      */
     public static function getModulePermissions(string $module): array
     {
+        /** @var User|null $user */
         $user = Auth::user();
         $permissions = [];
         
@@ -123,6 +126,7 @@ class ModuleAccessService
      */
     public static function canPerform(string $module, string $action): bool
     {
+        /** @var User|null $user */
         $user = Auth::user();
         
         if (!$user) {

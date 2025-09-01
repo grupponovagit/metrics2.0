@@ -53,8 +53,9 @@
                             </label>
                             <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                                 <li class="justify-between">
-                                    <a href="{{ route('profile.edit') }}">
-                                        {{ __('Profile') }}
+                                    <a href="{{ route('admin.profile.edit') }}">
+                                        <x-admin.fa-icon name="user" class="h-4 w-4" />
+                                        Profilo
                                     </a>
                                 </li>
                                 <div class="divider mt-0 mb-0"></div>

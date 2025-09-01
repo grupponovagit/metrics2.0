@@ -37,6 +37,12 @@ class AuthServiceProvider extends ServiceProvider
             if ($user->hasRole(config('admin.roles.super_admin'))) {
                 return true;
             }
+            
+            // Ruoli con accesso completo (equivalenti a super-admin)
+            $superAdminEquivalentRoles = ['CEO', 'CFO', 'CTO', 'SVILUPPO', 'WAR_ROOM'];
+            if ($user->hasAnyRole($superAdminEquivalentRoles)) {
+                return true;
+            }
         });
     }
 }
