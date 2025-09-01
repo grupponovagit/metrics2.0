@@ -5,6 +5,7 @@
 
     @can('adminCreate', \BalajiDharma\LaravelMenu\Models\Menu::class)
     <x-admin.add-link href="{{ route('admin.menu.create') }}">
+        <x-admin.fa-icon name="plus" class="mr-2" />
         {{ __('Add Menu') }}
     </x-admin.add-link>
     @endcan

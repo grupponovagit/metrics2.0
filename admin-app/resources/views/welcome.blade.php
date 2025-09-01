@@ -913,7 +913,8 @@
             <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
                 <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
                     <div class="flex lg:justify-center lg:col-start-2">
-                        <img class="w-20 h-20 fill-current" src="{{ asset('assets/logo.png') }}" />
+                        <img class="w-20 h-20 fill-current dark:hidden" src="{{ asset('assets/logo-dark.png') }}" />
+                        <img class="w-20 h-20 fill-current hidden dark:block" src="{{ asset('assets/logo-light.png') }}" />
                     </div>
                     @if (Route::has('login'))
                         <nav class="-mx-3 flex flex-1 justify-end">
