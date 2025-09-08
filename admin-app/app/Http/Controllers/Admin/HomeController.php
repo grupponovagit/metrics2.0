@@ -89,4 +89,26 @@ class HomeController extends Controller
         
         return view('admin.modules.home.notifications', compact('notifications'));
     }
+
+    /**
+     * Dashboard Obiettivi - Visualizza e gestisce gli obiettivi aziendali
+     */
+    public function dashboardObiettivi()
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        
+        // Dati obiettivi - da implementare con logica reale
+        $obiettiviData = [
+            'obiettivi_mensili' => [],
+            'obiettivi_trimestrali' => [],
+            'obiettivi_annuali' => [],
+            'performance_corrente' => []
+        ];
+        
+        return view('admin.modules.home.dashboard-obiettivi', [
+            'user' => $user,
+            'obiettivi' => $obiettiviData
+        ]);
+    }
 }

@@ -189,4 +189,78 @@ class ProduzioneController extends Controller
         
         return null; // Utente non legato a location specifica
     }
+
+    // ===== SOTTOMENU PRODUZIONE =====
+
+    /**
+     * Tabella Obiettivi
+     */
+    public function tabellaObiettivi()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.tabella-obiettivi');
+    }
+
+    /**
+     * Cruscotto Produzione
+     */
+    public function cruscottoProduzione()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.cruscotto-produzione');
+    }
+
+    /**
+     * Cruscotto Operatore
+     */
+    public function cruscottoOperatore()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.cruscotto-operatore');
+    }
+
+    /**
+     * Cruscotto Mensile
+     */
+    public function cruscottoMensile()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.cruscotto-mensile');
+    }
+
+    /**
+     * Input Manuale
+     */
+    public function inputManuale()
+    {
+        $this->authorize('produzione.create');
+        return view('admin.modules.produzione.input-manuale');
+    }
+
+    /**
+     * Avanzamento Mensile
+     */
+    public function avanzamentoMensile()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.avanzamento-mensile');
+    }
+
+    /**
+     * KPI Lead Quartili
+     */
+    public function kpiLeadQuartili()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.kpi-lead-quartili');
+    }
+
+    /**
+     * Controllo Stato Lead
+     */
+    public function controlloStatoLead()
+    {
+        $this->authorize('produzione.view');
+        return view('admin.modules.produzione.controllo-stato-lead');
+    }
 }

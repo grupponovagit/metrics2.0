@@ -82,6 +82,7 @@ Route::group([
     ], function () {
         Route::get('/', 'HomeController@index')->name('index');
         Route::get('/notifications', 'HomeController@notifications')->name('notifications');
+        Route::get('/dashboard-obiettivi', 'HomeController@dashboardObiettivi')->name('dashboard_obiettivi');
     });
 
     // Modulo HR - Solo per ruoli autorizzati
@@ -95,6 +96,20 @@ Route::group([
         Route::get('/employees/create', 'HRController@createEmployee')->name('employees.create');
         Route::post('/employees', 'HRController@storeEmployee')->name('employees.store');
         Route::get('/reports', 'HRController@reports')->name('reports');
+        
+        // Sottomenu HR
+        Route::get('/cruscotto-lead-recruit', 'HRController@cruscottoLeadRecruit')->name('cruscotto_lead_recruit');
+        Route::get('/gara-ore', 'HRController@garaOre')->name('gara_ore');
+        Route::get('/gara-punti', 'HRController@garaPunti')->name('gara_punti');
+        Route::get('/formazione', 'HRController@formazione')->name('formazione');
+        Route::get('/stringhe', 'HRController@stringhe')->name('stringhe');
+        Route::get('/cruscotto-assenze', 'HRController@cruscottoAssenze')->name('cruscotto_assenze');
+        Route::get('/gestione-operatori', 'HRController@gestioneOperatori')->name('gestione_operatori');
+        Route::get('/pes', 'HRController@pes')->name('pes');
+        Route::get('/tabella-per-mese', 'HRController@tabellaPerMese')->name('tabella_per_mese');
+        Route::get('/tabella-per-operatore', 'HRController@tabellaPerOperatore')->name('tabella_per_operatore');
+        Route::get('/archivio-iban-operatori', 'HRController@archivioIbanOperatori')->name('archivio_iban_operatori');
+        Route::get('/import-indeed', 'HRController@importIndeed')->name('import_indeed');
     });
 
     // Modulo Amministrazione - Solo per ruoli autorizzati
@@ -109,6 +124,13 @@ Route::group([
         Route::post('/invoices', 'AmministrazioneController@storeInvoice')->name('invoices.store');
         Route::get('/budget', 'AmministrazioneController@budget')->name('budget');
         Route::get('/reports', 'AmministrazioneController@reports')->name('reports');
+        
+        // Sottomenu Amministrazione
+        Route::get('/pda-media', 'AmministrazioneController@pdaMedia')->name('pda_media');
+        Route::get('/costi-stipendi', 'AmministrazioneController@costiStipendi')->name('costi_stipendi');
+        Route::get('/costi-generali', 'AmministrazioneController@costiGenerali')->name('costi_generali');
+        Route::get('/inviti-a-fatturare', 'AmministrazioneController@invitiAFatturare')->name('inviti_a_fatturare');
+        Route::get('/lettere-canvass', 'AmministrazioneController@lettereCanvass')->name('lettere_canvass');
     });
 
     // Modulo Produzione - Solo per ruoli autorizzati
@@ -123,6 +145,16 @@ Route::group([
         Route::post('/orders', 'ProduzioneController@storeOrder')->name('orders.store');
         Route::get('/quality', 'ProduzioneController@quality')->name('quality');
         Route::get('/reports', 'ProduzioneController@reports')->name('reports');
+        
+        // Sottomenu Produzione
+        Route::get('/tabella-obiettivi', 'ProduzioneController@tabellaObiettivi')->name('tabella_obiettivi');
+        Route::get('/cruscotto-produzione', 'ProduzioneController@cruscottoProduzione')->name('cruscotto_produzione');
+        Route::get('/cruscotto-operatore', 'ProduzioneController@cruscottoOperatore')->name('cruscotto_operatore');
+        Route::get('/cruscotto-mensile', 'ProduzioneController@cruscottoMensile')->name('cruscotto_mensile');
+        Route::get('/input-manuale', 'ProduzioneController@inputManuale')->name('input_manuale');
+        Route::get('/avanzamento-mensile', 'ProduzioneController@avanzamentoMensile')->name('avanzamento_mensile');
+        Route::get('/kpi-lead-quartili', 'ProduzioneController@kpiLeadQuartili')->name('kpi_lead_quartili');
+        Route::get('/controllo-stato-lead', 'ProduzioneController@controlloStatoLead')->name('controllo_stato_lead');
     });
 
     // Modulo Marketing - Solo per ruoli autorizzati
@@ -137,6 +169,11 @@ Route::group([
         Route::post('/campaigns', 'MarketingController@storeCampaign')->name('campaigns.store');
         Route::get('/leads', 'MarketingController@leads')->name('leads');
         Route::get('/reports', 'MarketingController@reports')->name('reports');
+        
+        // Sottomenu Marketing
+        Route::get('/cruscotto-lead', 'MarketingController@cruscottoLead')->name('cruscotto_lead');
+        Route::get('/costi-invio-messaggi', 'MarketingController@costiInvioMessaggi')->name('costi_invio_messaggi');
+        Route::get('/controllo-sms', 'MarketingController@controlloSms')->name('controllo_sms');
     });
 
     // Modulo ICT - Solo per ruoli tecnici
@@ -151,6 +188,12 @@ Route::group([
         Route::get('/tickets', 'ICTController@tickets')->name('tickets');
         Route::get('/security', 'ICTController@security')->name('security');
         Route::get('/reports', 'ICTController@reports')->name('reports');
+        
+        // Sottomenu ICT
+        Route::get('/calendario', 'ICTController@calendario')->name('calendario');
+        Route::get('/stato', 'ICTController@stato')->name('stato');
+        Route::get('/categoria-utm-campagna', 'ICTController@categoriaUtmCampagna')->name('categoria_utm_campagna');
+        Route::get('/aggiorna-mandati', 'ICTController@aggiornaMandati')->name('aggiorna_mandati');
     });
 
 });

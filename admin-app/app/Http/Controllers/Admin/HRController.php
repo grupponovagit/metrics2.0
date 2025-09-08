@@ -102,4 +102,114 @@ class HRController extends Controller
         
         return view('admin.modules.hr.reports', compact('reportData'));
     }
+
+    // ===== SOTTOMENU HR =====
+
+    /**
+     * Cruscotto Lead Recruit
+     */
+    public function cruscottoLeadRecruit()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.cruscotto-lead-recruit');
+    }
+
+    /**
+     * Gara Ore
+     */
+    public function garaOre()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.gara-ore');
+    }
+
+    /**
+     * Gara Punti
+     */
+    public function garaPunti()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.gara-punti');
+    }
+
+    /**
+     * Formazione
+     */
+    public function formazione()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.formazione');
+    }
+
+    /**
+     * Stringhe
+     */
+    public function stringhe()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.stringhe');
+    }
+
+    /**
+     * Cruscotto Assenze
+     */
+    public function cruscottoAssenze()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.cruscotto-assenze');
+    }
+
+    /**
+     * Gestione Operatori
+     */
+    public function gestioneOperatori()
+    {
+        $this->authorize('hr.edit');
+        return view('admin.modules.hr.gestione-operatori');
+    }
+
+    /**
+     * PES
+     */
+    public function pes()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.pes');
+    }
+
+    /**
+     * Tabella per Mese
+     */
+    public function tabellaPerMese()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.tabella-per-mese');
+    }
+
+    /**
+     * Tabella per Operatore
+     */
+    public function tabellaPerOperatore()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.tabella-per-operatore');
+    }
+
+    /**
+     * Archivio Iban Operatori
+     */
+    public function archivioIbanOperatori()
+    {
+        $this->authorize('hr.view');
+        return view('admin.modules.hr.archivio-iban-operatori');
+    }
+
+    /**
+     * Import Indeed
+     */
+    public function importIndeed()
+    {
+        $this->authorize('hr.create');
+        return view('admin.modules.hr.import-indeed');
+    }
 }

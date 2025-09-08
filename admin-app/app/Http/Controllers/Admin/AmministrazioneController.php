@@ -131,4 +131,51 @@ class AmministrazioneController extends Controller
         return redirect()->route('admin.amministrazione.invoices')
             ->with('success', 'Fattura creata con successo');
     }
+
+    // ===== SOTTOMENU AMMINISTRAZIONE =====
+
+    /**
+     * PDA Media
+     */
+    public function pdaMedia()
+    {
+        $this->authorize('amministrazione.view');
+        return view('admin.modules.amministrazione.pda-media');
+    }
+
+    /**
+     * Costi Stipendi
+     */
+    public function costiStipendi()
+    {
+        $this->authorize('amministrazione.view');
+        return view('admin.modules.amministrazione.costi-stipendi');
+    }
+
+    /**
+     * Costi Generali
+     */
+    public function costiGenerali()
+    {
+        $this->authorize('amministrazione.view');
+        return view('admin.modules.amministrazione.costi-generali');
+    }
+
+    /**
+     * Inviti a Fatturare
+     */
+    public function invitiAFatturare()
+    {
+        $this->authorize('amministrazione.create');
+        return view('admin.modules.amministrazione.inviti-a-fatturare');
+    }
+
+    /**
+     * Lettere Canvass
+     */
+    public function lettereCanvass()
+    {
+        $this->authorize('amministrazione.view');
+        return view('admin.modules.amministrazione.lettere-canvass');
+    }
 }

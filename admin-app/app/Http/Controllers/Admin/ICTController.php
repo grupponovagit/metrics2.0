@@ -153,4 +153,42 @@ class ICTController extends Controller
         
         return view('admin.modules.ict.reports', compact('reportData'));
     }
+
+    // ===== SOTTOMENU ICT =====
+
+    /**
+     * Calendario
+     */
+    public function calendario()
+    {
+        $this->authorize('ict.view');
+        return view('admin.modules.ict.calendario');
+    }
+
+    /**
+     * Stato
+     */
+    public function stato()
+    {
+        $this->authorize('ict.view');
+        return view('admin.modules.ict.stato');
+    }
+
+    /**
+     * Categoria UTM Campagna
+     */
+    public function categoriaUtmCampagna()
+    {
+        $this->authorize('ict.edit');
+        return view('admin.modules.ict.categoria-utm-campagna');
+    }
+
+    /**
+     * Aggiorna Mandati
+     */
+    public function aggiornaMandati()
+    {
+        $this->authorize('ict.edit');
+        return view('admin.modules.ict.aggiorna-mandati');
+    }
 }

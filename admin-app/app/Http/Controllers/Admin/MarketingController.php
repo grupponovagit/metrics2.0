@@ -141,4 +141,33 @@ class MarketingController extends Controller
         return redirect()->route('admin.marketing.campaigns')
             ->with('success', 'Campagna creata con successo');
     }
+
+    // ===== SOTTOMENU MARKETING =====
+
+    /**
+     * Cruscotto Lead
+     */
+    public function cruscottoLead()
+    {
+        $this->authorize('marketing.view');
+        return view('admin.modules.marketing.cruscotto-lead');
+    }
+
+    /**
+     * Costi Invio Messaggi
+     */
+    public function costiInvioMessaggi()
+    {
+        $this->authorize('marketing.view');
+        return view('admin.modules.marketing.costi-invio-messaggi');
+    }
+
+    /**
+     * Controllo SMS
+     */
+    public function controlloSms()
+    {
+        $this->authorize('marketing.view');
+        return view('admin.modules.marketing.controllo-sms');
+    }
 }
