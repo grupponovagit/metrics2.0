@@ -1,6 +1,5 @@
 import './bootstrap';
 import { themeChange } from 'theme-change';
-import sidebarComponent from './sidebar';
 
 // Inizializza theme-change per DaisyUI
 themeChange();
@@ -41,10 +40,7 @@ window.addEventListener('theme-changed', function(e) {
     updateLogos(e.detail.theme);
 });
 
-// Registra componente Alpine.js e avvia
-window.Alpine.data('sidebar', sidebarComponent);
-
-// Avvia Alpine dopo la registrazione
+// Avvia Alpine
 window.Alpine.start();
 
-console.log('🎨 App JS caricato - Tailwind + DaisyUI + Alpine.js separato');
+// App JS caricato - Tailwind + DaisyUI + Alpine.js

@@ -3,33 +3,75 @@
 @endphp
 
 @isset($menus)
-    <div x-data="sidebar" 
-         x-init="init()"
+    <div x-data="{
+            collapsed: false,
+            activeModule: null,
+            modules: ['home', 'hr', 'amministrazione', 'produzione', 'marketing', 'ict'],
+            
+            init() {
+                // Tutti i moduli sono chiusi di default
+                this.activeModule = null;
+            },
+            
+            toggleSidebar() {
+                this.collapsed = !this.collapsed;
+            },
+            
+            toggleModule(moduleKey) {
+                if (this.collapsed) {
+                    this.collapsed = false;
+                    setTimeout(() => {
+                        // Solo un modulo aperto alla volta - chiude gli altri
+                        this.activeModule = this.activeModule === moduleKey ? null : moduleKey;
+                    }, 100);
+                } else {
+                    // Solo un modulo aperto alla volta - chiude gli altri
+                    this.activeModule = this.activeModule === moduleKey ? null : moduleKey;
+                }
+            },
+            
+            isModuleExpanded(moduleKey) {
+                // Mantiene aperto il modulo se è quello attivo nella navigazione corrente
+                const currentPath = window.location.pathname;
+                const isCurrentModule = currentPath.includes('/' + moduleKey + '/');
+                
+                if (isCurrentModule && this.activeModule !== moduleKey) {
+                    this.activeModule = moduleKey;
+                }
+                
+                return this.activeModule === moduleKey;
+            },
+            
+            getTooltipText(text) {
+                return this.collapsed ? text : '';
+            }
+         }"
          :class="collapsed ? 'sidebar-collapsed' : 'sidebar-expanded'" 
          class="sidebar-main"
          x-cloak>
         
         <!-- Header con Logo e Toggle -->
         <div class="sidebar-header">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center" :class="collapsed ? 'justify-center' : 'justify-between'">
                 <!-- Logo -->
-                <a href="{{ route('admin.dashboard') }}" class="logo-container group">
-                    <div class="logo-icon group-hover:scale-105 transition-transform duration-200">
-                        M
+                <a href="{{ route('admin.dashboard') }}" class="logo-container group" :class="collapsed ? 'mx-auto' : ''">
+                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-primary flex items-center justify-center">
+                        <img src="{{ asset('assets/logo.png') }}" alt="Metrics Logo" class="w-8 h-8 object-contain">
                     </div>
                     <div x-show="!collapsed" 
                          x-transition:enter="transition ease-out duration-200" 
                          x-transition:enter-start="opacity-0 transform translate-x-4" 
                          x-transition:enter-end="opacity-100 transform translate-x-0"
-                         class="flex flex-col">
-                        <span class="logo-text">Metrics</span>
-                        <span class="logo-version">v2.0</span>
+                         class="flex flex-col ml-3">
+                        <span class="text-lg font-bold text-base-content">Metrics</span>
+                        <span class="text-xs text-base-content/60">v2.0</span>
                     </div>
                 </a>
                 
-                <!-- Toggle Button -->
+                <!-- Toggle Button - SEMPRE VISIBILE -->
                 <button @click="toggleSidebar()" 
-                        class="toggle-btn hidden lg:flex"
+                        class="btn btn-ghost btn-sm btn-circle hidden lg:flex"
+                        :class="collapsed ? 'absolute top-4 right-2' : ''"
                         :title="collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'">
                     <i class="fas fa-angles-left text-sm transition-transform duration-300"
                        :class="collapsed ? 'rotate-180' : ''"></i>
