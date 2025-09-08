@@ -1,14 +1,14 @@
 import './bootstrap';
-import './sidebar';
-
 import { themeChange } from 'theme-change';
+import sidebarComponent from './sidebar';
 
+// Inizializza theme-change per DaisyUI
 themeChange();
 
 // Funzione per aggiornare i loghi in base al tema
 function updateLogos(theme) {
-    const lightLogos = document.querySelectorAll('#logo-light-theme, #nav-logo-light-theme');
-    const darkLogos = document.querySelectorAll('#logo-dark-theme, #nav-logo-dark-theme');
+    const lightLogos = document.querySelectorAll('#logo-light-theme, #nav-logo-light-theme, .logo-light');
+    const darkLogos = document.querySelectorAll('#logo-dark-theme, #nav-logo-dark-theme, .logo-dark');
     
     if (theme === 'dark') {
         lightLogos.forEach(logo => logo.classList.add('hidden'));
@@ -19,23 +19,32 @@ function updateLogos(theme) {
     }
 }
 
-// Imposta il tema iniziale
-var selectedTheme = localStorage.getItem("theme") || 'light';
-if(selectedTheme === 'dark') {
-    document.getElementById("theme-change").checked = true;
-}
-
-// Aggiorna i loghi al caricamento della pagina
+// Setup tema iniziale
 document.addEventListener('DOMContentLoaded', function() {
+    const selectedTheme = localStorage.getItem("theme") || 'light';
     updateLogos(selectedTheme);
+    document.documentElement.setAttribute('data-theme', selectedTheme);
 });
 
-// Ascolta i cambiamenti di tema
+// Gestione cambiamenti tema DaisyUI
 document.addEventListener('click', function(e) {
     if (e.target.matches('[data-set-theme]')) {
         const newTheme = e.target.getAttribute('data-set-theme');
         setTimeout(() => {
             updateLogos(newTheme);
-        }, 100); // Piccolo ritardo per permettere al theme-change di completare
+        }, 100);
     }
 });
+
+// Listener per eventi tema personalizzati
+window.addEventListener('theme-changed', function(e) {
+    updateLogos(e.detail.theme);
+});
+
+// Registra componente Alpine.js e avvia
+window.Alpine.data('sidebar', sidebarComponent);
+
+// Avvia Alpine dopo la registrazione
+window.Alpine.start();
+
+console.log('🎨 App JS caricato - Tailwind + DaisyUI + Alpine.js separato');

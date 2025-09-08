@@ -1,99 +1,116 @@
-// Sidebar Interattiva - Gestione Moduli
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Gestione doppio click con debounce
-    let clickTimeout;
-    
-    document.addEventListener('click', function(e) {
-        const moduleButton = e.target.closest('.module-button');
-        if (!moduleButton) return;
+// ============================================
+// SIDEBAR ALPINE.JS COMPONENT
+// ============================================
+
+export default function sidebarComponent() {
+    return {
+        // Stato sidebar
+        collapsed: false,
+        activeModule: '',
         
-        // Cancella il timeout precedente se presente
-        if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-        }
+        // Inizializzazione
+        init() {
+            // Carica stato da localStorage
+            this.collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            this.activeModule = '';
+            
+            // Watch per persistenza
+            this.$watch('collapsed', value => {
+                localStorage.setItem('sidebar-collapsed', value);
+                console.log('📱 Sidebar state:', value ? 'collapsed' : 'expanded');
+            });
+            
+            this.$watch('activeModule', value => {
+                localStorage.setItem('sidebar-active-module', value);
+                console.log('📂 Active module:', value || 'none');
+            });
+            
+            console.log('🚀 Sidebar initialized:', {
+                collapsed: this.collapsed,
+                activeModule: this.activeModule
+            });
+        },
         
-        // Aggiungi feedback visivo immediato
-        moduleButton.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            moduleButton.style.transform = '';
-        }, 150);
-    });
-    
-    // Gestione doppio click
-    document.addEventListener('dblclick', function(e) {
-        const moduleButton = e.target.closest('.module-button');
-        if (!moduleButton) return;
+        // Toggle sidebar collapse/expand
+        toggleSidebar() {
+            this.collapsed = !this.collapsed;
+            // Chiudi tutti i dropdown quando si collassa
+            if (this.collapsed) {
+                this.activeModule = '';
+            }
+            console.log('🔄 Sidebar toggled:', this.collapsed ? 'collapsed' : 'expanded');
+        },
         
-        // Cancella il click singolo
-        if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-        }
+        // Toggle modulo dropdown
+        toggleModule(moduleKey) {
+            console.log('🎯 Toggle module:', moduleKey, 'collapsed:', this.collapsed);
+            
+            // Se sidebar è collassata, aprila prima
+            if (this.collapsed) {
+                this.collapsed = false;
+                // Aspetta che l'animazione finisca, poi apri il dropdown
+                setTimeout(() => {
+                    this.activeModule = moduleKey;
+                    console.log('📂 Module opened after sidebar expand:', moduleKey);
+                }, 150);
+            } else {
+                // Sidebar già aperta, toggle normale del dropdown
+                if (this.activeModule === moduleKey) {
+                    this.activeModule = '';
+                    console.log('📂 Module closed:', moduleKey);
+                } else {
+                    this.activeModule = moduleKey;
+                    console.log('📂 Module opened:', moduleKey);
+                }
+            }
+        },
         
-        // Aggiungi effetto di navigazione
-        moduleButton.style.transform = 'scale(0.9)';
-        moduleButton.style.filter = 'brightness(1.2)';
+        // Verifica se modulo è expanded
+        isModuleExpanded(moduleKey) {
+            const expanded = this.activeModule === moduleKey;
+            
+            // Se siamo in una pagina di quel modulo, tienilo aperto anche
+            const currentPath = window.location.pathname;
+            const isCurrentModulePage = currentPath.includes(`/admin/${moduleKey}`);
+            
+            return expanded || isCurrentModulePage;
+        },
         
-        setTimeout(() => {
-            const url = moduleButton.getAttribute('data-url');
+        // Naviga a modulo (doppio click)
+        navigateToModule(url) {
             if (url) {
+                console.log('🔗 Navigating to:', url);
                 window.location.href = url;
             }
-        }, 100);
-    });
-    
-    // Miglioramento accessibilità - keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            const focused = document.activeElement;
-            if (focused && focused.classList.contains('module-button')) {
-                e.preventDefault();
-                focused.click();
-            }
-        }
-    });
-    
-    // Auto-close dei sottomenu quando si naviga
-    window.addEventListener('beforeunload', function() {
-        // Salva stato se necessario
-        const activeModule = document.querySelector('[x-data*="activeModule"]');
-        if (activeModule) {
-            const alpine = Alpine.$data(activeModule);
-            if (alpine) {
-                localStorage.setItem('sidebar-active-module', alpine.activeModule);
-            }
-        }
-    });
-    
-    // Visual feedback migliorato
-    const style = document.createElement('style');
-    style.textContent = `
-        .module-button:focus {
-            outline: 2px solid hsl(var(--p));
-            outline-offset: 2px;
-        }
+        },
         
-        .module-button:focus-visible {
-            outline: 2px solid hsl(var(--p));
-            outline-offset: 2px;
-        }
-        
-        .submenu-enter {
-            animation: submenuSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        @keyframes submenuSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px) scale(0.95);
+        // Rileva modulo attivo dalla URL
+        detectActiveModule() {
+            const path = window.location.pathname;
+            const modules = ['home', 'hr', 'amministrazione', 'produzione', 'marketing', 'ict'];
+            
+            for (const module of modules) {
+                if (path.includes(`/admin/${module}`)) {
+                    console.log('🎯 Detected active module from URL:', module);
+                    return module;
+                }
             }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            return '';
+        },
+        
+        // Tooltip text dinamico
+        getTooltipText(text) {
+            return this.collapsed ? text : '';
+        },
+        
+        // Verifica se sidebar è collassata
+        isSidebarCollapsed() {
+            return this.collapsed;
+        },
+        
+        // Verifica se sidebar è espansa
+        isSidebarExpanded() {
+            return !this.collapsed;
         }
-    `;
-    document.head.appendChild(style);
-});
+    }
+}

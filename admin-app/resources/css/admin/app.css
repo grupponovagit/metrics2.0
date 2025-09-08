@@ -3,193 +3,367 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --my-color: #fff;
-}
-[data-theme='dark'] {
-  --my-color: #000;
-}
-.menu-icon svg {
-  width: 20px;
-  height: 20px;
+/* ===== ALPINE.JS CLOAK ===== */
+[x-cloak] { 
+    display: none !important; 
 }
 
-/* ===== SIDEBAR MIGLIORATA ===== */
+/* ===== RESET OVERFLOW ===== */
+body, html {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
 
-/* Scrollbar personalizzata */
-.custom-scrollbar {
+/* Fix specifici per elementi che necessitano overflow */
+.submenu-container,
+.dropdown,
+[x-transition] {
+    overflow: visible !important;
+}
+
+/* ===== SIDEBAR TAILWIND PURA ===== */
+
+/* Scrollbar personalizzata - SOLO per sidebar content */
+.sidebar-content {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--bc) / 0.2) transparent;
+    scrollbar-color: rgb(148 163 184 / 0.3) transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
+.sidebar-content::-webkit-scrollbar {
     width: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+.sidebar-content::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--bc) / 0.2);
+.sidebar-content::-webkit-scrollbar-thumb {
+    background-color: rgb(148 163 184 / 0.3);
     border-radius: 3px;
     transition: background-color 0.2s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--bc) / 0.3);
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184 / 0.5);
 }
 
-/* Hover migliorato per temi scuri */
-[data-theme="dark"] .hover\:bg-base-200:hover {
-    background-color: hsl(var(--b2) / 0.8) !important;
+/* Rimuovi scrollbar da dropdown e submenu */
+.submenu-container,
+.dropdown-content,
+[x-transition] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-[data-theme="dark"] .hover\:bg-primary\/10:hover {
-    background-color: hsl(var(--p) / 0.15) !important;
+.submenu-container::-webkit-scrollbar,
+.dropdown-content::-webkit-scrollbar,
+[x-transition]::-webkit-scrollbar {
+    display: none;
 }
 
-[data-theme="dark"] .hover\:bg-secondary\/10:hover {
-    background-color: hsl(var(--s) / 0.15) !important;
+/* ===== SIDEBAR CONTAINER ===== */
+.sidebar-main {
+    @apply sticky top-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out;
 }
 
-[data-theme="dark"] .hover\:bg-accent\/10:hover {
-    background-color: hsl(var(--a) / 0.15) !important;
+/* Container scrollabile separato */
+.sidebar-content {
+    @apply h-full overflow-y-auto overflow-x-hidden;
 }
 
-[data-theme="dark"] .hover\:bg-warning\/10:hover {
-    background-color: hsl(var(--wa) / 0.15) !important;
-}
-
-[data-theme="dark"] .hover\:bg-info\/10:hover {
-    background-color: hsl(var(--in) / 0.15) !important;
-}
-
-[data-theme="dark"] .hover\:bg-success\/10:hover {
-    background-color: hsl(var(--su) / 0.15) !important;
-}
-
-/* Animazioni fluide per dropdown */
-.dropdown-enter {
-    transform: translateY(-10px);
-    opacity: 0;
-}
-
-.dropdown-enter-active {
-    transform: translateY(0);
-    opacity: 1;
-    transition: all 0.3s ease-out;
-}
-
-.dropdown-exit {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.dropdown-exit-active {
-    transform: translateY(-10px);
-    opacity: 0;
-    transition: all 0.2s ease-in;
-}
-
-/* Effetti visual per icone */
-.icon-bounce:hover {
-    animation: iconBounce 0.3s ease-in-out;
-}
-
-@keyframes iconBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* Miglioramenti per tooltip su sidebar compressa */
-.tooltip-right[data-tip]:before {
-    z-index: 9999;
-}
-
-.tooltip-right[data-tip]:after {
-    z-index: 9999;
-}
-
-/* Fix collassamento sidebar */
 .sidebar-collapsed {
-    width: 80px !important;
-    min-width: 80px !important;
+    @apply w-16;
 }
 
 .sidebar-expanded {
-    width: 320px !important;
-    min-width: 320px !important;
+    @apply w-80;
 }
 
-/* Glassmorphism effect per sottomenu */
-.submenu-glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+/* Fix per assicurare che la sidebar cambi dimensione */
+.sidebar-main.sidebar-collapsed {
+    width: 4rem !important;
+    min-width: 4rem !important;
 }
 
-[data-theme="dark"] .submenu-glass {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.sidebar-main.sidebar-expanded {
+    width: 20rem !important;
+    min-width: 20rem !important;
 }
 
-/* Pulse effect per elementi attivi */
-.pulse-subtle {
-    animation: pulseSubtle 2s infinite;
+/* Transizioni smooth */
+.sidebar-main {
+    transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out;
 }
 
-@keyframes pulseSubtle {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(var(--p), 0.4);
+/* ===== HEADER LOGO ===== */
+.sidebar-header {
+    @apply p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
+}
+
+.logo-container {
+    @apply flex items-center space-x-3;
+}
+
+.logo-icon {
+    @apply w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg;
+}
+
+.logo-text {
+    @apply font-bold text-xl text-gray-900 dark:text-white;
+}
+
+.logo-version {
+    @apply text-xs text-gray-500 dark:text-gray-400 font-medium;
+}
+
+.toggle-btn {
+    @apply w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white transition-all duration-200 cursor-pointer;
+}
+
+.toggle-btn:hover {
+    @apply scale-105 shadow-md;
+}
+
+/* ===== SEZIONE MENU ===== */
+.menu-section {
+    @apply p-4;
+}
+
+.section-title {
+    @apply text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4 px-3;
+}
+
+/* ===== BOTTONI MODULI ===== */
+.module-item {
+    @apply mb-2;
+}
+
+.module-btn {
+    @apply w-full flex items-center justify-between p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 cursor-pointer;
+}
+
+.module-btn:hover {
+    @apply transform -translate-y-0.5;
+}
+
+.module-btn-active {
+    @apply bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 shadow-md;
+}
+
+.module-btn-active:hover {
+    @apply bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700;
+}
+
+.module-icon-container {
+    @apply w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 transition-all duration-200;
+}
+
+.module-btn:hover .module-icon-container {
+    @apply bg-gray-200 dark:bg-gray-600 scale-105;
+}
+
+.module-btn-active .module-icon-container {
+    @apply bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300;
+}
+
+.module-title {
+    @apply font-semibold text-sm;
+}
+
+.chevron-icon {
+    @apply w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200;
+}
+
+.chevron-rotated {
+    @apply rotate-180;
+}
+
+.module-btn:hover .chevron-icon {
+    @apply text-gray-600 dark:text-gray-300;
+}
+
+.module-btn-active .chevron-icon {
+    @apply text-blue-500 dark:text-blue-400;
+}
+
+/* ===== SIDEBAR COLLASSATA ===== */
+.sidebar-collapsed .module-btn {
+    @apply justify-center p-2;
+}
+
+.sidebar-collapsed .module-icon-container {
+    @apply w-8 h-8;
+}
+
+.sidebar-collapsed .module-icon-container i {
+    @apply text-sm;
+}
+
+/* Centra tutto quando collassata */
+.sidebar-collapsed .menu-section {
+    @apply flex flex-col items-center;
+}
+
+.sidebar-collapsed .module-item {
+    @apply flex justify-center;
+}
+
+.sidebar-collapsed .system-link {
+    @apply justify-center mx-1 p-2;
+}
+
+.sidebar-collapsed .system-icon {
+    @apply w-8 h-8;
+}
+
+.sidebar-collapsed .system-icon i {
+    @apply text-sm;
+}
+
+/* ===== SUBMENU ===== */
+.submenu-container {
+    @apply mt-3 mx-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 space-y-2 overflow-visible;
+    max-height: none !important;
+    height: auto !important;
+}
+
+.submenu-item {
+    @apply block;
+}
+
+.submenu-link {
+    @apply flex items-center space-x-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:shadow-sm transition-all duration-200;
+}
+
+.submenu-link-active {
+    @apply bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 shadow-sm;
+}
+
+.submenu-icon {
+    @apply w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm;
+}
+
+.submenu-link:hover .submenu-icon {
+    @apply bg-gray-200 dark:bg-gray-500 text-gray-700 dark:text-gray-200;
+}
+
+.submenu-link-active .submenu-icon {
+    @apply bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300;
+}
+
+.submenu-text {
+    @apply font-medium text-sm;
+}
+
+/* ===== MENU SISTEMA ===== */
+.system-section {
+    @apply border-t border-gray-200 dark:border-gray-700 pt-4;
+}
+
+.system-title {
+    @apply text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-3 flex items-center;
+}
+
+.system-link {
+    @apply flex items-center space-x-3 p-3 mx-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 mb-1;
+}
+
+.system-link:hover {
+    @apply transform translate-x-1;
+}
+
+.system-link-active {
+    @apply bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300;
+}
+
+.system-icon {
+    @apply w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm;
+}
+
+.system-link:hover .system-icon {
+    @apply bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200;
+}
+
+.system-link-active .system-icon {
+    @apply bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300;
+}
+
+/* ===== ANIMAZIONI ===== */
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
     }
-    50% {
-        box-shadow: 0 0 0 10px rgba(var(--p), 0);
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Feedback visivo per click e doppio click */
-.module-button {
-    user-select: none;
+.slide-down {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== TOOLTIP CUSTOM ===== */
+.tooltip-custom {
+    @apply absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm rounded-lg shadow-lg whitespace-nowrap z-50 opacity-0 pointer-events-none transition-opacity duration-200;
+}
+
+.tooltip-show {
+    @apply opacity-100;
+}
+
+/* ===== FIX DROPDOWN EXPANSION ===== */
+[x-show] {
+    overflow: visible !important;
+}
+
+[x-transition] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* Fix per submenu che devono espandersi */
+.module-item {
+    overflow: visible !important;
+}
+
+.submenu-container {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    z-index: 10;
+}
+
+/* Assicura che Alpine.js funzioni */
+[x-cloak] { 
+    display: none !important; 
+}
+
+/* ===== DEBUG ALPINE.JS ===== */
+.sidebar-main[x-data] {
     position: relative;
-    width: 100%;
-    min-width: 0;
-    flex: 1;
 }
 
-.module-button:active {
-    transform: scale(0.98);
-}
-
-.module-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-    opacity: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    transition: opacity 0.2s ease;
-}
-
-.module-button:active::before {
-    opacity: 1;
-}
-
-/* Indicatore visual per doppio click */
-.double-click-hint {
-    animation: hintPulse 2s ease-in-out infinite;
-}
-
-@keyframes hintPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-}
-
-/* Rotazione smooth per frecce */
-.chevron-rotate {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .sidebar-main {
+        @apply w-80;
+    }
 }

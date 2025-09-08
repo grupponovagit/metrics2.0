@@ -3,97 +3,113 @@
 @endphp
 
 @isset($menus)
-    <div x-data="{ collapsed: false }" 
-         x-init="collapsed = localStorage.getItem('sidebar-collapsed') === 'true'; $watch('collapsed', value => localStorage.setItem('sidebar-collapsed', value))"
+    <div x-data="sidebar" 
+         x-init="init()"
          :class="collapsed ? 'sidebar-collapsed' : 'sidebar-expanded'" 
-         class="bg-base-100 text-base-content min-h-full transition-all duration-500 ease-in-out flex flex-col shadow-2xl border-r border-base-300/50 relative z-10">
+         class="sidebar-main"
+         x-cloak>
         
-        <!-- Header con toggle button -->
-        <div class="p-4 border-b border-base-300/50">
+        <!-- Header con Logo e Toggle -->
+        <div class="sidebar-header">
             <div class="flex items-center justify-between">
-                <!-- Logo collassabile -->
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-                    <div class="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
-                        <img src="{{ asset('assets/icon.png') }}" alt="Icon" class="w-6 h-6 object-contain">
+                <!-- Logo -->
+                <a href="{{ route('admin.dashboard') }}" class="logo-container group">
+                    <div class="logo-icon group-hover:scale-105 transition-transform duration-200">
+                        M
                     </div>
-                    <div x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform translate-x-4" x-transition:enter-end="opacity-100 transform translate-x-0" class="flex flex-col">
-                        <span class="font-bold text-lg text-base-content">Metrics</span>
-                        <span class="text-xs text-base-content/60">v2.0</span>
+                    <div x-show="!collapsed" 
+                         x-transition:enter="transition ease-out duration-200" 
+                         x-transition:enter-start="opacity-0 transform translate-x-4" 
+                         x-transition:enter-end="opacity-100 transform translate-x-0"
+                         class="flex flex-col">
+                        <span class="logo-text">Metrics</span>
+                        <span class="logo-version">v2.0</span>
                     </div>
                 </a>
                 
-                <!-- Toggle button -->
-                <div class="tooltip tooltip-left hidden lg:block" :data-tip="collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'">
-                    <button @click="collapsed = !collapsed" 
-                            class="btn btn-ghost btn-sm btn-circle hover:bg-base-200 hover:scale-110 transition-all duration-200 hover:shadow-lg">
-                        <x-admin.fa-icon name="angles-left" 
-                                       class="h-4 w-4 transition-all duration-300" 
-                                       ::class="collapsed ? 'rotate-180' : ''" />
-                    </button>
-                </div>
+                <!-- Toggle Button -->
+                <button @click="toggleSidebar()" 
+                        class="toggle-btn hidden lg:flex"
+                        :title="collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'">
+                    <i class="fas fa-angles-left text-sm transition-transform duration-300"
+                       :class="collapsed ? 'rotate-180' : ''"></i>
+                </button>
                 
-                <!-- Mobile close button -->
-                <label for="drawer" class="btn btn-ghost btn-sm btn-circle lg:hidden hover:bg-base-200">
-                    <x-admin.fa-icon name="xmark" class="h-4 w-4" />
+                <!-- Mobile Close -->
+                <label for="drawer" class="toggle-btn lg:hidden">
+                    <i class="fas fa-xmark text-sm"></i>
                 </label>
             </div>
         </div>
 
-        <!-- Menu content -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <div class="p-3">
-
-        {{-- Moduli Aziendali --}}
-        <x-admin.module-navigation />
-        
-        {{-- Divider --}}
-        <div x-show="!collapsed" x-transition class="divider my-4 mx-2"></div>
-        
-        {{-- Menu Sistema - Solo per IT e Super Admin --}}
-        @php
-            $user = Auth::user();
-            $canAccessSystem = $user->hasRole(config('admin.roles.super_admin')) || 
-                              $user->hasAnyRole(['CEO', 'CFO', 'CTO', 'SVILUPPO', 'WAR_ROOM']) ||
-                              \App\Services\ModuleAccessService::canAccess('ict');
-        @endphp
-        
-        @if($canAccessSystem)
-            <div class="mb-4">
-                <div x-show="!collapsed" x-transition class="text-sm font-semibold text-base-content/60 uppercase tracking-wider px-3 mb-3">
-                    <x-admin.fa-icon name="cog" class="h-3 w-3 mr-2 inline" />
-                    Sistema
-                </div>
-                
-                @foreach ($menus as $menu)
-                    <div class="mb-1">
-                        <div class="tooltip tooltip-right" :data-tip="collapsed ? '{{ $menu['name'] }}' : ''">
+        <!-- Menu Content -->
+        <div class="sidebar-content">
+            <div class="menu-section">
+            
+            <!-- Moduli Aziendali -->
+            <div x-show="!collapsed" x-transition class="section-title">
+                <i class="fas fa-building mr-2"></i>
+                Moduli Aziendali
+            </div>
+            
+            <!-- Componente Moduli -->
+            <x-admin.module-navigation />
+            
+            <!-- Menu Sistema -->
+            @php
+                $user = Auth::user();
+                $canAccessSystem = $user->hasRole(config('admin.roles.super_admin')) || 
+                                  $user->hasAnyRole(['CEO', 'CFO', 'CTO', 'SVILUPPO', 'WAR_ROOM']) ||
+                                  \App\Services\ModuleAccessService::canAccess('ict');
+            @endphp
+            
+            @if($canAccessSystem)
+                <div class="system-section mt-6">
+                    <div x-show="!collapsed" x-transition class="system-title">
+                        <i class="fas fa-cog mr-2"></i>
+                        Sistema
+                    </div>
+                    
+                    @foreach ($menus as $menu)
+                        <div class="relative group">
                             <a href="{{ $menu['link'] }}" 
-                               class="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-base-200 hover:shadow-md transition-all duration-200 group {{ request()->is(ltrim($menu['link'], '/')) ? 'bg-neutral text-neutral-content shadow-lg' : '' }}">
+                               class="system-link {{ request()->is(ltrim($menu['link'], '/')) ? 'system-link-active' : '' }}">
                                 @if ($menu['icon'])
-                                    <div class="w-6 h-6 flex items-center justify-center">
+                                    <div class="system-icon">
                                         <x-admin.base-icon path="{{ $menu['icon'] }}" />
                                     </div>
                                 @endif
-                                <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform translate-x-4" x-transition:enter-end="opacity-100 transform translate-x-0" class="font-medium">{{ $menu['name'] }}</span>
+                                <span x-show="!collapsed" 
+                                      x-transition:enter="transition ease-out duration-200" 
+                                      x-transition:enter-start="opacity-0 transform translate-x-4" 
+                                      x-transition:enter-end="opacity-100 transform translate-x-0"
+                                      class="font-medium text-sm">{{ $menu['name'] }}</span>
                             </a>
-                        </div>
-                        
-                        @isset($menu['children'])
-                            <div x-show="!collapsed" x-transition class="ml-8 mt-2 space-y-1 border-l-2 border-neutral/20 pl-4">
-                                @foreach ($menu['children'] as $child)
-                                    <a href="{{ $child['link'] }}"
-                                       class="block px-3 py-2 text-sm rounded-lg hover:bg-base-200 hover:text-neutral transition-all duration-200 {{ request()->is(ltrim($child['link'], '/')) ? 'bg-neutral/20 text-neutral font-medium' : 'text-base-content/70' }}">
-                                        <x-admin.fa-icon name="chevron-right" class="h-2 w-2 mr-2 inline opacity-50" />
-                                        {{ $child['name'] }}
-                                    </a>
-                                @endforeach
+                            
+                            <!-- Tooltip per sidebar collassata -->
+                            <div x-show="collapsed" 
+                                 class="tooltip-custom group-hover:tooltip-show">
+                                {{ $menu['name'] }}
                             </div>
-                        @endisset
-                    </div>
-                @endforeach
-            </div>
-        @endif
-        
+                            
+                            @isset($menu['children'])
+                                <div x-show="!collapsed" x-transition class="ml-4 mt-2 space-y-1">
+                                    @foreach ($menu['children'] as $child)
+                                        <a href="{{ $child['link'] }}"
+                                           class="system-link {{ request()->is(ltrim($child['link'], '/')) ? 'system-link-active' : '' }}">
+                                            <div class="system-icon">
+                                                <i class="fas fa-chevron-right text-xs"></i>
+                                            </div>
+                                            <span class="font-medium text-sm">{{ $child['name'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endisset
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            
             </div>
         </div>
     </div>

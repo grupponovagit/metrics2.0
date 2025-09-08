@@ -16,8 +16,8 @@
         <!-- Scripts -->
         @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="bg-base-100 flex">
+    <body class="font-sans antialiased min-h-screen overflow-x-hidden">
+        <div class="bg-base-100 flex min-h-screen w-full max-w-full overflow-x-hidden">
             <!-- Sidebar sempre visibile su desktop -->
             <div class="hidden lg:block">
                 @include('admin.layouts.navigation')
