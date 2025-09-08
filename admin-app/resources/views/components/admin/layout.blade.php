@@ -17,15 +17,36 @@
         @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="bg-base-100 drawer lg:drawer-open">
-            <input id="drawer" type="checkbox" class="drawer-toggle">
-            <div class="drawer-content flex flex-col">
-                <!-- Page Heading -->
-                <div class="navbar flex justify-between bg-base-100 z-10 shadow-md">
+        <div class="bg-base-100 flex">
+            <!-- Sidebar sempre visibile su desktop -->
+            <div class="hidden lg:block">
+                @include('admin.layouts.navigation')
+            </div>
+            
+            <!-- Mobile drawer -->
+            <div class="lg:hidden drawer">
+                <input id="drawer" type="checkbox" class="drawer-toggle">
+                <div class="drawer-content">
+                    <div class="navbar flex justify-between bg-base-100 z-10 shadow-md">
+                        <div class="">
+                            <label for="drawer" class="btn btn-primary drawer-button">
+                                <x-admin.fa-icon name="bars" class="h-5 w-5" />
+                            </label>
+                            <h1 class="text-2xl font-semibold ml-2">{{ $header }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="drawer-side z-40">
+                    <label for="drawer" class="drawer-overlay" aria-label="Close menu"></label>
+                    @include('admin.layouts.navigation')
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="flex-1 flex flex-col">
+                <!-- Page Heading per desktop -->
+                <div class="hidden lg:flex navbar justify-between bg-base-100 z-10 shadow-md">
                     <div class="">
-                        <label for="drawer" class="btn btn-primary drawer-button lg:hidden">
-                            <x-admin.fa-icon name="bars" class="h-5 w-5" />
-                        </label>
                         <h1 class="text-2xl font-semibold ml-2">{{ $header }}</h1>
                     </div>
                     <div class="order-last">
@@ -78,10 +99,6 @@
                 <main class="flex-1 overflow-y-auto p-4 bg-base-200">
                     {{ $slot }}
                 </main>
-            </div>
-            <div class="drawer-side z-40">
-                <label for="drawer" class="drawer-overlay" aria-label="Close menu"></label>
-                @include('admin.layouts.navigation')
             </div>
         </div>
     </body>
