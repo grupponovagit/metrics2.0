@@ -9,8 +9,10 @@
             modules: ['home', 'hr', 'amministrazione', 'produzione', 'marketing', 'ict'],
             
             init() {
-                // Tutti i moduli sono chiusi di default
-                this.activeModule = null;
+                // Apre automaticamente il modulo corretto basandosi sull'URL corrente
+                const currentPath = window.location.pathname;
+                const activeModule = this.modules.find(module => currentPath.includes('/' + module + '/'));
+                this.activeModule = activeModule || null;
             },
             
             toggleSidebar() {
@@ -31,14 +33,6 @@
             },
             
             isModuleExpanded(moduleKey) {
-                // Mantiene aperto il modulo se è quello attivo nella navigazione corrente
-                const currentPath = window.location.pathname;
-                const isCurrentModule = currentPath.includes('/' + moduleKey + '/');
-                
-                if (isCurrentModule && this.activeModule !== moduleKey) {
-                    this.activeModule = moduleKey;
-                }
-                
                 return this.activeModule === moduleKey;
             },
             
@@ -52,35 +46,39 @@
         
         <!-- Header con Logo e Toggle -->
         <div class="sidebar-header">
-            <div class="flex items-center" :class="collapsed ? 'justify-center' : 'justify-between'">
-                <!-- Logo -->
-                <a href="{{ route('admin.dashboard') }}" class="logo-container group" :class="collapsed ? 'mx-auto' : ''">
-                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-primary flex items-center justify-center">
-                        <img src="{{ asset('assets/logo.png') }}" alt="Metrics Logo" class="w-8 h-8 object-contain">
+            <!-- Logo -->
+            <div class="flex items-center justify-center mb-3">
+                <a href="{{ route('admin.dashboard') }}" class="logo-container group">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
+                        <img src="{{ asset('assets/logo.png') }}" alt="Metrics Logo" class="w-10 h-10 object-contain">
                     </div>
                     <div x-show="!collapsed" 
                          x-transition:enter="transition ease-out duration-200" 
                          x-transition:enter-start="opacity-0 transform translate-x-4" 
                          x-transition:enter-end="opacity-100 transform translate-x-0"
-                         class="flex flex-col ml-3">
-                        <span class="text-lg font-bold text-base-content">Metrics</span>
-                        <span class="text-xs text-base-content/60">v2.0</span>
+                         class="flex flex-col ml-4">
+                        <span class="text-xl font-bold text-base-content">Metrics</span>
+                        <span class="text-sm text-base-content/60">v2.0</span>
                     </div>
                 </a>
-                
-                <!-- Toggle Button - SEMPRE VISIBILE -->
+            </div>
+            
+            <!-- Toggle Button - SEMPRE SOTTO IL LOGO -->
+            <div class="flex justify-center">
                 <button @click="toggleSidebar()" 
-                        class="btn btn-ghost btn-sm btn-circle hidden lg:flex"
-                        :class="collapsed ? 'absolute top-4 right-2' : ''"
+                        class="btn btn-primary btn-sm hidden lg:flex w-full max-w-[200px] gap-2 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                        :class="collapsed ? 'btn-circle !w-12 !max-w-none' : ''"
                         :title="collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'">
-                    <i class="fas fa-angles-left text-sm transition-transform duration-300"
+                    <i class="fas fa-angles-left text-base transition-transform duration-300"
                        :class="collapsed ? 'rotate-180' : ''"></i>
+                    <span x-show="!collapsed" 
+                          x-transition:enter="transition ease-out duration-200"
+                          x-transition:enter-start="opacity-0"
+                          x-transition:enter-end="opacity-100"
+                          class="font-medium">
+                        Comprimi
+                    </span>
                 </button>
-                
-                <!-- Mobile Close -->
-                <label for="drawer" class="toggle-btn lg:hidden">
-                    <i class="fas fa-xmark text-sm"></i>
-                </label>
             </div>
         </div>
 

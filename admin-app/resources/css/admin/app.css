@@ -221,11 +221,16 @@ body, html {
 
 /* Header collassato */
 .sidebar-collapsed .sidebar-header {
-    @apply relative px-2 py-4;
+    @apply px-2 py-4;
 }
 
-.sidebar-collapsed .logo-container {
-    @apply justify-center;
+/* Logo più grande quando collassato */
+.sidebar-collapsed .logo-container div {
+    @apply w-12 h-12;
+}
+
+.sidebar-collapsed .logo-container img {
+    @apply w-8 h-8;
 }
 
 
