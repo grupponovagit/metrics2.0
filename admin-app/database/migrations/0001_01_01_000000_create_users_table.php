@@ -16,13 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('surname')->nullable();  // Colonna aggiunta per il cognome
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('codice_fiscale')->nullable();  // Codice fiscale
-            $table->date('data_nascita')->nullable();  // Data di nascita
-            $table->string('luogo_nascita')->nullable();  // Luogo di nascita
             $table->string('phone')->nullable();  // Numero di telefono
-            $table->string('cluster')->nullable();  // Cluster
+            $table->string('role')->nullable();  // Ruolo principale (convenience)
             $table->rememberToken();
             $table->timestamps();
         });

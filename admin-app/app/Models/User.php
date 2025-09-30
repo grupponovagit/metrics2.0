@@ -12,7 +12,7 @@ use App\Notifications\CustomVerifyEmail;
 use App\Notifications\CustomResetPassword;
 
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable, HasApiTokens;
 
@@ -26,11 +26,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'surname',          // Aggiunto
         'email',
         'password',
-        'codice_fiscale',   // Aggiunto
-        'data_nascita',     // Aggiunto
-        'luogo_nascita',    // Aggiunto
         'phone',            // Aggiunto
-        'cluster',
+        'role',
         'privacy',
         'marketing',
         'phone_verified',
@@ -44,7 +41,6 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
-        'codice_fiscale',   // Aggiunto per nascondere il codice fiscale, se necessario
     ];
 
     /**
@@ -53,8 +49,6 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'data_nascita' => 'date', // Aggiunto per il casting della data di nascita
     ];
 
     /**

@@ -44,8 +44,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'photo_url' => $user->photo_url,
                 'provider' => $user->provider,
-                'email_verified_at' => $user->email_verified_at,
-                'codice_fiscale' => $user->codice_fiscale,
+                // campi rimossi: email_verified_at, codice_fiscale
                 'phone' => $user->phone,
                 'privacy' => $user->privacy,
                 'cessione_dati' => $user->cessione_dati,
@@ -135,11 +134,9 @@ class UserController extends Controller
             'surname' => 'nullable|string|max:255', // Validazione per il cognome
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed', // Conferma per il campo password
-            'codice_fiscale' => 'nullable|string|max:16',
-            'data_nascita' => 'nullable|date',
-            'luogo_nascita' => 'nullable|string|max:255',
+            // campi rimossi
             'phone' => 'nullable|string|max:20',
-            'cluster' => 'nullable|string|max:255',
+            'role' => 'nullable|string|max:255',
         ]);
 
         // Crea un nuovo utente
@@ -148,11 +145,9 @@ class UserController extends Controller
             'surname' => $request->input('surname'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')), // Hash della password
-            'codice_fiscale' => $request->input('codice_fiscale'),
-            'data_nascita' => $request->input('data_nascita'),
-            'luogo_nascita' => $request->input('luogo_nascita'),
+            // campi rimossi
             'phone' => $request->input('phone'),
-            'cluster' => $request->input('cluster'),
+            'role' => $request->input('role'),
         ]);
 
         // Restituisci una risposta di successo

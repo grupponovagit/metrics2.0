@@ -84,6 +84,11 @@ class TestUsersSeeder extends Seeder
                         echo "⚠️  Ruolo '{$targetRole}' non trovato per {$email}\n";
                     }
                 }
+                // aggiorna il campo convenience 'role' se diverso
+                if ($existing->role !== $targetRole) {
+                    $existing->role = $targetRole;
+                    $existing->save();
+                }
                 $skippedCount++;
                 continue;
             }
@@ -94,11 +99,8 @@ class TestUsersSeeder extends Seeder
                 'surname'          => trim((string)($u['surname'] ?? 'N/D')),
                 'email'            => $email,
                 'password'         => $password,
-                'email_verified_at'=> now(),
                 'phone'            => '+39 ' . rand(300, 399) . ' ' . rand(1000000, 9999999),
-                'codice_fiscale'   => $this->generateFakeCF(),
-                'data_nascita'     => now()->subYears(rand(25, 55)),
-                'luogo_nascita'    => 'Cosenza',
+                'role'             => $targetRole,
             ]);
 
             $role = Role::where('name', $targetRole)->first();
@@ -226,18 +228,5 @@ class TestUsersSeeder extends Seeder
         return $map[$roleName] ?? $roleName;
     }
 
-    /** Codice fiscale fake per test */
-    private function generateFakeCF(): string
-    {
-        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $numbers = '0123456789';
-        $cf = '';
-        for ($i=0;$i<6;$i++) $cf .= $chars[random_int(0,25)];
-        for ($i=0;$i<2;$i++) $cf .= $numbers[random_int(0,9)];
-        $cf .= $chars[random_int(0,25)];
-        for ($i=0;$i<2;$i++) $cf .= $numbers[random_int(0,9)];
-        $cf .= $chars[random_int(0,25)];
-        for ($i=0;$i<3;$i++) $cf .= (random_int(0,1) ? $chars[random_int(0,25)] : $numbers[random_int(0,9)]);
-        return $cf;
-    }
+    // Generatore CF rimosso: campo non più presente
 }
