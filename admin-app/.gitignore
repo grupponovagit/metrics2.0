@@ -16,3 +16,4 @@ yarn-error.log
 /.vscode
 .env
 /public/build
+/public/build/manifest.json
