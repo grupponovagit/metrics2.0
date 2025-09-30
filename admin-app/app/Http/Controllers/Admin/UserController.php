@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Auth;
-use App\Models\FcmToken;
+use Illuminate\Support\Facades\Validator;
 use Exception;
 
 
@@ -82,8 +82,6 @@ class UserController extends Controller
             // Opzionale: Revoca tutti gli altri token dell'utente
             // Questo passaggio assicura che tutti i token associati all'utente vengano revocati.
             $request->user()->tokens()->where('id', '!=', $token->id)->delete();
-
-            FcmToken::where('user_id', $request->user()->id)->delete();
             return response()->json(['message' => 'Logged out successfully'], 200);
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to logout, please try again'], 500);
@@ -224,7 +222,7 @@ class UserController extends Controller
      */
     public function accountInfo()
     {
-        $user = \Auth::user();
+        $user = Auth::user();
 
         return view('admin.user.account_info', compact('user'));
     }
@@ -238,15 +236,21 @@ class UserController extends Controller
     {
         $request->validateWithBag('account', [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . \Auth::user()->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . Auth::user()->id],
         ]);
 
-        $user = \Auth::user()->update($request->except(['_token']));
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (!($user instanceof User)) {
+            return redirect()->route('admin.account.info')->with('account_message', __('Utente non autenticato.'));
+        }
+        $user->fill($request->except(['_token']));
+        $saved = $user->save();
 
-        if ($user) {
-            $message = 'Account updated successfully.';
+        if ($saved) {
+            $message = 'Account aggiornato con successo.';
         } else {
-            $message = 'Error while saving. Please try again.';
+            $message = 'Errore durante il salvataggio. Per favore, riprova.';
         }
 
         return redirect()->route('admin.account.info')->with('account_message', __($message));
@@ -259,7 +263,7 @@ class UserController extends Controller
      */
     public function changePasswordStore(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'old_password' => ['required'],
             'new_password' => ['required', Rules\Password::defaults()],
             'confirm_password' => ['required', 'same:new_password', Rules\Password::defaults()],
@@ -269,24 +273,28 @@ class UserController extends Controller
             if ($validator->failed()) {
                 return;
             }
-            if (! Hash::check($request->input('old_password'), \Auth::user()->password)) {
+            if (! Hash::check($request->input('old_password'), Auth::user()->password)) {
                 $validator->errors()->add(
                     'old_password',
-                    __('Old password is incorrect.')
+                    __('Vecchia password errata.')
                 );
             }
         });
 
         $validator->validateWithBag('password');
 
-        $user = \Auth::user()->update([
-            'password' => Hash::make($request->input('new_password')),
-        ]);
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (!($user instanceof User)) {
+            return redirect()->route('admin.account.info')->with('password_message', __('Utente non autenticato.'));
+        }
+        $user->password = Hash::make($request->input('new_password'));
+        $saved = $user->save();
 
-        if ($user) {
-            $message = 'Password updated successfully.';
+        if ($saved) {
+            $message = 'Password aggiornata con successo.';
         } else {
-            $message = 'Error while saving. Please try again.';
+            $message = 'Errore durante il salvataggio. Per favore, riprova.';
         }
 
         return redirect()->route('admin.account.info')->with('password_message', __($message));

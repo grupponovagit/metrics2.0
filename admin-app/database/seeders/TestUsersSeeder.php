@@ -5,252 +5,239 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Spatie\Permission\Models\Role;
 
 class TestUsersSeeder extends Seeder
 {
     /**
-     * Crea utenti di test per ogni ruolo aziendale
+     * Popola utenti SOLO da seed_real_users.json (o SEED_USERS_URL)
      */
     public function run()
     {
         $password = Hash::make('password123');
-        
-        // Definizione degli utenti di test per ogni ruolo
-        $testUsers = [
-            // Livello 1 - Top Management
-            'CEO' => [
-                'name' => 'Mario Rossi',
-                'surname' => 'CEO',
-                'email' => 'ceo@novaholding.it',
-                'role' => 'CEO'
-            ],
-            'CFO' => [
-                'name' => 'Anna Bianchi',
-                'surname' => 'CFO', 
-                'email' => 'cfo@novaholding.it',
-                'role' => 'CFO'
-            ],
-            
-            // Livello 2
-            'LEGALE' => [
-                'name' => 'Giuseppe Verdi',
-                'surname' => 'Legale',
-                'email' => 'legale@novaholding.it',
-                'role' => 'LEGALE'
-            ],
-            
-            // Livello 3
-            'CONTABILITÀ' => [
-                'name' => 'Maria Neri',
-                'surname' => 'Contabile',
-                'email' => 'contabilita@novaholding.it',
-                'role' => 'CONTABILITÀ'
-            ],
-            
-            // Livello 4
-            'TESORERIA' => [
-                'name' => 'Franco Blu',
-                'surname' => 'Tesoriere',
-                'email' => 'tesoreria@novaholding.it',
-                'role' => 'TESORERIA'
-            ],
-            
-            // Livello 5
-            'AMM_PERSONALE' => [
-                'name' => 'Laura Gialli',
-                'surname' => 'HR Admin',
-                'email' => 'hr.admin@novaholding.it',
-                'role' => 'AMM_PERSONALE'
-            ],
-            'AFFARI_GENERALI' => [
-                'name' => 'Roberto Viola',
-                'surname' => 'Affari Generali',
-                'email' => 'affari.generali@novaholding.it',
-                'role' => 'AFFARI_GENERALI'
-            ],
-            
-            // Livello 6
-            'CTO' => [
-                'name' => 'Alessandro Tech',
-                'surname' => 'CTO',
-                'email' => 'cto@novaholding.it',
-                'role' => 'CTO'
-            ],
-            'CMO' => [
-                'name' => 'Valentina Marketing',
-                'surname' => 'CMO',
-                'email' => 'cmo@novaholding.it',
-                'role' => 'CMO'
-            ],
-            'COMMERCIALE' => [
-                'name' => 'Luca Vendite',
-                'surname' => 'Commerciale',
-                'email' => 'commerciale@novaholding.it',
-                'role' => 'COMMERCIALE'
-            ],
-            'OPERATION' => [
-                'name' => 'Stefano Operations',
-                'surname' => 'Operations',
-                'email' => 'operations@novaholding.it',
-                'role' => 'OPERATION'
-            ],
-            'QUALITÀ' => [
-                'name' => 'Elena Quality',
-                'surname' => 'Qualità',
-                'email' => 'qualita@novaholding.it',
-                'role' => 'QUALITÀ'
-            ],
-            'COGE_REGIA' => [
-                'name' => 'Marco Controller',
-                'surname' => 'Controllo',
-                'email' => 'controllo@novaholding.it',
-                'role' => 'COGE_REGIA'
-            ],
-            
-            // Livello 7
-            'SVILUPPO' => [
-                'name' => 'Davide Developer',
-                'surname' => 'Dev',
-                'email' => 'dev@novaholding.it',
-                'role' => 'SVILUPPO'
-            ],
-            'WAR_ROOM' => [
-                'name' => 'Andrea War',
-                'surname' => 'Room',
-                'email' => 'warroom@novaholding.it',
-                'role' => 'WAR_ROOM'
-            ],
-            'PM_MANDATO' => [
-                'name' => 'Simone Project',
-                'surname' => 'Manager',
-                'email' => 'pm@novaholding.it',
-                'role' => 'PM_MANDATO'
-            ],
-            'HR_SEL_FORM' => [
-                'name' => 'Chiara HR',
-                'surname' => 'Selezione',
-                'email' => 'hr.selezione@novaholding.it',
-                'role' => 'HR_SEL_FORM'
-            ],
-        ];
 
-        // Aggiungi utenti per ogni location (CCM, TL, OP)
-        $locations = ['LAMEZIA', 'RENDE', 'VIBO', 'CASTROVILLARI', 'CATANZARO', 'SAN_PIETRO'];
-        $locationRoles = ['CCM', 'TL', 'OP'];
-        $locationNames = [
-            'LAMEZIA' => 'Lamezia Terme',
-            'RENDE' => 'Rende',
-            'VIBO' => 'Vibo Valentia',
-            'CASTROVILLARI' => 'Castrovillari',
-            'CATANZARO' => 'Catanzaro',
-            'SAN_PIETRO' => 'San Pietro'
-        ];
+        // 1) Carica utenti reali
+        $realUsers = [];
+        $jsonPath = storage_path('app/seed_real_users.json');
 
-        foreach ($locations as $location) {
-            foreach ($locationRoles as $roleType) {
-                $roleName = "{$roleType}_{$location}";
-                $locationName = $locationNames[$location];
-                
-                $testUsers[$roleName] = [
-                    'name' => ucfirst(strtolower($roleType)) . ' ' . $locationName,
-                    'surname' => $roleType,
-                    'email' => strtolower($roleType) . '.' . strtolower($location) . '@novaholding.it',
-                    'role' => $roleName
-                ];
+        if (file_exists($jsonPath)) {
+            $content = file_get_contents($jsonPath);
+            $realUsers = json_decode($content, true) ?: [];
+        } elseif (env('SEED_USERS_URL')) {
+            try {
+                $response = Http::timeout(5)->get(env('SEED_USERS_URL'));
+                if ($response->successful()) {
+                    $realUsers = $response->json() ?: [];
+                }
+            } catch (\Throwable $e) {
+                // ignora
             }
         }
 
-        // Crea gli utenti
+        if (empty($realUsers)) {
+            echo "⚠️  Nessun utente reale trovato. Assicurati di avere storage/app/seed_real_users.json o SEED_USERS_URL.\n";
+            return;
+        }
+
         $createdCount = 0;
         $skippedCount = 0;
 
-        foreach ($testUsers as $userData) {
-            // Verifica se l'utente esiste già
-            $existingUser = User::where('email', $userData['email'])->first();
-            
-            if ($existingUser) {
-                // Utente esiste, assegna solo il ruolo se non ce l'ha
-                if (!$existingUser->hasRole($userData['role'])) {
-                    $role = Role::where('name', $userData['role'])->first();
+        /**
+         * Il JSON può essere:
+         * - array indicizzato di utenti: [{name, surname, email, role}, ...]
+         * - oggetto mappato per ruolo: {"CEO": {name, surname, email, role}, ...}
+         */
+        $list = $this->normalizeInputArray($realUsers);
+
+        foreach ($list as $u) {
+            // 2) Sanitize & inferenze
+            $email = trim((string)($u['email'] ?? ''));
+            if ($email === '') {
+                echo "⚠️  Record senza email, saltato.\n";
+                $skippedCount++;
+                continue;
+            }
+
+            $roleRaw = strtoupper(trim((string)($u['role'] ?? '')));
+            if ($roleRaw === '') {
+                // prova a inferire dal cognome/qualifica
+                $roleRaw = $this->inferRoleFromData($u);
+            }
+            $targetRole = $this->normalizeRoleName($roleRaw);
+
+            // Se è CCM/TL/OP "generico", prova a dedurre la sede da email
+            if (preg_match('/^(CCM|TL|OP)$/', $targetRole)) {
+                $maybe = $this->inferLocationRoleFromEmail($targetRole, $email);
+                if ($maybe) $targetRole = $maybe;
+            }
+
+            // 3) Se esiste, assegna ruolo mancante; altrimenti crea
+            $existing = User::where('email', $email)->first();
+            if ($existing) {
+                if (!$existing->hasRole($targetRole)) {
+                    $role = Role::where('name', $targetRole)->first();
                     if ($role) {
-                        $existingUser->assignRole($userData['role']);
-                        echo "✓ Ruolo '{$userData['role']}' assegnato all'utente esistente {$existingUser->name}\n";
+                        $existing->assignRole($targetRole);
+                        echo "✓ Ruolo '{$targetRole}' assegnato a utente esistente {$email}\n";
+                    } else {
+                        echo "⚠️  Ruolo '{$targetRole}' non trovato per {$email}\n";
                     }
                 }
                 $skippedCount++;
                 continue;
             }
 
-            // Crea nuovo utente
+            // Crea utente
             $user = User::create([
-                'name' => $userData['name'],
-                'surname' => $userData['surname'],
-                'email' => $userData['email'],
-                'password' => $password,
-                'email_verified_at' => now(),
-                'phone' => '+39 ' . rand(300, 399) . ' ' . rand(1000000, 9999999),
-                'codice_fiscale' => $this->generateFakeCF(),
-                'data_nascita' => now()->subYears(rand(25, 55)),
-                'luogo_nascita' => 'Cosenza',
+                'name'             => trim((string)($u['name'] ?? 'N/D')),
+                'surname'          => trim((string)($u['surname'] ?? 'N/D')),
+                'email'            => $email,
+                'password'         => $password,
+                'email_verified_at'=> now(),
+                'phone'            => '+39 ' . rand(300, 399) . ' ' . rand(1000000, 9999999),
+                'codice_fiscale'   => $this->generateFakeCF(),
+                'data_nascita'     => now()->subYears(rand(25, 55)),
+                'luogo_nascita'    => 'Cosenza',
             ]);
 
-            // Assegna il ruolo
-            $role = Role::where('name', $userData['role'])->first();
+            $role = Role::where('name', $targetRole)->first();
             if ($role) {
-                $user->assignRole($userData['role']);
-                echo "✅ Utente '{$user->name}' creato con ruolo '{$userData['role']}' - Email: {$user->email}\n";
+                $user->assignRole($targetRole);
+                echo "✅ Utente '{$email}' creato con ruolo '{$targetRole}'\n";
                 $createdCount++;
             } else {
-                echo "⚠️  Ruolo '{$userData['role']}' non trovato per utente {$user->name}\n";
+                echo "⚠️  Utente '{$email}' creato ma ruolo '{$targetRole}' non trovato\n";
             }
         }
 
         echo "\n🎉 Seeder completato!\n";
         echo "👥 Utenti creati: {$createdCount}\n";
         echo "⏭️  Utenti esistenti: {$skippedCount}\n";
-        echo "🔐 Password per tutti gli utenti: password123\n\n";
-
-        // Mostra alcuni utenti di esempio per il test
-        echo "🧪 UTENTI DI TEST PRINCIPALI:\n";
-        echo "CEO: ceo@novaholding.it (password123) - Accesso completo\n";
-        echo "Contabilità: contabilita@novaholding.it (password123) - Solo Home + Amministrazione\n";
-        echo "CCM Lamezia: ccm.lamezia@novaholding.it (password123) - Solo Home + Produzione\n";
-        echo "CMO: cmo@novaholding.it (password123) - Solo Home + Marketing\n";
-        echo "HR Admin: hr.admin@novaholding.it (password123) - Solo Home + HR\n";
-        echo "Legale: legale@novaholding.it (password123) - Solo accesso admin (nessun modulo)\n\n";
+        echo "🔐 Password per tutti: password123\n";
     }
 
-    /**
-     * Genera un codice fiscale fake per test
-     */
-    private function generateFakeCF()
+    /** Accetta sia array indicizzati che oggetti mappati per ruolo */
+    private function normalizeInputArray($realUsers): array
+    {
+        // Se è già una lista di utenti
+        if (isset($realUsers[0]) || empty($realUsers)) return $realUsers;
+
+        // Altrimenti è un oggetto {roleKey: {...}}
+        $out = [];
+        foreach ($realUsers as $roleKey => $u) {
+            if (is_array($u)) {
+                // se manca 'role', inserisci la chiave
+                if (empty($u['role'])) $u['role'] = $roleKey;
+                $out[] = $u;
+            }
+        }
+        return $out;
+    }
+
+    /** Inferisce un ruolo di base dal surname/qualifica o dall'email */
+    private function inferRoleFromData(array $u): string
+    {
+        $surname = strtolower((string)($u['surname'] ?? ''));
+        $email   = strtolower((string)($u['email'] ?? ''));
+
+        $map = [
+            'ceo' => 'CEO',
+            'cfo' => 'CFO',
+            'legale' => 'LEGALE',
+            'contabile' => 'CONTABILITÀ',
+            'tesoriere' => 'TESORERIA',
+            'hr admin' => 'AMM_PERSONALE',
+            'affari generali' => 'AFFARI_GENERALI',
+            'cto' => 'CTO',
+            'cmo' => 'MARKETING',
+            'marketing' => 'MARKETING',
+            'commerciale' => 'COMMERCIALE',
+            'operations' => 'OPERATION',
+            'qualità' => 'QUALITÀ',
+            'qualita' => 'QUALITÀ',
+            'controllo' => 'COGE_REGIA',
+            'sviluppo' => 'IT',
+            'ict' => 'IT',
+            'it' => 'IT',
+            'war room' => 'WAR_ROOM',
+            'pm mandato' => 'PM_MANDATO',
+            'hr selezione' => 'HR_SEL_FORM',
+            'hr selezione e formazione' => 'HR_SEL_FORM',
+            'ccm' => 'CCM',
+            'tl' => 'TL',
+            'op' => 'OP',
+        ];
+
+        foreach ($map as $needle => $role) {
+            if ($needle !== '' && str_contains($surname, $needle)) {
+                if (in_array($role, ['CCM','TL','OP'])) {
+                    return $this->inferLocationRoleFromEmail($role, $email) ?? $role;
+                }
+                return $role;
+            }
+        }
+
+        // fallback leggero via email (es. cmo@ → MARKETING)
+        if (preg_match('/\b(cmo)\b/i', $email)) return 'MARKETING';
+        if (preg_match('/\b(cto)\b/i', $email)) return 'CTO';
+        if (preg_match('/\b(ccm|tl|op)\b/i', $email, $m)) return strtoupper($m[1]);
+
+        return 'CEO';
+    }
+
+    /** Tenta di dedurre la location dal dominio/email */
+    private function inferLocationRoleFromEmail(string $baseRole, string $email): ?string
+    {
+        $locs = [
+            'lamezia' => 'LAMEZIA',
+            'rende' => 'RENDE',
+            'vibo' => 'VIBO',
+            'castrovillari' => 'CASTROVILLARI',
+            'catanzaro' => 'CATANZARO',
+            'san_pietro' => 'SAN_PIETRO',
+            'sanpietro' => 'SAN_PIETRO',
+        ];
+        $email = strtolower($email);
+        foreach ($locs as $needle => $loc) {
+            if (str_contains($email, $needle)) {
+                return "{$baseRole}_{$loc}";
+            }
+        }
+        return null;
+    }
+
+    /** Normalizza alias/ridenominazioni ai nomi dei ruoli esistenti */
+    private function normalizeRoleName(string $roleName): string
+    {
+        $roleName = strtoupper($roleName);
+        $map = [
+            'CMO' => 'MARKETING',
+            'SVILUPPO' => 'IT',
+            'ICT' => 'IT',
+            'OPERATIONS' => 'OPERATION',
+            'QUALITA' => 'QUALITÀ',
+            'HR ADMIN' => 'AMM_PERSONALE',
+            'AFFARI GENERALI' => 'AFFARI_GENERALI',
+            'WAR ROOM' => 'WAR_ROOM',
+            'PM MANDATO' => 'PM_MANDATO',
+            'HR SELEZIONE' => 'HR_SEL_FORM',
+        ];
+        return $map[$roleName] ?? $roleName;
+    }
+
+    /** Codice fiscale fake per test */
+    private function generateFakeCF(): string
     {
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $numbers = '0123456789';
-        
         $cf = '';
-        // 6 lettere
-        for ($i = 0; $i < 6; $i++) {
-            $cf .= $chars[rand(0, strlen($chars) - 1)];
-        }
-        // 2 numeri
-        for ($i = 0; $i < 2; $i++) {
-            $cf .= $numbers[rand(0, strlen($numbers) - 1)];
-        }
-        // 1 lettera
-        $cf .= $chars[rand(0, strlen($chars) - 1)];
-        // 2 numeri
-        for ($i = 0; $i < 2; $i++) {
-            $cf .= $numbers[rand(0, strlen($numbers) - 1)];
-        }
-        // 1 lettera
-        $cf .= $chars[rand(0, strlen($chars) - 1)];
-        // 3 caratteri finali
-        for ($i = 0; $i < 3; $i++) {
-            $cf .= rand(0, 1) ? $chars[rand(0, strlen($chars) - 1)] : $numbers[rand(0, strlen($numbers) - 1)];
-        }
-        
+        for ($i=0;$i<6;$i++) $cf .= $chars[random_int(0,25)];
+        for ($i=0;$i<2;$i++) $cf .= $numbers[random_int(0,9)];
+        $cf .= $chars[random_int(0,25)];
+        for ($i=0;$i<2;$i++) $cf .= $numbers[random_int(0,9)];
+        $cf .= $chars[random_int(0,25)];
+        for ($i=0;$i<3;$i++) $cf .= (random_int(0,1) ? $chars[random_int(0,25)] : $numbers[random_int(0,9)]);
         return $cf;
     }
 }

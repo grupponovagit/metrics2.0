@@ -901,6 +901,21 @@
                 --tw-ring-color: rgb(255 255 255 / var(--tw-ring-opacity))
             }
         }
+        /* Plain CSS button (fallback when Tailwind isn't active) */
+        .btn-primary {
+            display: inline-block;
+            padding: 20px 32px;
+            font-size: 22px;
+            line-height: 1.1;
+            font-weight: 600;
+            border-radius: 16px;
+            background: #f59e0b; /* arancione vivo */
+            color: #fff;
+            text-decoration: none;
+            border: none;
+        }
+        .btn-primary:hover { background: #d97706; color: #fff; }
+        .btn-primary:focus { outline: 2px solid #f59e0b; outline-offset: 2px; }
     </style>
 </head>
 
@@ -918,27 +933,21 @@
                     </div>
                     @if (Route::has('login'))
                         <nav class="-mx-3 flex flex-1 justify-end">
-                            @auth
-                                <a href="{{ url('/dashboard') }}"
-                                    class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                                    Dashboard
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}"
-                                    class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                                    Log in
-                                </a>
-
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}"
-                                        class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                                        Registrati
-                                    </a>
-                                @endif
-                            @endauth
+                            {{-- Rimosso tasto Log in dalla navbar su richiesta --}}
                         </nav>
                     @endif
                 </header>
+            </div>
+            <div class="w-full flex justify-center py-16">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="btn-primary">
+                        Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="btn-primary">
+                        Accedi
+                    </a>
+                @endauth
             </div>
         </div>
     </div>
