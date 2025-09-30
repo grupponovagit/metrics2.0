@@ -59,11 +59,12 @@ class AdminCoreSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            // Idempotente: non fallire se il permesso esiste già
+            Permission::findOrCreate($permission, 'web');
         }
 
         // create roles and assign existing permissions
-        $role1 = Role::create(['name' => 'writer']);
+        $role1 = Role::findOrCreate('writer', 'web');
         $role1->givePermissionTo('admin user');
         $role1->givePermissionTo('permission list');
         $role1->givePermissionTo('role list');
@@ -74,39 +75,50 @@ class AdminCoreSeeder extends Seeder
         $role1->givePermissionTo('category.type list');
         $role1->givePermissionTo('media list');
 
-        $role2 = Role::create(['name' => 'admin']);
+        $role2 = Role::findOrCreate('admin', 'web');
         foreach ($permissions as $permission) {
             $role2->givePermissionTo($permission);
         }
 
-        $role3 = Role::create(['name' => 'super-admin']);
+        $role3 = Role::findOrCreate('super-admin', 'web');
         // gets all permissions via Gate::before rule; see AuthServiceProvider
 
         // create demo users
-        $user = \App\Models\User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@example.com',
-        ]);
+        $user = \App\Models\User::firstWhere('email', 'superadmin@example.com');
+        if (!$user) {
+            $user = \App\Models\User::factory()->create([
+                'name' => 'Super Admin',
+                'email' => 'superadmin@example.com',
+            ]);
+        }
         $user->assignRole($role3);
 
-        $user = \App\Models\User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-        ]);
+        $user = \App\Models\User::firstWhere('email', 'admin@example.com');
+        if (!$user) {
+            $user = \App\Models\User::factory()->create([
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+            ]);
+        }
         $user->assignRole($role2);
 
-        $user = \App\Models\User::factory()->create([
-            'name' => 'Example User',
-            'email' => 'test@example.com',
-        ]);
+        $user = \App\Models\User::firstWhere('email', 'test@example.com');
+        if (!$user) {
+            $user = \App\Models\User::factory()->create([
+                'name' => 'Example User',
+                'email' => 'test@example.com',
+            ]);
+        }
         $user->assignRole($role1);
 
         // create menu
-        $menu = Menu::create([
-            'name' => 'Admin',
-            'machine_name' => 'admin',
-            'description' => 'Admin Menu',
-        ]);
+        $menu = Menu::firstOrCreate(
+            ['machine_name' => 'admin'],
+            [
+                'name' => 'Admin',
+                'description' => 'Admin Menu',
+            ]
+        );
 
         $menu_items = [
             [
@@ -160,27 +172,39 @@ class AdminCoreSeeder extends Seeder
             ],
         ];
 
-        $menu->menuItems()->createMany($menu_items);
+        foreach ($menu_items as $item) {
+            // Usa uri come chiave naturale per non duplicare le voci
+            $menu->menuItems()->updateOrCreate(
+                ['uri' => $item['uri']],
+                $item
+            );
+        }
 
         // create category type
-        CategoryType::create([
-            'name' => 'Category',
-            'machine_name' => 'category',
-            'description' => 'Main Category',
-        ]);
+        CategoryType::firstOrCreate(
+            ['machine_name' => 'category'],
+            [
+                'name' => 'Category',
+                'description' => 'Main Category',
+            ]
+        );
 
-        CategoryType::create([
-            'name' => 'Tag',
-            'machine_name' => 'tag',
-            'description' => 'Site Tags',
-            'is_flat' => true,
-        ]);
+        CategoryType::firstOrCreate(
+            ['machine_name' => 'tag'],
+            [
+                'name' => 'Tag',
+                'description' => 'Site Tags',
+                'is_flat' => true,
+            ]
+        );
 
-        CategoryType::create([
-            'name' => 'Admin Tag',
-            'machine_name' => 'admin_tag',
-            'description' => 'Admin Tags',
-            'is_flat' => true,
-        ]);
+        CategoryType::firstOrCreate(
+            ['machine_name' => 'admin_tag'],
+            [
+                'name' => 'Admin Tag',
+                'description' => 'Admin Tags',
+                'is_flat' => true,
+            ]
+        );
     }
 }
