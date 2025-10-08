@@ -22,8 +22,17 @@ class HRController extends Controller
     {
         $user = Auth::user();
         
+        // Mock stats per dashboard HR
+        $stats = [
+            'total_employees' => 45,
+            'new_hires' => 5,
+            'absences' => 3,
+            'turnover_rate' => 8.5,
+        ];
+        
         return view('admin.modules.hr.index', [
             'user' => $user,
+            'stats' => $stats,
             'canCreate' => ModuleAccessService::canPerform('hr', 'create'),
             'canEdit' => ModuleAccessService::canPerform('hr', 'edit'),
             'canDelete' => ModuleAccessService::canPerform('hr', 'delete'),

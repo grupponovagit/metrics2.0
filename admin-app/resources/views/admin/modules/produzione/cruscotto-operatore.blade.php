@@ -1,30 +1,30 @@
-<x-admin.wrapper>
+<x-admin.wrapper :containerless="true">
     <x-slot name="title">{{ __('Cruscotto Operatore') }}</x-slot>
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-8">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-base-content">
-                            <x-admin.fa-icon name="user-gear" class="h-8 w-8 text-warning mr-3" />
-                            Cruscotto Operatore
-                        </h1>
-                        <p class="text-base-content/70 mt-2">Dashboard personale per singolo operatore</p>
-                    </div>
-                    <a href="{{ route('admin.produzione.index') }}" class="btn btn-outline btn-warning">
-                        <x-admin.fa-icon name="arrow-left" class="h-4 w-4 mr-2" />
-                        Torna a Produzione
-                    </a>
-                </div>
+    
+    <x-admin.page-header 
+        title="Cruscotto Operatore" 
+        subtitle="Dashboard personale operatore"
+        icon="user-gear"
+        iconColor="warning"
+    >
+        <x-slot name="actions">
+            <a href="{{ route('admin.produzione.index') }}" class="btn btn-outline btn-warning">
+                <x-admin.fa-icon name="arrow-left" class="h-4 w-4" />
+                Torna
+            </a>
+        </x-slot>
+    </x-admin.page-header>
+    
+    <x-admin.card tone="light" shadow="lg" padding="loose">
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-warning/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <x-admin.fa-icon name="user-gear" class="h-16 w-16 text-warning" />
             </div>
-            <div class="card bg-base-100 shadow-lg">
-                <div class="card-body text-center py-16">
-                    <x-admin.fa-icon name="user-gear" class="h-24 w-24 text-warning mx-auto mb-6" />
-                    <h2 class="text-2xl font-bold text-base-content mb-4">Cruscotto Operatore</h2>
-                    <p class="text-base-content/70 text-lg mb-6">Questa vista è pronta per essere personalizzata con la logica e i dati del cruscotto operatore.</p>
-                    <div class="badge badge-warning badge-lg">Modulo Produzione</div>
-                </div>
-            </div>
+            <h2 class="text-2xl font-bold text-base-content mb-4">Cruscotto Operatore</h2>
+            <p class="text-base-content/70 text-lg mb-6">
+                Questa vista è pronta per essere personalizzata con cruscotto operatore.
+            </p>
+            <div class="badge badge-warning badge-lg">Modulo Produzione</div>
         </div>
-    </div>
+    </x-admin.card>
 </x-admin.wrapper>

@@ -1,30 +1,30 @@
-<x-admin.wrapper>
-    <x-slot name="title">{{ __('Lead Management') }}</x-slot>
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-8">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-base-content">
-                            <x-admin.fa-icon name="users" class="h-8 w-8 text-info mr-3" />
-                            Lead Management
-                        </h1>
-                        <p class="text-base-content/70 mt-2">Gestione lead e prospect</p>
-                    </div>
-                    <a href="{{ route('admin.marketing.index') }}" class="btn btn-outline btn-info">
-                        <x-admin.fa-icon name="arrow-left" class="h-4 w-4 mr-2" />
-                        Torna a Marketing
-                    </a>
-                </div>
+<x-admin.wrapper :containerless="true">
+    <x-slot name="title">{{ __('Lead Marketing') }}</x-slot>
+    
+    <x-admin.page-header 
+        title="Lead Marketing" 
+        subtitle="Gestione e tracking lead generation"
+        icon="users"
+        iconColor="info"
+    >
+        <x-slot name="actions">
+            <a href="{{ route('admin.marketing.index') }}" class="btn btn-outline btn-info">
+                <x-admin.fa-icon name="arrow-left" class="h-4 w-4" />
+                Torna
+            </a>
+        </x-slot>
+    </x-admin.page-header>
+    
+    <x-admin.card tone="light" shadow="lg" padding="loose">
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-info/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <x-admin.fa-icon name="users" class="h-16 w-16 text-info" />
             </div>
-            <div class="card bg-base-100 shadow-lg">
-                <div class="card-body text-center py-16">
-                    <x-admin.fa-icon name="users" class="h-24 w-24 text-info mx-auto mb-6" />
-                    <h2 class="text-2xl font-bold text-base-content mb-4">Lead Management</h2>
-                    <p class="text-base-content/70 text-lg mb-6">Questa vista è pronta per essere personalizzata con la gestione lead.</p>
-                    <div class="badge badge-info badge-lg">Modulo Marketing</div>
-                </div>
-            </div>
+            <h2 class="text-2xl font-bold text-base-content mb-4">Lead Marketing</h2>
+            <p class="text-base-content/70 text-lg mb-6">
+                Questa vista è pronta per essere personalizzata con la gestione lead.
+            </p>
+            <div class="badge badge-info badge-lg">Modulo Marketing</div>
         </div>
-    </div>
+    </x-admin.card>
 </x-admin.wrapper>

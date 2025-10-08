@@ -1,31 +1,30 @@
-{{-- Esempio: wrapper con MAX-WIDTH 7XL (centrato) per contenuti focalizzati --}}
-<x-admin.wrapper maxWidth="7xl">
+<x-admin.wrapper :containerless="true">
     <x-slot name="title">{{ __('Budget') }}</x-slot>
     
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-base-content flex items-center">
-                    <x-admin.fa-icon name="chart-pie" class="h-8 w-8 text-accent mr-3" />
-                    Gestione Budget
-                </h1>
-                <p class="text-base-content/70 mt-2">Pianificazione e controllo budget aziendale</p>
-            </div>
+    <x-admin.page-header 
+        title="Gestione Budget" 
+        subtitle="Pianificazione e controllo budget aziendale"
+        icon="chart-pie"
+        iconColor="accent"
+    >
+        <x-slot name="actions">
             <a href="{{ route('admin.amministrazione.index') }}" class="btn btn-outline btn-accent">
-                <x-admin.fa-icon name="arrow-left" class="h-4 w-4 mr-2" />
-                Torna ad Amministrazione
+                <x-admin.fa-icon name="arrow-left" class="h-4 w-4" />
+                Torna
             </a>
-        </div>
-    </div>
+        </x-slot>
+    </x-admin.page-header>
     
-    <div class="card bg-base-100 shadow-lg rounded-2xl">
-        <div class="card-body text-center py-16">
-            <x-admin.fa-icon name="chart-pie" class="h-24 w-24 text-accent mx-auto mb-6" />
+    <x-admin.card tone="light" shadow="lg" padding="loose">
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <x-admin.fa-icon name="chart-pie" class="h-16 w-16 text-accent" />
+            </div>
             <h2 class="text-2xl font-bold text-base-content mb-4">Gestione Budget</h2>
             <p class="text-base-content/70 text-lg mb-6">
                 Questa vista è pronta per essere personalizzata con la gestione budget.
             </p>
             <div class="badge badge-accent badge-lg">Modulo Amministrazione</div>
         </div>
-    </div>
+    </x-admin.card>
 </x-admin.wrapper>

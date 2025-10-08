@@ -1,30 +1,184 @@
-<x-admin.wrapper>
+{{-- Dashboard Produzione: Full-Width con Modern Design --}}
+<x-admin.wrapper :containerless="true">
     <x-slot name="title">{{ __('Dashboard Produzione') }}</x-slot>
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-base-content">
-                    <x-admin.fa-icon name="industry" class="h-8 w-8 text-warning mr-3" />
-                    Dashboard Produzione
-                </h1>
-                <p class="text-base-content/70 mt-2">Monitoraggio e gestione processi produttivi</p>
-            </div>
+    
+    {{-- Page Header --}}
+    <x-admin.page-header 
+        title="Dashboard Produzione" 
+        subtitle="Monitoraggio e gestione processi produttivi"
+        icon="industry"
+        iconColor="warning"
+    />
+    
+    {{-- KPI Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="card bg-base-100 shadow"><div class="card-body"><div class="flex items-center justify-between"><div><p class="text-sm text-base-content/70">Produzione Giornaliera</p><p class="text-2xl font-bold text-warning">{{ $stats['daily_production'] ?? 0 }}</p></div><x-admin.fa-icon name="chart-bar" class="h-8 w-8 text-warning" /></div></div></div>
-                <div class="card bg-base-100 shadow"><div class="card-body"><div class="flex items-center justify-between"><div><p class="text-sm text-base-content/70">Efficienza</p><p class="text-2xl font-bold text-success">{{ $stats['efficiency'] ?? 0 }}%</p></div><x-admin.fa-icon name="chart-line" class="h-8 w-8 text-success" /></div></div></div>
-                <div class="card bg-base-100 shadow"><div class="card-body"><div class="flex items-center justify-between"><div><p class="text-sm text-base-content/70">Qualità</p><p class="text-2xl font-bold text-info">{{ $stats['quality_score'] ?? 0 }}%</p></div><x-admin.fa-icon name="star" class="h-8 w-8 text-info" /></div></div></div>
-                <div class="card bg-base-100 shadow"><div class="card-body"><div class="flex items-center justify-between"><div><p class="text-sm text-base-content/70">Ordini Attivi</p><p class="text-2xl font-bold text-accent">{{ $stats['active_orders'] ?? 0 }}</p></div><x-admin.fa-icon name="clipboard-list" class="h-8 w-8 text-accent" /></div></div></div>
+        <x-admin.stat-card
+            title="Produzione Giornaliera"
+            :value="$stats['daily_production'] ?? 0"
+            icon="chart-bar"
+            color="warning"
+        />
+        
+        <x-admin.stat-card
+            title="Efficienza"
+            :value="($stats['efficiency'] ?? 0) . '%'"
+            icon="chart-line"
+            color="success"
+            trend="up"
+            trendValue="+5%"
+        />
+        
+        <x-admin.stat-card
+            title="Qualità"
+            :value="($stats['quality_score'] ?? 0) . '%'"
+            icon="star"
+            color="info"
+        />
+        
+        <x-admin.stat-card
+            title="Ordini Attivi"
+            :value="$stats['active_orders'] ?? 0"
+            icon="clipboard-list"
+            color="accent"
+        />
             </div>
+    
+    {{-- Moduli Produzione: Grid Full-Width --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="target" class="h-6 w-6" />Tabella Obiettivi</h2><p class="text-base-content/70">Gestione obiettivi produzione</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.tabella_obiettivi') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="chart-area" class="h-6 w-6" />Cruscotto Produzione</h2><p class="text-base-content/70">Dashboard produzione generale</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.cruscotto_produzione') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="user-gear" class="h-6 w-6" />Cruscotto Operatore</h2><p class="text-base-content/70">Dashboard personale operatore</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.cruscotto_operatore') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="calendar-check" class="h-6 w-6" />Cruscotto Mensile</h2><p class="text-base-content/70">Analisi mensile produzione</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.cruscotto_mensile') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="keyboard" class="h-6 w-6" />Input Manuale</h2><p class="text-base-content/70">Inserimento dati manuale</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.input_manuale') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="chart-line" class="h-6 w-6" />Avanzamento Mensile</h2><p class="text-base-content/70">Monitoraggio avanzamento</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.avanzamento_mensile') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="chart-bar" class="h-6 w-6" />KPI Lead Quartili</h2><p class="text-base-content/70">Analisi KPI per quartili</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.kpi_lead_quartili') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"><div class="card-body"><h2 class="card-title text-warning"><x-admin.fa-icon name="list-check" class="h-6 w-6" />Controllo Stato Lead</h2><p class="text-base-content/70">Monitoraggio stato lead</p><div class="card-actions justify-end"><a href="{{ route('admin.produzione.controllo_stato_lead') }}" class="btn btn-warning btn-sm">Accedi</a></div></div></div>
+        {{-- Card 1: Tabella Obiettivi --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.tabella_obiettivi') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="target" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Tabella Obiettivi
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Gestione obiettivi produzione</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 2: Cruscotto Produzione --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.cruscotto_produzione') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="chart-area" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Cruscotto Produzione
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Dashboard produzione generale</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 3: Cruscotto Operatore --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.cruscotto_operatore') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="user-gear" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Cruscotto Operatore
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Dashboard personale operatore</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 4: Cruscotto Mensile --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.cruscotto_mensile') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="calendar-check" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Cruscotto Mensile
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Analisi mensile produzione</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 5: Input Manuale --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.input_manuale') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="keyboard" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Input Manuale
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Inserimento dati manuale</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 6: Avanzamento Mensile --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.avanzamento_mensile') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="chart-line" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Avanzamento Mensile
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Monitoraggio avanzamento</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 7: KPI Lead Quartili --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.kpi_lead_quartili') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="chart-bar" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            KPI Lead Quartili
+                        </h3>
+                    </div>
+                    <p class="text-xs text-base-content/70">Analisi KPI per quartili</p>
+                </div>
+            </a>
+        </x-admin.card>
+
+        {{-- Card 8: Controllo Stato Lead --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.produzione.controllo_stato_lead') }}" class="block">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
+                            <x-admin.fa-icon name="list-check" class="h-5 w-5" />
+                        </div>
+                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
+                            Controllo Stato Lead
+                        </h3>
             </div>
+                    <p class="text-xs text-base-content/70">Monitoraggio stato lead</p>
         </div>
+            </a>
+        </x-admin.card>
     </div>
 </x-admin.wrapper>
