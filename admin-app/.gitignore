@@ -17,3 +17,6 @@ yarn-error.log
 .env
 /public/build
 /public/build/manifest.json
+
+# Documentazione interna (non versionata)
+/documentazione
