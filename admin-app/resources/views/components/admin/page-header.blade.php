@@ -39,10 +39,12 @@
         <div class="flex-1">
             <div class="flex items-center gap-4">
                 @if($icon || $iconClass)
-                    <div class="hidden sm:block">
-                        <x-admin.fa-icon 
+                    <div class="hidden sm:flex items-center justify-center w-16 h-16 bg-{{ $iconColor }}/10 rounded-2xl">
+                        <x-ui.icon 
                             :name="$icon ?? $iconClass" 
-                            class="h-10 w-10 {{ $iconTextColor }}" 
+                            size="xl"
+                            :class="$iconTextColor"
+                            aria-hidden="true"
                         />
                     </div>
                 @endif

@@ -49,7 +49,7 @@
             <a href="{{ route('admin.ict.calendario') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="calendar-days" class="h-6 w-6" />
+                        <x-ui.icon name="calendar-days" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -60,7 +60,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
             <a href="{{ route('admin.ict.stato') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="heartbeat" class="h-6 w-6" />
+                        <x-ui.icon name="heartbeat" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -82,7 +82,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
             <a href="{{ route('admin.ict.tickets') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="ticket" class="h-6 w-6" />
+                        <x-ui.icon name="ticket" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -104,7 +104,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
             <a href="{{ route('admin.ict.categoria_utm_campagna') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="tags" class="h-6 w-6" />
+                        <x-ui.icon name="tags" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -126,7 +126,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
             <a href="{{ route('admin.ict.aggiorna_mandati') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="rotate" class="h-6 w-6" />
+                        <x-ui.icon name="rotate" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -148,7 +148,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -159,7 +159,7 @@
             <a href="{{ route('admin.ict.system') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="gear" class="h-6 w-6" />
+                        <x-ui.icon name="gear" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -170,7 +170,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -181,7 +181,7 @@
             <a href="{{ route('admin.ict.reports') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
-                        <x-admin.fa-icon name="chart-bar" class="h-6 w-6" />
+                        <x-ui.icon name="chart-bar" class="h-6 w-6" />
             </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
@@ -192,7 +192,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-success">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </div>
             </div>
         </div>

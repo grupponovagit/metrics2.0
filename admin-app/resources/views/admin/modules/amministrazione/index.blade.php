@@ -51,7 +51,7 @@
             <a href="{{ route('admin.amministrazione.pda_media') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="chart-pie" class="h-6 w-6" />
+                        <x-ui.icon name="chart-pie" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -62,7 +62,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
             <a href="{{ route('admin.amministrazione.costi_stipendi') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="money-bills" class="h-6 w-6" />
+                        <x-ui.icon name="money-bills" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -84,7 +84,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
             <a href="{{ route('admin.amministrazione.costi_generali') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="receipt" class="h-6 w-6" />
+                        <x-ui.icon name="receipt" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -106,7 +106,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -117,7 +117,7 @@
             <a href="{{ route('admin.amministrazione.inviti_a_fatturare') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="file-invoice-dollar" class="h-6 w-6" />
+                        <x-ui.icon name="file-invoice-dollar" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -128,7 +128,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -139,7 +139,7 @@
             <a href="{{ route('admin.amministrazione.lettere_canvass') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="envelope" class="h-6 w-6" />
+                        <x-ui.icon name="envelope" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -150,7 +150,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -161,7 +161,7 @@
             <a href="{{ route('admin.amministrazione.budget') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-content transition-all">
-                        <x-admin.fa-icon name="wallet" class="h-6 w-6" />
+                        <x-ui.icon name="wallet" class="h-6 w-6" />
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-base-content group-hover:text-accent transition-colors">
@@ -172,7 +172,7 @@
                         </p>
                         <div class="flex items-center gap-2 mt-3 text-accent">
                             <span class="text-sm font-medium">Accedi</span>
-                            <x-admin.fa-icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </div>

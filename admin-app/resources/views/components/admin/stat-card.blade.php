@@ -68,15 +68,17 @@
                 @if($trend && $trendValue)
                     <div class="flex items-center gap-1">
                         @if($trend === 'up')
-                            <x-admin.fa-icon 
+                            <x-ui.icon 
                                 name="arrow-up" 
-                                class="h-4 w-4 text-success" 
+                                size="sm"
+                                class="text-success" 
                             />
                             <span class="text-sm font-semibold text-success">{{ $trendValue }}</span>
                         @elseif($trend === 'down')
-                            <x-admin.fa-icon 
+                            <x-ui.icon 
                                 name="arrow-down" 
-                                class="h-4 w-4 text-error" 
+                                size="sm"
+                                class="text-error" 
                             />
                             <span class="text-sm font-semibold text-error">{{ $trendValue }}</span>
                         @endif
@@ -90,9 +92,10 @@
             @if($icon || $iconClass)
                 <div class="flex-shrink-0 ml-4">
                     <div class="w-14 h-14 {{ $iconBg }} rounded-2xl flex items-center justify-center {{ $textColor }}">
-                        <x-admin.fa-icon 
+                        <x-ui.icon 
                             :name="$icon ?? $iconClass" 
-                            class="h-7 w-7" 
+                            size="xl"
+                            aria-hidden="true"
                         />
                     </div>
                 </div>

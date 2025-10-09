@@ -103,7 +103,7 @@
                         <div class="flex items-center gap-3">
                             <div class="avatar placeholder">
                                 <div class="bg-{{ $colorMap[$module['key']] }}/10 text-{{ $colorMap[$module['key']] }} rounded-full w-12 h-12 flex items-center justify-center group-hover:bg-{{ $colorMap[$module['key']] }} group-hover:text-{{ $colorMap[$module['key']] }}-content transition-colors">
-                                    <x-admin.fa-icon name="{{ $iconMap[$module['key']] }}" class="h-6 w-6" />
+                                    <x-ui.icon name="{{ $iconMap[$module['key']] }}" class="h-6 w-6" />
                                 </div>
                             </div>
                             <div class="flex-1">
@@ -112,7 +112,7 @@
                                     {{ count($module['permissions']) }} permessi
                                 </p>
                             </div>
-                            <x-admin.fa-icon name="chevron-right" class="h-4 w-4 text-base-content/50 group-hover:translate-x-1 transition-transform" />
+                            <x-ui.icon name="chevron-right" class="h-4 w-4 text-base-content/50 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </div>
                 </a>

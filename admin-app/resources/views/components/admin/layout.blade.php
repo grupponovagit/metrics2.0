@@ -32,7 +32,7 @@
                     <div class="navbar flex justify-between bg-base-100 z-10 shadow-md">
                         <div class="">
                             <label for="drawer" class="btn btn-primary drawer-button">
-                                <x-admin.fa-icon name="bars" class="h-5 w-5" />
+                                <x-ui.icon name="bars" class="h-5 w-5" />
                             </label>
                             <h1 class="text-2xl font-semibold ml-2">{{ $header }}</h1>
                         </div>
@@ -54,13 +54,13 @@
                     <div class="order-last">
                         <label class="swap">
                             <input class="hidden" id="theme-change" type="checkbox" />
-                            <x-admin.fa-icon 
+                            <x-ui.icon 
                                 name="sun" 
                                 class="w-6 h-6 swap-off ACTIVECLASS"
                                 data-set-theme="light"
                                 data-act-class="ACTIVECLASS"
                             />
-                            <x-admin.fa-icon 
+                            <x-ui.icon 
                                 name="moon" 
                                 class="w-6 h-6 swap-on"
                                 data-set-theme="dark"
@@ -71,13 +71,13 @@
                             <label tabindex="0" class="btn btn-ghost">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ml-1">
-                                    <x-admin.fa-icon name="chevron-down" class="h-4 w-4" />
+                                    <x-ui.icon name="chevron-down" class="h-4 w-4" />
                                 </div>
                             </label>
                             <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                                 <li class="justify-between">
                                     <a href="{{ route('admin.profile.edit') }}">
-                                        <x-admin.fa-icon name="user" class="h-4 w-4" />
+                                        <x-ui.icon name="user" class="h-4 w-4" />
                                         Profilo
                                     </a>
                                 </li>

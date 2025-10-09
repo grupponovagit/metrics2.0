@@ -51,7 +51,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="target" class="h-5 w-5" />
+                            <x-ui.icon name="target" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Tabella Obiettivi
@@ -68,7 +68,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="chart-area" class="h-5 w-5" />
+                            <x-ui.icon name="chart-area" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Cruscotto Produzione
@@ -85,7 +85,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="user-gear" class="h-5 w-5" />
+                            <x-ui.icon name="user-gear" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Cruscotto Operatore
@@ -102,7 +102,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="calendar-check" class="h-5 w-5" />
+                            <x-ui.icon name="calendar-check" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Cruscotto Mensile
@@ -119,7 +119,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="keyboard" class="h-5 w-5" />
+                            <x-ui.icon name="keyboard" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Input Manuale
@@ -136,7 +136,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="chart-line" class="h-5 w-5" />
+                            <x-ui.icon name="chart-line" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Avanzamento Mensile
@@ -153,7 +153,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="chart-bar" class="h-5 w-5" />
+                            <x-ui.icon name="chart-bar" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             KPI Lead Quartili
@@ -170,7 +170,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-admin.fa-icon name="list-check" class="h-5 w-5" />
+                            <x-ui.icon name="list-check" class="h-5 w-5" />
                         </div>
                         <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
                             Controllo Stato Lead
