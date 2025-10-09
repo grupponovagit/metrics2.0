@@ -181,7 +181,7 @@ $rows = collect($employees)->map(function($emp) {
 
 <x-admin.wrapper title="Dipendenti" :containerless="true">
     
-    <div class="px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+    <div class="space-y-6">
         
         {{-- Page Header --}}
         <x-admin.page-header 
@@ -306,11 +306,14 @@ $rows = collect($employees)->map(function($emp) {
                 </div>
             </div>
             
-            <x-table 
+            <x-admin.table 
                 :headers="$headers" 
                 :rows="$rows"
+                minWidth="1200px"
+                maxHeight="60vh"
                 :striped="true"
                 :hover="true"
+                :stickyHeader="true"
             />
 
             {{-- Pagination --}}

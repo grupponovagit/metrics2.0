@@ -9,9 +9,9 @@
 }
 
 /* ===== RESET OVERFLOW ===== */
+/* RIMOSSO overflow-x: hidden per permettere scroll orizzontale nelle tabelle */
 body, html {
-    overflow-x: hidden !important;
-    max-width: 100vw !important;
+    max-width: 100vw;
 }
 
 /* Fix specifici per elementi che necessitano overflow */
@@ -373,6 +373,31 @@ body, html {
 /* ===== DEBUG ALPINE.JS ===== */
 .sidebar-main[x-data] {
     position: relative;
+}
+
+/* ===== TABLE SCROLL CONTAINER ===== */
+/* Calcola la larghezza massima disponibile nella viewport per la tabella */
+.table-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Desktop con sidebar (lg+) */
+@media (min-width: 1024px) {
+    .table-scroll-container {
+        /* 100vw - sidebar(20rem) - padding-left(2.5rem) - padding-right(2.5rem) - margini extra(2rem) */
+        max-width: calc(100vw - 20rem - 5rem - 2rem);
+    }
+}
+
+/* Mobile senza sidebar */
+@media (max-width: 1023px) {
+    .table-scroll-container {
+        /* 100vw - padding mobile (1.5rem * 2) */
+        max-width: calc(100vw - 3rem);
+    }
 }
 
 /* ===== RESPONSIVE ===== */

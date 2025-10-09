@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto p-4 bg-base-200">
+                <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 bg-base-200">
                     {{ $slot }}
                 </main>
             </div>

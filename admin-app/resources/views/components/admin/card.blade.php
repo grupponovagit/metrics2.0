@@ -53,6 +53,7 @@
     ];
     
     $paddingClasses = [
+        'none' => '',
         'tight' => 'p-4',
         'normal' => 'p-6',
         'loose' => 'p-8',

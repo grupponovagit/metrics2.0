@@ -26,7 +26,7 @@
      * layout custom full-width con dark background
      */
     $maxWidthClasses = [
-        'full' => 'w-full',
+        'full' => 'w-full max-w-full',
         'xl' => 'max-w-xl mx-auto',
         '2xl' => 'max-w-2xl mx-auto',
         '7xl' => 'max-w-7xl mx-auto',
@@ -34,7 +34,7 @@
 
     $paddingClasses = $padded ? 'px-4 sm:px-6 lg:px-10 py-6' : '';
 
-    $containerClasses = trim(($maxWidthClasses[$maxWidth] ?? $maxWidthClasses['full']) . ' ' . $paddingClasses);
+    $containerClasses = trim(($maxWidthClasses[$maxWidth] ?? $maxWidthClasses['full']) . ' ' . $paddingClasses . ' overflow-x-hidden');
 @endphp
 
 <x-admin.layout>
@@ -47,14 +47,14 @@
         
         @if($containerless)
             {{-- Mode containerless: full control del layout --}}
-            <div>
+            <div class="max-w-full overflow-x-hidden">
                 <x-admin.breadcrumb />
                 <x-admin.form.errors />
                 {{ $slot }}
             </div>
         @else
             {{-- Mode standard: card container con dark theme --}}
-            <div class="bg-base-100 overflow-hidden shadow-lg rounded-2xl border border-base-300/50 transition-shadow hover:shadow-xl">
+            <div class="bg-base-100 overflow-visible shadow-lg rounded-2xl border border-base-300/50 transition-shadow hover:shadow-xl">
                 <div class="p-6 lg:p-8">
                     <div class="flex flex-col">
                         <div class="mb-4">
