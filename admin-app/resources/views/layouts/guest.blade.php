@@ -11,7 +11,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="icon" href="{{ asset('assets/icon.png') }}" type="image/png">
+        <x-favicon />
 
         <!-- Scripts -->
         @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
@@ -35,7 +35,7 @@
         <div class="min-h-screen flex flex-col justify-center items-center px-6 py-12">
             <div>
                 <a href="/" class="block mb-8">
-                    <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="h-16 w-auto mx-auto">
+                    <img src="{{ asset('assets/logo-orizzonale.png') }}" alt="Metrics" class="h-16 w-auto mx-auto">
                 </a>
             </div>
 

@@ -49,16 +49,8 @@
             <!-- Logo -->
             <div class="flex items-center justify-center mb-3">
                 <a href="{{ route('admin.dashboard') }}" class="logo-container group">
-                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
-                        <img src="{{ asset('assets/logo.png') }}" alt="Metrics Logo" class="w-10 h-10 object-contain">
-                    </div>
-                    <div x-show="!collapsed" 
-                         x-transition:enter="transition ease-out duration-200" 
-                         x-transition:enter-start="opacity-0 transform translate-x-4" 
-                         x-transition:enter-end="opacity-100 transform translate-x-0"
-                         class="flex flex-col ml-4">
-                        <span class="text-xl font-bold text-base-content">Metrics</span>
-                        <span class="text-sm text-base-content/60">v2.0</span>
+                    <div class="w-20 h-16 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
+                        <img src="{{ asset('assets/logo.png') }}" alt="Metrics Logo" class="w-16 h-12 object-contain">
                     </div>
                 </a>
             </div>

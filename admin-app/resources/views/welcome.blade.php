@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="icon" href="{{ asset('assets/icon.png') }}" type="image/png">
+    <x-favicon />
 
     @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
 </head>
@@ -34,7 +34,7 @@
             
             {{-- Logo --}}
             <div class="mb-12 inline-flex items-center gap-4 px-6 py-3 bg-base-100/80 backdrop-blur-xl rounded-full shadow-2xl border border-base-300/50">
-                <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="h-12 w-auto">
+                <img src="{{ asset('assets/logo-orizzonale.png') }}" alt="Metrics" class="h-12 w-auto">
                
             </div>
 
@@ -47,14 +47,9 @@
                     </span>
                     <span class="absolute -bottom-2 left-0 right-0 h-2 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-full blur-sm"></span>
                 </span>
-                <br>
-                con Intelligenza
+            
             </h1>
 
-            {{-- Subtitle --}}
-            <p class="text-2xl text-base-content/70 mb-12 max-w-2xl mx-auto leading-relaxed">
-                Sistema gestionale completo per HR, Amministrazione, Produzione, Marketing e ICT
-            </p>
 
             {{-- CTA Buttons --}}
             <div class="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
