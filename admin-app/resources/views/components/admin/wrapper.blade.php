@@ -1,4 +1,5 @@
 @props([
+    'title' => '',              // Titolo pagina per header
     'maxWidth' => 'full',      // 'full' | 'xl' | '2xl' | '7xl'
     'padded' => true,           // Applica padding responsivo
     'containerless' => false,   // Rimuove container card interno (per layout custom)
