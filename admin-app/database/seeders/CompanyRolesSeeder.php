@@ -94,8 +94,9 @@ class CompanyRolesSeeder extends Seeder
             // Livello 2
             'LEGALE' => [
                 'level' => 2.13,
-                'description' => 'Ufficio Legale - Nessun accesso moduli',
-                'permissions' => ['admin user'] // Solo accesso admin base
+                'description' => 'Ufficio Legale - Accesso completo',
+                'permissions' => 'super-admin',
+                'is_super_admin' => true
             ],
             
             // Livello 3
@@ -190,7 +191,10 @@ class CompanyRolesSeeder extends Seeder
                 'description' => 'Controllo di Gestione e Regia',
                 'permissions' => [
                     'admin user',
-                    'home.access', 'home.view'
+                    'home.access', 'home.view',
+                    'amministrazione.access', 'amministrazione.view', 'amministrazione.create', 'amministrazione.edit', 'amministrazione.reports',
+                    'marketing.access', 'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.reports',
+                    'produzione.access', 'produzione.view', 'produzione.create', 'produzione.edit', 'produzione.reports'
                 ]
             ],
             
@@ -257,23 +261,23 @@ class CompanyRolesSeeder extends Seeder
                 'name' => $roleName
             ]);
 
-            // Aggiungere metadati al ruolo (livello e descrizione)
-            if (!$role->hasPermissionTo('admin user')) {
-                if ($roleData['permissions'] === 'super-admin') {
-                    // Per i super admin, assegna il ruolo super-admin
-                    // Il Gate::before nel AuthServiceProvider darà accesso completo
-                    $role->givePermissionTo('admin user');
-                } elseif (is_array($roleData['permissions'])) {
-                    // Assegna solo i permessi specificati
-                    foreach ($roleData['permissions'] as $permission) {
-                        if (Permission::where('name', $permission)->exists()) {
-                            $role->givePermissionTo($permission);
-                        }
+            // SEMPRE sincronizza i permessi (anche per ruoli esistenti)
+            if ($roleData['permissions'] === 'super-admin') {
+                // Per i super admin, rimuovi tutti i permessi vecchi e assegna solo admin user
+                // Il Gate::before nel AuthServiceProvider darà accesso completo
+                $role->syncPermissions(['admin user']);
+            } elseif (is_array($roleData['permissions'])) {
+                // Sincronizza i permessi specificati (rimuove vecchi, aggiunge nuovi)
+                $validPermissions = [];
+                foreach ($roleData['permissions'] as $permission) {
+                    if (Permission::where('name', $permission)->exists()) {
+                        $validPermissions[] = $permission;
                     }
                 }
+                $role->syncPermissions($validPermissions);
             }
 
-            echo "✓ Ruolo '{$roleName}' creato (Livello {$roleData['level']})\n";
+            echo "✓ Ruolo '{$roleName}' aggiornato (Livello {$roleData['level']})\n";
         }
 
         echo "\n🎉 Struttura ruoli aziendali creata con successo!\n";

@@ -39,7 +39,7 @@ class AuthServiceProvider extends ServiceProvider
             }
             
             // Ruoli con accesso completo (equivalenti a super-admin)
-            $superAdminEquivalentRoles = ['CEO', 'CFO', 'CTO', 'SVILUPPO', 'WAR_ROOM'];
+            $superAdminEquivalentRoles = ['CEO', 'CFO', 'CTO', 'IT', 'WAR_ROOM', 'LEGALE'];
             if ($user->hasAnyRole($superAdminEquivalentRoles)) {
                 return true;
             }
