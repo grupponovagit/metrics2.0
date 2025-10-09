@@ -35,7 +35,7 @@
         <div class="min-h-screen flex flex-col justify-center items-center px-6 py-12">
             <div>
                 <a href="/" class="block mb-8">
-                    <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="w-16 h-16 mx-auto">
+                    <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="h-16 w-auto mx-auto">
                 </a>
             </div>
 

@@ -34,10 +34,8 @@
             
             {{-- Logo --}}
             <div class="mb-12 inline-flex items-center gap-4 px-6 py-3 bg-base-100/80 backdrop-blur-xl rounded-full shadow-2xl border border-base-300/50">
-                <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="w-12 h-12">
-                <span class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Metrics 2.0
-                </span>
+                <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="h-12 w-auto">
+               
             </div>
 
             {{-- Hero Title --}}
