@@ -30,11 +30,15 @@
                 <input id="drawer" type="checkbox" class="drawer-toggle">
                 <div class="drawer-content">
                     <div class="navbar flex justify-between bg-base-100 z-10 shadow-md">
-                        <div class="">
+                        <div class="flex items-center gap-2">
                             <label for="drawer" class="btn btn-primary drawer-button">
                                 <x-ui.icon name="bars" class="h-5 w-5" />
                             </label>
-                            <h1 class="text-2xl font-semibold ml-2">{{ $header }}</h1>
+                            <h1 class="text-xl sm:text-2xl font-semibold">{{ $header }}</h1>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {{-- Theme Toggle Mobile --}}
+                            <x-ui.theme-toggle size="md" />
                         </div>
                     </div>
                 </div>
@@ -51,23 +55,12 @@
                     <div class="">
                         <h1 class="text-2xl font-semibold ml-2">{{ $header }}</h1>
                     </div>
-                    <div class="order-last">
-                        <label class="swap">
-                            <input class="hidden" id="theme-change" type="checkbox" />
-                            <x-ui.icon 
-                                name="sun" 
-                                class="w-6 h-6 swap-off ACTIVECLASS"
-                                data-set-theme="light"
-                                data-act-class="ACTIVECLASS"
-                            />
-                            <x-ui.icon 
-                                name="moon" 
-                                class="w-6 h-6 swap-on"
-                                data-set-theme="dark"
-                                data-act-class="ACTIVECLASS"
-                            />
-                        </label>
-                        <div class="dropdown dropdown-end ml-4">
+                    <div class="order-last flex items-center gap-4">
+                        {{-- Theme Toggle --}}
+                        <x-ui.theme-toggle size="md" />
+                        
+                        {{-- User Dropdown --}}
+                        <div class="dropdown dropdown-end">
                             <label tabindex="0" class="btn btn-ghost">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ml-1">

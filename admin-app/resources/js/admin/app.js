@@ -1,8 +1,6 @@
 import './bootstrap';
-import { themeChange } from 'theme-change';
 
-// Inizializza theme-change per DaisyUI
-themeChange();
+// === GESTIONE TEMA CENTRALIZZATA ===
 
 // Funzione per aggiornare i loghi in base al tema
 function updateLogos(theme) {
@@ -18,29 +16,58 @@ function updateLogos(theme) {
     }
 }
 
-// Setup tema iniziale
+// Funzione per sincronizzare tutti i toggle theme
+function syncThemeToggles(theme) {
+    const isDark = (theme === 'dark');
+    const toggleInputs = document.querySelectorAll('.theme-toggle-input');
+    
+    toggleInputs.forEach(input => {
+        input.checked = isDark;
+    });
+}
+
+// Funzione per ottenere il tema corrente
+function getCurrentTheme() {
+    return localStorage.getItem('theme') || 
+           document.documentElement.getAttribute('data-theme') || 
+           'light';
+}
+
+// Funzione per applicare il tema
+function applyTheme(theme) {
+    console.log('🎨 Applying theme:', theme);
+    
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    updateLogos(theme);
+    syncThemeToggles(theme);
+}
+
+// Funzione per fare toggle del tema
+function toggleTheme() {
+    const currentTheme = getCurrentTheme();
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+}
+
+// Setup tema iniziale e gestione click
 document.addEventListener('DOMContentLoaded', function() {
-    const selectedTheme = localStorage.getItem("theme") || 'light';
-    updateLogos(selectedTheme);
-    document.documentElement.setAttribute('data-theme', selectedTheme);
-});
-
-// Gestione cambiamenti tema DaisyUI
-document.addEventListener('click', function(e) {
-    if (e.target.matches('[data-set-theme]')) {
-        const newTheme = e.target.getAttribute('data-set-theme');
-        setTimeout(() => {
-            updateLogos(newTheme);
-        }, 100);
-    }
-});
-
-// Listener per eventi tema personalizzati
-window.addEventListener('theme-changed', function(e) {
-    updateLogos(e.detail.theme);
+    const currentTheme = getCurrentTheme();
+    
+    // Applica tema iniziale
+    applyTheme(currentTheme);
+    
+    // Gestione click sui toggle button
+    document.addEventListener('click', function(e) {
+        const toggleBtn = e.target.closest('.theme-toggle-btn');
+        if (toggleBtn) {
+            e.preventDefault();
+            toggleTheme();
+        }
+    });
+    
+    console.log('✅ Theme System Initialized - Current:', currentTheme);
 });
 
 // Avvia Alpine
 window.Alpine.start();
-
-// App JS caricato - Tailwind + DaisyUI + Alpine.js

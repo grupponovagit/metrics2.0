@@ -7,28 +7,49 @@
 
         <title>{{ config('app.name', 'Metrics') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <!-- Fonts: Poppins -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="icon" href="{{ asset('assets/icon.png') }}" type="image/png">
-        
-        <!-- FontAwesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
+    <body class="font-[Poppins] antialiased">
+        
+        {{-- Theme Toggle - Floating Top Right --}}
+        <div class="fixed top-6 right-6 z-50">
+            <div class="btn btn-circle btn-ghost bg-base-100/80 backdrop-blur-xl shadow-lg hover:shadow-xl border border-base-300/50 transition-all">
+                <x-ui.theme-toggle size="md" />
+            </div>
+        </div>
+        
+        {{-- Animated Background --}}
+        <div class="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/10">
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute top-1/2 -left-40 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+            <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 4s;"></div>
+        </div>
+
+        <div class="min-h-screen flex flex-col justify-center items-center px-6 py-12">
             <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+                <a href="/" class="block mb-8">
+                    <img src="{{ asset('assets/logo-dark.png') }}" alt="Metrics" class="w-16 h-16 mx-auto">
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            <div class="w-full max-w-md">
+                <div class="card bg-base-100/80 backdrop-blur-xl shadow-2xl border border-base-300/50">
+                    <div class="card-body p-8">
+                        {{ $slot }}
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="text-center mt-8 text-base-content/60 text-sm">
+                <p>Metrics 2.0 © {{ date('Y') }} - Sistema Gestionale</p>
             </div>
         </div>
     </body>

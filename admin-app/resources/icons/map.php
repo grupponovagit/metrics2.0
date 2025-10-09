@@ -68,6 +68,15 @@ return [
     'cog' => ['set' => 'heroicon-o', 'icon' => 'cog-6-tooth'],
     'wrench' => ['set' => 'heroicon-o', 'icon' => 'wrench'],
     
+    // === THEME & UI ===
+    'sun' => ['set' => 'heroicon-o', 'icon' => 'sun'],
+    'moon' => ['set' => 'heroicon-o', 'icon' => 'moon'],
+    'bars' => ['set' => 'heroicon-o', 'icon' => 'bars-3'],
+    'bars-3' => ['set' => 'heroicon-o', 'icon' => 'bars-3'],
+    'computer-desktop' => ['set' => 'heroicon-o', 'icon' => 'computer-desktop'],
+    'log-in' => ['set' => 'heroicon-o', 'icon' => 'arrow-right-on-rectangle'],
+    'logout' => ['set' => 'heroicon-o', 'icon' => 'arrow-right-on-rectangle'],
+    
     // === CALENDARIO & TEMPO ===
     'calendar' => ['set' => 'heroicon-o', 'icon' => 'calendar'],
     'calendar-days' => ['set' => 'heroicon-o', 'icon' => 'calendar-days'],
