@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->string('phone')->nullable();  // Numero di telefono
             $table->string('role')->nullable();  // Ruolo principale (convenience)
+            $table->string('codice_fiscale')->nullable();  // Codice fiscale
+            $table->string('reparto')->nullable();  // Reparto di appartenenza
             $table->rememberToken();
             $table->timestamps();
         });

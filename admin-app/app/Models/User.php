@@ -28,6 +28,8 @@ class User extends Authenticatable
         'password',
         'phone',            // Aggiunto
         'role',
+        'codice_fiscale',   // Codice fiscale
+        'reparto',          // Reparto di appartenenza
         'privacy',
         'marketing',
         'phone_verified',
@@ -61,6 +63,14 @@ class User extends Authenticatable
     public function consents()
     {
         return $this->hasOne(Consent::class);
+    }
+
+    /**
+     * Get the operatori where this user is responsabile.
+     */
+    public function operatori()
+    {
+        return $this->hasMany(Operatore::class, 'id_responsabile');
     }
 
 
