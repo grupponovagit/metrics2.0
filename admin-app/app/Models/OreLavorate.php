@@ -12,15 +12,16 @@ class OreLavorate extends Model
     protected $table = 'ore_lavorate';
 
     protected $fillable = [
+        'istanza',
         'userlogin',
         'id_servizio',
         'id_campagna',
         'id_sede',
         'data',
-        'ore_lavorate',
-        'BRIEFING_Pausa',
-        '626_Pausa',
-        'GENERICA_Pausa',
+        'tempo_lavorato',
+        'Pausa_BRIEFING',
+        'Pausa_626',
+        'Pausa_GENERICA',
         'Agenda',
         'Ready',
         'Assign',
@@ -30,10 +31,10 @@ class OreLavorate extends Model
 
     protected $casts = [
         'data' => 'date',
-        'ore_lavorate' => 'integer',
-        'BRIEFING_Pausa' => 'integer',
-        '626_Pausa' => 'integer',
-        'GENERICA_Pausa' => 'integer',
+        'tempo_lavorato' => 'integer',
+        'Pausa_BRIEFING' => 'integer',
+        'Pausa_626' => 'integer',
+        'Pausa_GENERICA' => 'integer',
         'Agenda' => 'integer',
         'Ready' => 'integer',
         'Assign' => 'integer',
@@ -56,7 +57,7 @@ class OreLavorate extends Model
 
     public function campagna()
     {
-        return $this->belongsTo(Campagna::class, 'id_campagna', 'id_campagna');
+        return $this->belongsTo(Campagna::class, 'id_campagna', 'campagna_id');
     }
 
     public function sede()

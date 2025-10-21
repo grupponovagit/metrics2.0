@@ -10,12 +10,13 @@ class Campagna extends Model
     use HasFactory;
 
     protected $table = 'campagne';
-    protected $primaryKey = 'id_campagna';
+    protected $primaryKey = 'campagna_id';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id_campagna',
+        'campagna_id',
+        'istanza',
         'id_servizio_mandato',
         'nome_campagna',
         'macro_campagna',
@@ -39,17 +40,17 @@ class Campagna extends Model
 
     public function oreLavorate()
     {
-        return $this->hasMany(OreLavorate::class, 'id_campagna', 'id_campagna');
+        return $this->hasMany(OreLavorate::class, 'id_campagna', 'campagna_id');
     }
 
     public function leads()
     {
-        return $this->hasMany(Lead::class, 'id_campagna', 'id_campagna');
+        return $this->hasMany(Lead::class, 'id_campagna', 'campagna_id');
     }
 
     public function vendite()
     {
-        return $this->hasMany(Vendita::class, 'campagna_id', 'id_campagna');
+        return $this->hasMany(Vendita::class, 'campagna_id', 'campagna_id');
     }
 
     /**
@@ -65,7 +66,7 @@ class Campagna extends Model
      */
     public function configurazioneOpzioni()
     {
-        return $this->hasMany(ConfigurazioneOpzioneProdotto::class, 'campagna_id', 'id_campagna');
+        return $this->hasMany(ConfigurazioneOpzioneProdotto::class, 'campagna_id', 'campagna_id');
     }
 
     /**

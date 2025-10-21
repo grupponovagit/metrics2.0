@@ -52,7 +52,7 @@ class Vendita extends Model
 
     public function campagna()
     {
-        return $this->belongsTo(Campagna::class, 'campagna_id', 'id_campagna');
+        return $this->belongsTo(Campagna::class, 'campagna_id', 'campagna_id');
     }
 
     public function prodotti()

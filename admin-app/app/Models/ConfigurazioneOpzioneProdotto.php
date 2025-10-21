@@ -34,11 +34,11 @@ class ConfigurazioneOpzioneProdotto extends Model
     
     /**
      * Relazione verso Campagna basata su campagna_id
-     * Nota: Relazione soft - punta a id_campagna
+     * Nota: Relazione soft - punta a campagna_id
      */
     public function campagna()
     {
-        return $this->belongsTo(Campagna::class, 'campagna_id', 'id_campagna');
+        return $this->belongsTo(Campagna::class, 'campagna_id', 'campagna_id');
     }
 
     /**

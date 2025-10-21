@@ -41,7 +41,7 @@ class Lead extends Model
 
     public function campagna()
     {
-        return $this->belongsTo(Campagna::class, 'id_campagna', 'id_campagna');
+        return $this->belongsTo(Campagna::class, 'id_campagna', 'campagna_id');
     }
 
     public function servizio()

@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campagna;
+use App\Models\OreLavorate;
+use App\Models\Sede;
+use App\Models\Vendita;
 use App\Services\ModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 class ProduzioneController extends Controller
 {
     public function __construct()
@@ -204,10 +208,222 @@ class ProduzioneController extends Controller
     /**
      * Cruscotto Produzione
      */
-    public function cruscottoProduzione()
+    public function cruscottoProduzione(Request $request)
     {
         $this->authorize('produzione.view');
-        return view('admin.modules.produzione.cruscotto-produzione');
+        
+        // === VALIDAZIONE ===
+        // Se ci sono filtri applicati, valida che le date siano presenti
+        if ($request->hasAny(['data_inizio', 'data_fine', 'mandato', 'sede', 'canale'])) {
+            $request->validate([
+                'data_inizio' => 'required|date',
+                'data_fine' => 'required|date|after_or_equal:data_inizio',
+            ], [
+                'data_inizio.required' => 'La data di inizio è obbligatoria.',
+                'data_inizio.date' => 'La data di inizio deve essere una data valida.',
+                'data_fine.required' => 'La data di fine è obbligatoria.',
+                'data_fine.date' => 'La data di fine deve essere una data valida.',
+                'data_fine.after_or_equal' => 'La data di fine deve essere uguale o successiva alla data di inizio.',
+            ]);
+        }
+        
+        // === FILTRI (con supporto multi-select) ===
+        $dataInizio = $request->input('data_inizio');
+        $dataFine = $request->input('data_fine');
+        $mandatoFilter = $request->input('mandato', []); // Array
+        $sedeFilter = $request->input('sede', []); // Array
+        $canaleFilter = $request->input('canale', []); // Array
+        
+        // === QUERY OTTIMIZZATA CON VISTA MySQL ===
+        $query = DB::table('view_cruscotto_produzione_test1');
+        
+        // Filtra per date
+        if ($dataInizio && $dataFine) {
+            $query->whereBetween('data_vendita', [$dataInizio, $dataFine]);
+        }
+        
+        // Applica filtri multipli
+        if (!empty($mandatoFilter) && is_array($mandatoFilter)) {
+            $query->whereIn('cliente_committente', $mandatoFilter);
+        }
+        
+        if (!empty($sedeFilter) && is_array($sedeFilter)) {
+            // Converti gli ID sede in nomi sede per la vista
+            $nomiSedi = Sede::whereIn('id_sede', $sedeFilter)->pluck('nome_sede')->toArray();
+            if (!empty($nomiSedi)) {
+                $query->whereIn('nome_sede', $nomiSedi);
+            }
+        }
+        
+        // Nota: Il filtro canale non è disponibile nella vista
+        // Se necessario, aggiungerlo alla vista MySQL
+        
+        $vendite = $query->get();
+        
+        // === QUERY ORE LAVORATE ===
+        $oreQuery = OreLavorate::query();
+        
+        if ($dataInizio && $dataFine) {
+            $oreQuery->whereBetween('data', [$dataInizio, $dataFine]);
+        }
+        
+        if (!empty($sedeFilter) && is_array($sedeFilter)) {
+            $oreQuery->whereIn('id_sede', $sedeFilter);
+        }
+        
+        if (!empty($mandatoFilter) && is_array($mandatoFilter)) {
+            $oreQuery->whereHas('campagna', function($q) use ($mandatoFilter) {
+                $q->whereIn('cliente_committente', $mandatoFilter);
+            });
+        }
+        
+        $oreLavorate = $oreQuery->sum('tempo_lavorato');
+        
+        // === CALCOLO KPI TOTALI (conta solo ID_VENDITA distinti) ===
+        $kpiTotali = [
+            // Conta solo ID vendita distinti (non le righe duplicate)
+            'prodotto_pda' => $vendite->pluck('id_vendita')->unique()->count(),
+            'prodotto_valore' => 0, // TODO: Aggiungere campo peso alla vista
+            
+            // Inserito: conta ID vendita distinti con esito OK
+            'inserito_pda' => $vendite->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
+                ->pluck('id_vendita')->unique()->count(),
+            'inserito_valore' => 0,
+            
+            // KO: conta ID vendita distinti con esito KO
+            'ko_pda' => $vendite->whereIn('esito_vendita', ['KO Definitivo', 'KO Controllo Dati', 'KO RECUPERO CONTROLLO DATI'])
+                ->pluck('id_vendita')->unique()->count(),
+            'ko_valore' => 0,
+            
+            // BackLog: conta ID vendita distinti in BOZZA/recupero
+            'backlog_pda' => $vendite->whereIn('esito_vendita', ['BOZZA', 'In recupero', 'Acquisito'])
+                ->pluck('id_vendita')->unique()->count(),
+            'backlog_valore' => 0,
+            
+            // BackLog Partner: conta ID vendita distinti PENDING
+            'backlog_partner_pda' => $vendite->where('esito_vendita', 'PENDING')
+                ->pluck('id_vendita')->unique()->count(),
+            'backlog_partner_valore' => 0,
+            
+            'ore' => $oreLavorate,
+        ];
+        
+        // === RAGGRUPPAMENTO PER CLIENTE > SEDE > ID_VENDITA ===
+        // Raggruppa per ID vendita per gestire vendite con più prodotti
+        $venditePerIdVendita = $vendite->groupBy('id_vendita')->map(function($righeVendita) {
+            $base = $righeVendita->first();
+            $prodotti = $righeVendita->pluck('nome_prodotto')->filter()->unique()->values();
+            $opzioni = $righeVendita->pluck('nome_opzione')->filter()->unique()->values();
+            
+            return [
+                'id_vendita' => $base->id_vendita,
+                'cliente_committente' => $base->cliente_committente,
+                'nome_sede' => $base->nome_sede,
+                'esito_vendita' => $base->esito_vendita,
+                'prodotto_principale' => $prodotti->first() ?: 'N/D',
+                'prodotti_aggiuntivi' => $prodotti->slice(1)->toArray(),
+                'opzioni' => $opzioni->toArray(),
+                'num_opzioni' => $opzioni->count(),
+                'data_vendita' => $base->data_vendita,
+            ];
+        });
+        
+        // === RAGGRUPPAMENTO DETTAGLIATO: Cliente > Sede > Prodotto ===
+        $datiDettagliati = $venditePerIdVendita->groupBy('cliente_committente')->map(function($venditeCliente, $cliente) {
+            return $venditeCliente->groupBy('nome_sede')->map(function($venditeSede, $sede) {
+                return $venditeSede->groupBy('prodotto_principale')->map(function($venditeGruppo, $prodotto) {
+                    $idVenditeUniche = $venditeGruppo->pluck('id_vendita')->unique();
+                    
+                    return [
+                        'campagna' => $prodotto,
+                        'prodotti_aggiuntivi' => $venditeGruppo->flatMap(fn($v) => $v['prodotti_aggiuntivi'])->unique()->values()->toArray(),
+                        'num_opzioni' => $venditeGruppo->sum('num_opzioni'),
+                        'prodotto_pda' => $idVenditeUniche->count(),
+                        'prodotto_valore' => 0,
+                        'inserito_pda' => $venditeGruppo->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
+                            ->pluck('id_vendita')->unique()->count(),
+                        'inserito_valore' => 0,
+                        'ko_pda' => $venditeGruppo->whereIn('esito_vendita', ['KO Definitivo', 'KO Controllo Dati', 'KO RECUPERO CONTROLLO DATI'])
+                            ->pluck('id_vendita')->unique()->count(),
+                        'ko_valore' => 0,
+                        'backlog_pda' => $venditeGruppo->whereIn('esito_vendita', ['BOZZA', 'In recupero', 'Acquisito'])
+                            ->pluck('id_vendita')->unique()->count(),
+                        'backlog_valore' => 0,
+                        'backlog_partner_pda' => $venditeGruppo->where('esito_vendita', 'PENDING')
+                            ->pluck('id_vendita')->unique()->count(),
+                        'backlog_partner_valore' => 0,
+                    ];
+                });
+            });
+        });
+        
+        // === RAGGRUPPAMENTO SINTETICO: Cliente > Sede (somma tutti i prodotti) ===
+        $datiSintetici = $venditePerIdVendita->groupBy('cliente_committente')->map(function($venditeCliente, $cliente) {
+            return $venditeCliente->groupBy('nome_sede')->map(function($venditeSede, $sede) {
+                $idVenditeUniche = $venditeSede->pluck('id_vendita')->unique();
+                
+                return [
+                    'campagna' => 'TOTALE SEDE',
+                    'prodotti_aggiuntivi' => [],
+                    'num_opzioni' => $venditeSede->sum('num_opzioni'),
+                    'prodotto_pda' => $idVenditeUniche->count(),
+                    'prodotto_valore' => 0,
+                    'inserito_pda' => $venditeSede->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
+                        ->pluck('id_vendita')->unique()->count(),
+                    'inserito_valore' => 0,
+                    'ko_pda' => $venditeSede->whereIn('esito_vendita', ['KO Definitivo', 'KO Controllo Dati', 'KO RECUPERO CONTROLLO DATI'])
+                        ->pluck('id_vendita')->unique()->count(),
+                    'ko_valore' => 0,
+                    'backlog_pda' => $venditeSede->whereIn('esito_vendita', ['BOZZA', 'In recupero', 'Acquisito'])
+                        ->pluck('id_vendita')->unique()->count(),
+                    'backlog_valore' => 0,
+                    'backlog_partner_pda' => $venditeSede->where('esito_vendita', 'PENDING')
+                        ->pluck('id_vendita')->unique()->count(),
+                    'backlog_partner_valore' => 0,
+                ];
+            })->map(function($totale) {
+                // Ritorna come collection con un solo elemento per mantenere la struttura
+                return collect(['totale' => $totale]);
+            });
+        });
+        
+        $datiRaggruppati = $datiDettagliati;
+        
+        // === DATI PER FILTRI ===
+        $mandati = Campagna::distinct()->pluck('cliente_committente', 'cliente_committente')->filter();
+        $sedi = Sede::pluck('nome_sede', 'id_sede');
+        $canali = Campagna::distinct()->pluck('canale', 'canale')->filter();
+        
+        // Calcola ore per sede/campagna se necessario
+        $orePerGruppo = OreLavorate::query()
+            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data', [$dataInizio, $dataFine]))
+            ->when(!empty($sedeFilter) && is_array($sedeFilter), fn($q) => $q->whereIn('id_sede', $sedeFilter))
+            ->when(!empty($mandatoFilter) && is_array($mandatoFilter), function($q) use ($mandatoFilter) {
+                $q->whereHas('campagna', function($q2) use ($mandatoFilter) {
+                    $q2->whereIn('cliente_committente', $mandatoFilter);
+                });
+            })
+            ->selectRaw('id_sede, id_campagna, SUM(tempo_lavorato) as totale_ore')
+            ->groupBy('id_sede', 'id_campagna')
+            ->get()
+            ->groupBy('id_sede')
+            ->map(fn($g) => $g->groupBy('id_campagna'));
+        
+        return view('admin.modules.produzione.cruscotto-produzione', [
+            'kpiTotali' => $kpiTotali,
+            'datiRaggruppati' => $datiRaggruppati,
+            'datiDettagliati' => $datiDettagliati,
+            'datiSintetici' => $datiSintetici,
+            'orePerGruppo' => $orePerGruppo,
+            'mandati' => $mandati,
+            'sedi' => $sedi,
+            'canali' => $canali,
+            'dataInizio' => $dataInizio ?? '',
+            'dataFine' => $dataFine ?? '',
+            'mandatoFilter' => is_array($mandatoFilter) ? $mandatoFilter : [],
+            'sedeFilter' => is_array($sedeFilter) ? $sedeFilter : [],
+            'canaleFilter' => is_array($canaleFilter) ? $canaleFilter : [],
+        ]);
     }
 
     /**
