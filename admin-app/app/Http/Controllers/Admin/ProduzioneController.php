@@ -212,6 +212,9 @@ class ProduzioneController extends Controller
     {
         $this->authorize('produzione.view');
         
+        // === AUMENTO MEMORY LIMIT PER GESTIRE GRANDI VOLUMI DI DATI ===
+        ini_set('memory_limit', '512M');
+        
         // === VALIDAZIONE ===
         // Se ci sono filtri applicati, valida che le date siano presenti
         if ($request->hasAny(['data_inizio', 'data_fine', 'mandato', 'sede', 'canale'])) {
