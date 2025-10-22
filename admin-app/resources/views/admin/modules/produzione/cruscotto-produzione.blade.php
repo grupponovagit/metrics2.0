@@ -49,14 +49,6 @@
                 'options' => $sedi->toArray(),
                 'value' => $sedeFilter,
             ],
-            [
-                'name' => 'canale',
-                'label' => 'Canale',
-                'type' => 'select-multiple',
-                'multiple' => true,
-                'options' => $canali->toArray(),
-                'value' => $canaleFilter,
-            ],
         ],
     ];
     @endphp
@@ -66,9 +58,9 @@
         :action="route('admin.produzione.cruscotto_produzione')"
         :showReset="true"
     />
-
+    <br/>
     {{-- TABELLA DETTAGLIATA - Visibile solo se ci sono filtri applicati --}}
-    @if(request()->hasAny(['data_inizio', 'data_fine', 'mandato', 'sede', 'canale']))
+    @if(request()->hasAny(['data_inizio', 'data_fine', 'mandato', 'sede']))
     <x-admin.card tone="light" shadow="lg" padding="none">
         <div class="p-6 border-b border-base-300 flex justify-between items-center">
             <div>
@@ -97,6 +89,35 @@
                     Dettagliato
                 </button>
             </div>
+        </div>
+        
+        {{-- DEBUG ORE RAGGRUPPATE --}}
+        <div class="p-4 bg-yellow-50 border border-yellow-200 m-4 rounded-lg">
+            <h4 class="font-bold text-sm mb-2">🐛 DEBUG: Ore Raggruppate</h4>
+            <div class="text-xs mb-2">
+                <strong>Clienti trovati:</strong> {{ $oreRaggruppate->keys()->implode(', ') ?: 'NESSUNO' }}
+            </div>
+            <pre class="text-xs overflow-auto max-h-64">{{ print_r($oreRaggruppate->toArray(), true) }}</pre>
+        </div>
+        
+        {{-- DEBUG DATI DETTAGLIATI --}}
+        <div class="p-4 bg-blue-50 border border-blue-200 m-4 rounded-lg">
+            <h4 class="font-bold text-sm mb-2">🐛 DEBUG: Primo elemento datiDettagliati</h4>
+            @php
+                $firstCliente = $datiDettagliati->first();
+                $firstSede = $firstCliente ? $firstCliente->first() : null;
+                $firstCampagna = $firstSede ? $firstSede->first() : null;
+            @endphp
+            @if($firstCampagna)
+                <div class="text-xs space-y-1">
+                    <div><strong>cliente:</strong> {{ $firstCampagna['cliente'] ?? 'N/D' }}</div>
+                    <div><strong>cliente_originale:</strong> {{ $firstCampagna['cliente_originale'] ?? 'N/D' }}</div>
+                    <div><strong>sede:</strong> {{ $firstCampagna['sede'] ?? 'N/D' }}</div>
+                    <div><strong>campagna:</strong> {{ $firstCampagna['campagna'] ?? 'N/D' }}</div>
+                </div>
+            @else
+                <p class="text-xs">Nessun dato disponibile</p>
+            @endif
         </div>
 
         {{-- TABELLA DETTAGLIATA --}}
@@ -127,7 +148,10 @@
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
                         
                         {{-- RID --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">RID</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" rowspan="2">RID</th>
+                        
+                        {{-- BOLL --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100" rowspan="2">BOLL</th>
                     </tr>
                     <tr>
                         {{-- Prodotto --}}
@@ -166,13 +190,14 @@
                             
                             @foreach($campagneData as $datiCampagna)
                                 <tr class="hover:bg-base-200/50 transition-colors">
-                                    {{-- Cliente --}}
-                                    @if($firstMandato)
-                                        <td class="font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $mandatoRowspan }}">
-                                            {{ $mandato }}
-                                        </td>
-                                        @php $firstMandato = false; @endphp
-                                    @endif
+                                {{-- Cliente --}}
+                                @if($firstMandato)
+                                    <td class="font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $mandatoRowspan }}">
+                                        {{-- Mostra il nome originale dalla cache (es: TIM_CONSUMER) --}}
+                                        {{ collect($campagneData)->first()['cliente_originale'] ?? $mandato }}
+                                    </td>
+                                    @php $firstMandato = false; @endphp
+                                @endif
                                     
                                     {{-- Sede --}}
                                     @if($firstSede)
@@ -216,19 +241,40 @@
                                     <td class="text-center text-sm bg-blue-50">{{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
                                     <td class="text-center text-sm font-semibold bg-blue-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_partner_valore'], 0) }}</td>
                                     
-                                    {{-- Ore (placeholder - da implementare se necessario) --}}
-                                    <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">-</td>
+                                    {{-- Ore --}}
+                                    <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                        @php
+                                            // Debug: verifica chiavi
+                                            // dd($datiCampagna['cliente'], $datiCampagna['sede'], $oreRaggruppate->keys());
+                                            
+                                            $clienteKey = $datiCampagna['cliente'] ?? '';
+                                            $sedeKey = $datiCampagna['sede'] ?? '';
+                                            
+                                            $oreCliente = $oreRaggruppate[$clienteKey] ?? null;
+                                            $oreSede = $oreCliente ? ($oreCliente[$sedeKey] ?? null) : null;
+                                            $totaleOre = $oreSede ? $oreSede->sum('totale_ore') : 0;
+                                            
+                                            // Converti secondi in ore (arrotondato a 2 decimali)
+                                            $oreFormattate = $totaleOre > 0 ? number_format($totaleOre / 3600, 2) : '-';
+                                        @endphp
+                                        {{ $oreFormattate }}
+                                    </td>
                                     
                                     {{-- RID --}}
-                                    <td class="text-center text-sm font-semibold bg-purple-50">
+                                    <td class="text-center text-sm font-semibold bg-purple-50 border-r-2 border-base-300">
                                         {{ $datiCampagna['count_rid'] ?? 0 }}
+                                    </td>
+                                    
+                                    {{-- BOLL --}}
+                                    <td class="text-center text-sm font-semibold bg-amber-50">
+                                        {{ $datiCampagna['count_boll'] ?? 0 }}
                                     </td>
                                 </tr>
                             @endforeach
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="15" class="text-center py-12">
+                            <td colspan="16" class="text-center py-12">
                                 <div>
                                     <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                                     <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati</p>
@@ -241,7 +287,7 @@
         </div>
         
         {{-- TABELLA SINTETICA --}}
-        <div id="table-sintetico" class="table-scroll-container max-h-[70vh]" style="overflow-x: auto !important; overflow-y: auto !important;">
+        <div id="table-sintetico" class="table-scroll-container max-h-[70vh] w-full" style="overflow-x: auto !important; overflow-y: auto !important;">
             <table class="table table-zebra w-full" style="min-width: 1400px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
@@ -267,7 +313,10 @@
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
                         
                         {{-- RID --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">RID</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" rowspan="2">RID</th>
+                        
+                        {{-- BOLL --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100" rowspan="2">BOLL</th>
                     </tr>
                     <tr>
                         {{-- Totale --}}
@@ -306,7 +355,8 @@
                                 {{-- Cliente --}}
                                 @if($firstCliente)
                                     <td class="font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $clienteRowspan }}">
-                                        {{ $cliente }}
+                                        {{-- Mostra il nome originale dalla cache (es: TIM_CONSUMER) --}}
+                                        {{ $dati['cliente_originale'] ?? $cliente }}
                                     </td>
                                     @php $firstCliente = false; @endphp
                                 @endif
@@ -337,17 +387,35 @@
                                 <td class="text-center text-sm font-semibold bg-blue-50 border-r-2 border-base-300">{{ number_format($dati['backlog_partner_valore'], 0) }}</td>
                                 
                                 {{-- Ore --}}
-                                <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">-</td>
+                                <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                    @php
+                                        $clienteKey = $dati['cliente'] ?? '';
+                                        $sedeKey = $dati['sede'] ?? '';
+                                        
+                                        $oreCliente = $oreRaggruppate[$clienteKey] ?? null;
+                                        $oreSede = $oreCliente ? ($oreCliente[$sedeKey] ?? null) : null;
+                                        $totaleOre = $oreSede ? $oreSede->sum('totale_ore') : 0;
+                                        
+                                        // Converti secondi in ore (arrotondato a 2 decimali)
+                                        $oreFormattate = $totaleOre > 0 ? number_format($totaleOre / 3600, 2) : '-';
+                                    @endphp
+                                    {{ $oreFormattate }}
+                                </td>
                                 
                                 {{-- RID --}}
-                                <td class="text-center text-sm font-semibold bg-purple-50">
+                                <td class="text-center text-sm font-semibold bg-purple-50 border-r-2 border-base-300">
                                     {{ $dati['count_rid'] ?? 0 }}
+                                </td>
+                                
+                                {{-- BOLL --}}
+                                <td class="text-center text-sm font-semibold bg-amber-50">
+                                    {{ $dati['count_boll'] ?? 0 }}
                                 </td>
                             </tr>
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="13" class="text-center py-12">
+                            <td colspan="14" class="text-center py-12">
                                 <div>
                                     <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                                     <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati</p>
