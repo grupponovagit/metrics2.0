@@ -126,8 +126,8 @@
                         {{-- Ore --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
                         
-                        {{-- N° Opzioni --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">N° Opzioni</th>
+                        {{-- RID --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">RID</th>
                     </tr>
                     <tr>
                         {{-- Prodotto --}}
@@ -219,9 +219,9 @@
                                     {{-- Ore (placeholder - da implementare se necessario) --}}
                                     <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">-</td>
                                     
-                                    {{-- N° Opzioni --}}
+                                    {{-- RID --}}
                                     <td class="text-center text-sm font-semibold bg-purple-50">
-                                        {{ $datiCampagna['num_opzioni'] ?? 0 }}
+                                        {{ $datiCampagna['count_rid'] ?? 0 }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -266,8 +266,8 @@
                         {{-- Ore --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
                         
-                        {{-- N° Opzioni --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">N° Opzioni</th>
+                        {{-- RID --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100" rowspan="2">RID</th>
                     </tr>
                     <tr>
                         {{-- Totale --}}
@@ -339,9 +339,9 @@
                                 {{-- Ore --}}
                                 <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">-</td>
                                 
-                                {{-- N° Opzioni --}}
+                                {{-- RID --}}
                                 <td class="text-center text-sm font-semibold bg-purple-50">
-                                    {{ $dati['num_opzioni'] ?? 0 }}
+                                    {{ $dati['count_rid'] ?? 0 }}
                                 </td>
                             </tr>
                         @endforeach

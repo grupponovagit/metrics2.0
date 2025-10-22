@@ -313,7 +313,9 @@ class ProduzioneController extends Controller
         $venditePerIdVendita = $vendite->groupBy('id_vendita')->map(function($righeVendita) {
             $base = $righeVendita->first();
             $prodotti = $righeVendita->pluck('nome_prodotto')->filter()->unique()->values();
-            $opzioni = $righeVendita->pluck('nome_opzione')->filter()->unique()->values();
+            
+            // Conta RID: se nome_opzione = 'RID_MODEM', conta 1, altrimenti 0
+            $hasRID = $righeVendita->where('nome_opzione', 'RID_MODEM')->count() > 0 ? 1 : 0;
             
             return [
                 'id_vendita' => $base->id_vendita,
@@ -322,8 +324,7 @@ class ProduzioneController extends Controller
                 'esito_vendita' => $base->esito_vendita,
                 'prodotto_principale' => $prodotti->first() ?: 'N/D',
                 'prodotti_aggiuntivi' => $prodotti->slice(1)->toArray(),
-                'opzioni' => $opzioni->toArray(),
-                'num_opzioni' => $opzioni->count(),
+                'has_rid' => $hasRID,
                 'data_vendita' => $base->data_vendita,
             ];
         });
@@ -334,10 +335,14 @@ class ProduzioneController extends Controller
                 return $venditeSede->groupBy('prodotto_principale')->map(function($venditeGruppo, $prodotto) {
                     $idVenditeUniche = $venditeGruppo->pluck('id_vendita')->unique();
                     
+                    // Conta RID solo su vendite INSERITE (OK)
+                    $ridInseriti = $venditeGruppo->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
+                        ->sum('has_rid');
+                    
                     return [
                         'campagna' => $prodotto,
                         'prodotti_aggiuntivi' => $venditeGruppo->flatMap(fn($v) => $v['prodotti_aggiuntivi'])->unique()->values()->toArray(),
-                        'num_opzioni' => $venditeGruppo->sum('num_opzioni'),
+                        'count_rid' => $ridInseriti,
                         'prodotto_pda' => $idVenditeUniche->count(),
                         'prodotto_valore' => 0,
                         'inserito_pda' => $venditeGruppo->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
@@ -362,10 +367,14 @@ class ProduzioneController extends Controller
             return $venditeCliente->groupBy('nome_sede')->map(function($venditeSede, $sede) {
                 $idVenditeUniche = $venditeSede->pluck('id_vendita')->unique();
                 
+                // Conta RID solo su vendite INSERITE (OK)
+                $ridInseriti = $venditeSede->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
+                    ->sum('has_rid');
+                
                 return [
                     'campagna' => 'TOTALE SEDE',
                     'prodotti_aggiuntivi' => [],
-                    'num_opzioni' => $venditeSede->sum('num_opzioni'),
+                    'count_rid' => $ridInseriti,
                     'prodotto_pda' => $idVenditeUniche->count(),
                     'prodotto_valore' => 0,
                     'inserito_pda' => $venditeSede->whereIn('esito_vendita', ['OK Definitivo', 'OK Controllo Dati', 'OK RECUPERO CONTROLLO DATI'])
