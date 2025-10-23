@@ -196,8 +196,7 @@
                                         ['route' => 'admin.produzione.input_manuale', 'icon' => 'keyboard', 'title' => 'Input Manuale'],
                                         ['route' => 'admin.produzione.avanzamento_mensile', 'icon' => 'chart-column', 'title' => 'Avanzamento Mensile'],
                                         ['route' => 'admin.produzione.kpi_lead_quartili', 'icon' => 'chart-simple', 'title' => 'KPI Lead Quartili'],
-                                        ['route' => 'admin.produzione.controllo_stato_lead', 'icon' => 'clipboard-check', 'title' => 'Controllo Stato Lead'],
-                                        ['route' => 'admin.produzione.kpi_target', 'icon' => 'bullseye', 'title' => 'KPI Target']
+                                        ['route' => 'admin.produzione.controllo_stato_lead', 'icon' => 'clipboard-check', 'title' => 'Controllo Stato Lead']
                                     ];
                                 @endphp
                                 
@@ -270,6 +269,7 @@
                                         ['route' => 'admin.ict.system', 'icon' => 'server', 'title' => 'Sistema'],
                                         ['route' => 'admin.ict.tickets', 'icon' => 'ticket', 'title' => 'Ticket'],
                                         ['route' => 'admin.ict.calendario', 'icon' => 'calendar', 'title' => 'Calendario'],
+                                        ['route' => 'admin.ict.kpi_target', 'icon' => 'bullseye', 'title' => 'KPI Target'],
                                         ['route' => 'admin.ict.stato', 'icon' => 'signal', 'title' => 'Stato'],
                                         ['route' => 'admin.ict.categoria_utm_campagna', 'icon' => 'tag', 'title' => 'Categoria UTM'],
                                         ['route' => 'admin.ict.aggiorna_mandati', 'icon' => 'sync', 'title' => 'Aggiorna Mandati']

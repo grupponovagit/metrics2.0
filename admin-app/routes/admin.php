@@ -151,8 +151,6 @@ Route::group([
         Route::get('/avanzamento-mensile', 'ProduzioneController@avanzamentoMensile')->name('avanzamento_mensile');
         Route::get('/kpi-lead-quartili', 'ProduzioneController@kpiLeadQuartili')->name('kpi_lead_quartili');
         Route::get('/controllo-stato-lead', 'ProduzioneController@controlloStatoLead')->name('controllo_stato_lead');
-        Route::get('/kpi-target', 'ProduzioneController@kpiTarget')->name('kpi_target');
-        Route::post('/kpi-target/update', 'ProduzioneController@updateKpiTarget')->name('kpi_target.update');
     });
 
     // Modulo Marketing - Solo per ruoli autorizzati
@@ -189,6 +187,14 @@ Route::group([
         
         // Sottomenu ICT
         Route::get('/calendario', 'ICTController@calendario')->name('calendario');
+        Route::post('/calendario/update', 'ICTController@updateCalendario')->name('calendario.update');
+        Route::post('/calendario/add-festivo', 'ICTController@addFestivo')->name('calendario.add_festivo');
+        Route::post('/calendario/add-eccezione-mandato', 'ICTController@addEccezioneMandato')->name('calendario.add_eccezione_mandato');
+        Route::delete('/calendario/{id}', 'ICTController@deleteGiorno')->name('calendario.delete');
+        
+        Route::get('/kpi-target', 'ICTController@kpiTarget')->name('kpi_target');
+        Route::post('/kpi-target/update', 'ICTController@updateKpiTarget')->name('kpi_target.update');
+        
         Route::get('/stato', 'ICTController@stato')->name('stato');
         Route::get('/categoria-utm-campagna', 'ICTController@categoriaUtmCampagna')->name('categoria_utm_campagna');
         Route::get('/aggiorna-mandati', 'ICTController@aggiornaMandati')->name('aggiorna_mandati');

@@ -5,10 +5,10 @@
         title="KPI Target" 
         subtitle="Gestione Target Mensili e Rendiconto Produzione"
         icon="bullseye"
-        iconColor="success"
+        iconColor="secondary"
     >
         <x-slot name="actions">
-            <a href="{{ route('admin.produzione.index') }}" class="btn btn-outline btn-success">
+            <a href="{{ route('admin.ict.index') }}" class="btn btn-outline btn-secondary">
                 <x-ui.icon name="arrow-left" class="h-4 w-4" />
                 Torna
             </a>
@@ -17,7 +17,7 @@
     
     {{-- FILTRO MESE/ANNO --}}
     <x-admin.card tone="light" shadow="md" padding="normal" class="mb-6">
-        <form method="GET" action="{{ route('admin.produzione.kpi_target') }}" class="flex flex-wrap items-end gap-4">
+        <form method="GET" action="{{ route('admin.ict.kpi_target') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[200px]">
                 <label for="mese" class="block text-sm font-medium text-base-content mb-2">
                     Mese
@@ -85,7 +85,7 @@
             </p>
         </div>
         
-        <form method="POST" action="{{ route('admin.produzione.kpi_target.update') }}" id="form-target">
+        <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-target">
             @csrf
             <input type="hidden" name="tabella" value="target">
             
@@ -154,7 +154,7 @@
             </p>
         </div>
         
-        <form method="POST" action="{{ route('admin.produzione.kpi_target.update') }}" id="form-rendiconto">
+        <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-rendiconto">
             @csrf
             <input type="hidden" name="tabella" value="rendiconto">
             
