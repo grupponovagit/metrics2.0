@@ -64,14 +64,14 @@
         <x-admin.stat-card
             title="Giorni Lavorativi"
             :value="round($giorniLavorativiTotali, 1)"
-            icon="briefcase"
+            icon="calendar-days"
             color="success"
         />
         
         <x-admin.stat-card
             title="Festività"
             :value="$festivita"
-            icon="gift"
+            icon="calendar-days"
             color="error"
         />
         
@@ -110,8 +110,8 @@
     
     {{-- AGGIUNGI ECCEZIONE MANDATO --}}
     <x-admin.card tone="light" shadow="md" class="mb-6">
-        <h3 class="text-xl font-bold mb-4">
-            <x-ui.icon name="triangle-exclamation" class="h-5 w-5 text-warning" />
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+            <x-ui.icon name="info" class="h-5 w-5 text-warning" />
             Aggiungi Eccezione per Mandato/Fornitore
         </h3>
         <p class="text-sm text-base-content/70 mb-4">
@@ -219,11 +219,14 @@
     
     {{-- FESTIVITÀ ANNO --}}
     <x-admin.card tone="light" shadow="lg">
-        <h3 class="text-xl font-bold mb-4">Festività {{ $anno }}</h3>
+        <h3 class="text-xl font-bold mb-4">
+            <x-ui.icon name="info" class="h-6 w-6 text-error inline-block" />
+            Festività {{ $anno }}
+        </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($festivitaAnno as $festa)
             <div class="flex items-center gap-3 p-3 bg-error/10 rounded-lg">
-                <x-ui.icon name="gift" class="h-6 w-6 text-error" />
+                <x-ui.icon name="calendar-days" class="h-6 w-6 text-error" />
                 <div>
                     <div class="font-semibold">{{ $festa->descrizione }}</div>
                     <div class="text-sm text-base-content/70">{{ $festa->data->format('d/m/Y') }}</div>

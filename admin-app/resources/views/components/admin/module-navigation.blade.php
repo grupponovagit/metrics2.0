@@ -41,9 +41,35 @@
                                  x-transition:enter-start="opacity-0 transform translate-x-4" 
                                  x-transition:enter-end="opacity-100 transform translate-x-0">
                                 <span class="module-title">{{ $module['name'] }}</span>
-                                @if(count($module['permissions']) > 0)
+                                @php
+                                    // Conta i sottomoduli effettivi per questo modulo
+                                    $submoduleCount = 0;
+                                    switch($module['key']) {
+                                        case 'hr':
+                                            $submoduleCount = 13 + (in_array('reports', $module['permissions']) ? 1 : 0);
+                                            break;
+                                        case 'amministrazione':
+                                            $submoduleCount = 7 + (in_array('reports', $module['permissions']) ? 1 : 0);
+                                            break;
+                                        case 'produzione':
+                                            $submoduleCount = 8 + (in_array('reports', $module['permissions']) ? 1 : 0);
+                                            break;
+                                        case 'marketing':
+                                            $submoduleCount = 5 + (in_array('reports', $module['permissions']) ? 1 : 0);
+                                            break;
+                                        case 'ict':
+                                            $viewLinks = 7; // Sistema, Ticket, Calendario, KPI Target, Stato, Categoria UTM, Aggiorna Mandati
+                                            $adminLinks = in_array('admin', $module['permissions']) ? 2 : 0; // Utenti, Sicurezza
+                                            $reportLinks = in_array('reports', $module['permissions']) ? 1 : 0;
+                                            $submoduleCount = $viewLinks + $adminLinks + $reportLinks;
+                                            break;
+                                        default:
+                                            $submoduleCount = count($module['permissions']);
+                                    }
+                                @endphp
+                                @if($submoduleCount > 0)
                                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        {{ count($module['permissions']) }} funzioni
+                                        {{ $submoduleCount }} {{ $submoduleCount == 1 ? 'funzione' : 'funzioni' }}
                                     </div>
                                 @endif
                             </div>
@@ -113,9 +139,9 @@
                                         ['route' => 'admin.hr.stringhe', 'icon' => 'code', 'title' => 'Stringhe'],
                                         ['route' => 'admin.hr.cruscotto_assenze', 'icon' => 'calendar-xmark', 'title' => 'Cruscotto Assenze'],
                                         ['route' => 'admin.hr.gestione_operatori', 'icon' => 'users-gear', 'title' => 'Gestione Operatori'],
-                                        ['route' => 'admin.hr.pes', 'icon' => 'shield-check', 'title' => 'PES'],
-                                        ['route' => 'admin.hr.tabella_per_mese', 'icon' => 'calendar-month', 'title' => 'Tabella per Mese'],
-                                        ['route' => 'admin.hr.tabella_per_operatore', 'icon' => 'user-chart', 'title' => 'Tabella per Operatore'],
+                                        ['route' => 'admin.hr.pes', 'icon' => 'file-shield', 'title' => 'PES'],
+                                        ['route' => 'admin.hr.tabella_per_mese', 'icon' => 'table-columns', 'title' => 'Tabella per Mese'],
+                                        ['route' => 'admin.hr.tabella_per_operatore', 'icon' => 'table-list', 'title' => 'Tabella per Operatore'],
                                         ['route' => 'admin.hr.archivio_iban_operatori', 'icon' => 'bank', 'title' => 'Archivio IBAN'],
                                         ['route' => 'admin.hr.import_indeed', 'icon' => 'upload', 'title' => 'Import Indeed']
                                     ];
@@ -232,7 +258,7 @@
                                         ['route' => 'admin.marketing.campaigns', 'icon' => 'bullhorn', 'title' => 'Campagne'],
                                         ['route' => 'admin.marketing.leads', 'icon' => 'users', 'title' => 'Lead'],
                                         ['route' => 'admin.marketing.cruscotto_lead', 'icon' => 'chart-line', 'title' => 'Cruscotto Lead'],
-                                        ['route' => 'admin.marketing.costi_invio_messaggi', 'icon' => 'envelope-open-dollar', 'title' => 'Costi Invio Messaggi'],
+                                        ['route' => 'admin.marketing.costi_invio_messaggi', 'icon' => 'paper-plane', 'title' => 'Costi Invio Messaggi'],
                                         ['route' => 'admin.marketing.controllo_sms', 'icon' => 'mobile-alt', 'title' => 'Controllo SMS']
                                     ];
                                 @endphp
