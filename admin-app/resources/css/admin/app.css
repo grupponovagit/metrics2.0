@@ -63,7 +63,7 @@ body, html {
 
 /* ===== SIDEBAR CONTAINER ===== */
 .sidebar-main {
-    @apply sticky top-0 h-screen bg-base-100 border-r border-base-300 transition-all duration-300 ease-in-out flex flex-col;
+    @apply sticky top-0 h-screen bg-base-100 border-r border-base-300 transition-all duration-300 ease-in-out flex flex-col flex-shrink-0;
     max-height: 100vh;
 }
 
@@ -91,27 +91,16 @@ body, html {
 }
 
 .sidebar-collapsed {
-    @apply w-16;
+    width: 4rem !important;
 }
 
 .sidebar-expanded {
-    @apply w-80;
-}
-
-/* Fix per assicurare che la sidebar cambi dimensione */
-.sidebar-main.sidebar-collapsed {
-    width: 4rem !important;
-    min-width: 4rem !important;
-}
-
-.sidebar-main.sidebar-expanded {
     width: 20rem !important;
-    min-width: 20rem !important;
 }
 
 /* Transizioni smooth */
 .sidebar-main {
-    transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out;
+    transition: width 0.3s ease-in-out;
 }
 
 /* ===== HEADER LOGO ===== */
@@ -376,28 +365,11 @@ body, html {
 }
 
 /* ===== TABLE SCROLL CONTAINER ===== */
-/* Calcola la larghezza massima disponibile nella viewport per la tabella */
 .table-scroll-container {
     width: 100%;
     overflow-x: auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-}
-
-/* Desktop con sidebar (lg+) */
-@media (min-width: 1024px) {
-    .table-scroll-container {
-        /* 100vw - sidebar(20rem) - padding-left(2.5rem) - padding-right(2.5rem) - margini extra(2rem) */
-        max-width: calc(100vw - 20rem - 5rem - 2rem);
-    }
-}
-
-/* Mobile senza sidebar */
-@media (max-width: 1023px) {
-    .table-scroll-container {
-        /* 100vw - padding mobile (1.5rem * 2) */
-        max-width: calc(100vw - 3rem);
-    }
 }
 
 /* ===== RESPONSIVE ===== */

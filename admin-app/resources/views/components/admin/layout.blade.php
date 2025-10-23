@@ -19,10 +19,10 @@
         <!-- Scripts -->
         @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
     </head>
-    <body class="font-sans antialiased min-h-screen overflow-x-hidden">
-        <div class="bg-base-100 flex min-h-screen w-full max-w-full overflow-x-hidden">
+    <body class="font-sans antialiased min-h-screen overflow-x-hidden" x-data="{ sidebarCollapsed: false }">
+        <div class="bg-base-100 flex min-h-screen w-screen overflow-x-hidden">
             <!-- Sidebar sempre visibile su desktop -->
-            <div class="hidden lg:block">
+            <div class="hidden lg:block flex-shrink-0" x-on:sidebar-toggle.window="sidebarCollapsed = $event.detail.collapsed">
                 @include('admin.layouts.navigation')
             </div>
             
@@ -50,7 +50,7 @@
             </div>
             
             <!-- Main content -->
-            <div class="flex-1 flex flex-col">
+            <div class="flex-1 flex flex-col min-w-0">
                 <!-- Page Heading per desktop -->
                 <div class="hidden lg:flex navbar justify-between bg-base-100 z-10 shadow-md">
                     <div class="">
@@ -92,7 +92,7 @@
                     </div>
                 </div>
                 <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 bg-base-200">
+                <main class="flex-1 overflow-y-auto overflow-x-auto p-4 bg-base-200 w-full">
                     {{ $slot }}
                 </main>
             </div>
@@ -125,23 +125,5 @@
                 animation: progress-bar 1.5s ease-in-out infinite;
             }
         </style>
-        
-        <script>
-            // Verifica che il loader esista
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', checkLoader);
-            } else {
-                checkLoader();
-            }
-            
-            function checkLoader() {
-                const loader = document.getElementById('app-loader');
-                if (loader) {
-                    console.log('[Loader] ✓ Pronto e in attesa di navigazione');
-                } else {
-                    console.error('[Loader] ✗ ERRORE: Element non trovato!');
-                }
-            }
-        </script>
     </body>
 </html>

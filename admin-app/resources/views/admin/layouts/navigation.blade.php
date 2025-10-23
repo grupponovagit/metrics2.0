@@ -17,6 +17,11 @@
             
             toggleSidebar() {
                 this.collapsed = !this.collapsed;
+                
+                // Emetti evento per comunicare lo stato al layout principale
+                window.dispatchEvent(new CustomEvent('sidebar-toggle', {
+                    detail: { collapsed: this.collapsed }
+                }));
             },
             
             toggleModule(moduleKey) {
