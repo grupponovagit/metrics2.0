@@ -91,38 +91,9 @@
             </div>
         </div>
         
-        {{-- DEBUG ORE RAGGRUPPATE --}}
-        <div class="p-4 bg-yellow-50 border border-yellow-200 m-4 rounded-lg">
-            <h4 class="font-bold text-sm mb-2">🐛 DEBUG: Ore Raggruppate</h4>
-            <div class="text-xs mb-2">
-                <strong>Clienti trovati:</strong> {{ $oreRaggruppate->keys()->implode(', ') ?: 'NESSUNO' }}
-            </div>
-            <pre class="text-xs overflow-auto max-h-64">{{ print_r($oreRaggruppate->toArray(), true) }}</pre>
-        </div>
-        
-        {{-- DEBUG DATI DETTAGLIATI --}}
-        <div class="p-4 bg-blue-50 border border-blue-200 m-4 rounded-lg">
-            <h4 class="font-bold text-sm mb-2">🐛 DEBUG: Primo elemento datiDettagliati</h4>
-            @php
-                $firstCliente = $datiDettagliati->first();
-                $firstSede = $firstCliente ? $firstCliente->first() : null;
-                $firstCampagna = $firstSede ? $firstSede->first() : null;
-            @endphp
-            @if($firstCampagna)
-                <div class="text-xs space-y-1">
-                    <div><strong>cliente:</strong> {{ $firstCampagna['cliente'] ?? 'N/D' }}</div>
-                    <div><strong>cliente_originale:</strong> {{ $firstCampagna['cliente_originale'] ?? 'N/D' }}</div>
-                    <div><strong>sede:</strong> {{ $firstCampagna['sede'] ?? 'N/D' }}</div>
-                    <div><strong>campagna:</strong> {{ $firstCampagna['campagna'] ?? 'N/D' }}</div>
-                </div>
-            @else
-                <p class="text-xs">Nessun dato disponibile</p>
-            @endif
-        </div>
-
         {{-- TABELLA DETTAGLIATA --}}
         <div id="table-dettagliato" class="table-scroll-container max-h-[70vh] hidden" style="overflow-x: auto !important; overflow-y: auto !important;">
-            <table class="table table-zebra w-full" style="min-width: 1500px;">
+            <table class="table table-zebra w-full" style="min-width: 1800px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
@@ -151,7 +122,14 @@
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" rowspan="2">RID</th>
                         
                         {{-- BOLL --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100" rowspan="2">BOLL</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300" rowspan="2">BOLL</th>
+                        
+                        {{-- RESE --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
+                        
+                        {{-- B/B+R % --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-pink-100" rowspan="2">B/B+R %</th>
                     </tr>
                     <tr>
                         {{-- Prodotto --}}
@@ -241,21 +219,11 @@
                                     <td class="text-center text-sm bg-blue-50">{{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
                                     <td class="text-center text-sm font-semibold bg-blue-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_partner_valore'], 0) }}</td>
                                     
-                                    {{-- Ore --}}
+                                    {{-- Ore (già incluse nella cache) --}}
                                     <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
                                         @php
-                                            // Debug: verifica chiavi
-                                            // dd($datiCampagna['cliente'], $datiCampagna['sede'], $oreRaggruppate->keys());
-                                            
-                                            $clienteKey = $datiCampagna['cliente'] ?? '';
-                                            $sedeKey = $datiCampagna['sede'] ?? '';
-                                            
-                                            $oreCliente = $oreRaggruppate[$clienteKey] ?? null;
-                                            $oreSede = $oreCliente ? ($oreCliente[$sedeKey] ?? null) : null;
-                                            $totaleOre = $oreSede ? $oreSede->sum('totale_ore') : 0;
-                                            
-                                            // Converti secondi in ore (arrotondato a 2 decimali)
-                                            $oreFormattate = $totaleOre > 0 ? number_format($totaleOre / 3600, 2) : '-';
+                                            $ore = $datiCampagna['ore'] ?? 0;
+                                            $oreFormattate = $ore > 0 ? number_format($ore, 2) : '-';
                                         @endphp
                                         {{ $oreFormattate }}
                                     </td>
@@ -266,15 +234,30 @@
                                     </td>
                                     
                                     {{-- BOLL --}}
-                                    <td class="text-center text-sm font-semibold bg-amber-50">
+                                    <td class="text-center text-sm font-semibold bg-amber-50 border-r-2 border-base-300">
                                         {{ $datiCampagna['count_boll'] ?? 0 }}
+                                    </td>
+                                    
+                                    {{-- Resa Prodotto --}}
+                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        {{ $datiCampagna['resa_prodotto_pda'] ?? '-' }}
+                                    </td>
+                                    
+                                    {{-- Resa Inserito --}}
+                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        {{ $datiCampagna['resa_inserito_pda'] ?? '-' }}
+                                    </td>
+                                    
+                                    {{-- B/B+R % --}}
+                                    <td class="text-center text-sm font-semibold bg-pink-50">
+                                        {{ $datiCampagna['boll_rid_pct'] ?? 0 }}%
                                     </td>
                                 </tr>
                             @endforeach
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="16" class="text-center py-12">
+                            <td colspan="22" class="text-center py-12">
                                 <div>
                                     <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                                     <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati</p>
@@ -288,7 +271,7 @@
         
         {{-- TABELLA SINTETICA --}}
         <div id="table-sintetico" class="table-scroll-container max-h-[70vh] w-full" style="overflow-x: auto !important; overflow-y: auto !important;">
-            <table class="table table-zebra w-full" style="min-width: 1400px;">
+            <table class="table table-zebra w-full" style="min-width: 1700px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
@@ -316,7 +299,14 @@
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" rowspan="2">RID</th>
                         
                         {{-- BOLL --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100" rowspan="2">BOLL</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300" rowspan="2">BOLL</th>
+                        
+                        {{-- RESE --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
+                        
+                        {{-- B/B+R % --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-pink-100" rowspan="2">B/B+R %</th>
                     </tr>
                     <tr>
                         {{-- Totale --}}
@@ -386,18 +376,11 @@
                                 <td class="text-center text-sm bg-blue-50">{{ number_format($dati['backlog_partner_pda']) }}</td>
                                 <td class="text-center text-sm font-semibold bg-blue-50 border-r-2 border-base-300">{{ number_format($dati['backlog_partner_valore'], 0) }}</td>
                                 
-                                {{-- Ore --}}
+                                {{-- Ore (già incluse nella cache) --}}
                                 <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
                                     @php
-                                        $clienteKey = $dati['cliente'] ?? '';
-                                        $sedeKey = $dati['sede'] ?? '';
-                                        
-                                        $oreCliente = $oreRaggruppate[$clienteKey] ?? null;
-                                        $oreSede = $oreCliente ? ($oreCliente[$sedeKey] ?? null) : null;
-                                        $totaleOre = $oreSede ? $oreSede->sum('totale_ore') : 0;
-                                        
-                                        // Converti secondi in ore (arrotondato a 2 decimali)
-                                        $oreFormattate = $totaleOre > 0 ? number_format($totaleOre / 3600, 2) : '-';
+                                        $ore = $dati['ore'] ?? 0;
+                                        $oreFormattate = $ore > 0 ? number_format($ore, 2) : '-';
                                     @endphp
                                     {{ $oreFormattate }}
                                 </td>
@@ -408,14 +391,29 @@
                                 </td>
                                 
                                 {{-- BOLL --}}
-                                <td class="text-center text-sm font-semibold bg-amber-50">
+                                <td class="text-center text-sm font-semibold bg-amber-50 border-r-2 border-base-300">
                                     {{ $dati['count_boll'] ?? 0 }}
+                                </td>
+                                
+                                {{-- Resa Prodotto --}}
+                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    {{ $dati['resa_prodotto_pda'] ?? '-' }}
+                                </td>
+                                
+                                {{-- Resa Inserito --}}
+                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    {{ $dati['resa_inserito_pda'] ?? '-' }}
+                                </td>
+                                
+                                {{-- B/B+R % --}}
+                                <td class="text-center text-sm font-semibold bg-pink-50">
+                                    {{ $dati['boll_rid_pct'] ?? 0 }}%
                                 </td>
                             </tr>
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="14" class="text-center py-12">
+                            <td colspan="17" class="text-center py-12">
                                 <div>
                                     <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                                     <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati</p>

@@ -262,6 +262,10 @@ Breadcrumbs::for('admin.produzione.reports', function (BreadcrumbTrail $trail) {
     $trail->push('Report', route('admin.produzione.reports'));
 });
 
+Breadcrumbs::for('admin.produzione.kpi_target', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.produzione.index');
+    $trail->push('KPI Target', route('admin.produzione.kpi_target'));
+});
 // Modulo Marketing
 Breadcrumbs::for('admin.marketing.index', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.dashboard');

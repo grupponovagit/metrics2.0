@@ -140,10 +140,6 @@ Route::group([
         'middleware' => 'module.access:produzione'
     ], function () {
         Route::get('/', 'ProduzioneController@index')->name('index');
-        Route::get('/orders', 'ProduzioneController@orders')->name('orders');
-        Route::get('/orders/create', 'ProduzioneController@createOrder')->name('orders.create');
-        Route::post('/orders', 'ProduzioneController@storeOrder')->name('orders.store');
-        Route::get('/quality', 'ProduzioneController@quality')->name('quality');
         Route::get('/reports', 'ProduzioneController@reports')->name('reports');
         
         // Sottomenu Produzione
@@ -155,6 +151,8 @@ Route::group([
         Route::get('/avanzamento-mensile', 'ProduzioneController@avanzamentoMensile')->name('avanzamento_mensile');
         Route::get('/kpi-lead-quartili', 'ProduzioneController@kpiLeadQuartili')->name('kpi_lead_quartili');
         Route::get('/controllo-stato-lead', 'ProduzioneController@controlloStatoLead')->name('controllo_stato_lead');
+        Route::get('/kpi-target', 'ProduzioneController@kpiTarget')->name('kpi_target');
+        Route::post('/kpi-target/update', 'ProduzioneController@updateKpiTarget')->name('kpi_target.update');
     });
 
     // Modulo Marketing - Solo per ruoli autorizzati
