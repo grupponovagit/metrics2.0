@@ -13,21 +13,38 @@ class LoaderManager {
     }
     
     init() {
-        // Intercetta click sui link
+        // Intercetta click sui link - NON bloccare il comportamento di default
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a[href]');
             if (link && this.shouldShowLoader(link)) {
+                // Mostra loader ma non bloccare la navigazione
                 this.show();
+                
+                // Aggiungi timeout di sicurezza: se dopo 10 secondi il loader è ancora visibile, nascondilo
+                setTimeout(() => {
+                    if (this.isLoading) {
+                        console.warn('[Loader] Timeout raggiunto, nascondo loader forzatamente');
+                        this.forceHide();
+                    }
+                }, 10000);
             }
-        }, true);
+        }, false); // Cambiato a false per non usare capture phase
         
         // Intercetta submit dei form
         document.addEventListener('submit', (e) => {
             const form = e.target;
             if (form && !form.hasAttribute('data-no-loader')) {
                 this.show();
+                
+                // Timeout di sicurezza anche per i form
+                setTimeout(() => {
+                    if (this.isLoading) {
+                        console.warn('[Loader] Timeout form raggiunto, nascondo loader forzatamente');
+                        this.forceHide();
+                    }
+                }, 15000);
             }
-        }, true);
+        }, false);
         
         // Intercetta richieste AJAX (fetch)
         this.interceptFetch();
@@ -43,6 +60,11 @@ class LoaderManager {
         // Nascondi loader se l'utente torna indietro
         window.addEventListener('pageshow', () => {
             this.hide();
+        });
+        
+        // Nascondi loader se la pagina sta per essere scaricata
+        window.addEventListener('beforeunload', () => {
+            // Non nascondere qui, lascia che la nuova pagina lo gestisca
         });
     }
     
@@ -112,6 +134,23 @@ class LoaderManager {
             
             console.log('[Loader] Nascosto');
         }, remaining);
+    }
+    
+    forceHide() {
+        // Nascondi immediatamente senza aspettare
+        const loader = document.getElementById('app-loader');
+        if (loader) {
+            loader.classList.add('hidden');
+            loader.classList.remove('flex');
+            
+            // Ripristina scroll
+            document.body.style.overflow = '';
+        }
+        
+        this.isLoading = false;
+        this.startTime = null;
+        
+        console.log('[Loader] Nascosto forzatamente');
     }
     
     interceptFetch() {
