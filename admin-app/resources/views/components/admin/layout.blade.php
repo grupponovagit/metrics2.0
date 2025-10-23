@@ -20,6 +20,45 @@
         @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
     </head>
     <body class="font-sans antialiased min-h-screen overflow-x-hidden">
+        <!-- Loader Accattivante -->
+        <div id="app-loader" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-base-100/80 backdrop-blur-sm">
+            <div class="flex flex-col items-center gap-6">
+                <!-- Spinner principale -->
+                <div class="relative">
+                    <!-- Anello esterno -->
+                    <div class="w-24 h-24 rounded-full border-4 border-primary/20"></div>
+                    
+                    <!-- Anello rotante 1 -->
+                    <div class="absolute inset-0 w-24 h-24 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+                    
+                    <!-- Anello rotante 2 (più lento, inverso) -->
+                    <div class="absolute inset-2 w-20 h-20 rounded-full border-4 border-transparent border-b-secondary animate-spin-slow-reverse"></div>
+                    
+                    <!-- Centro pulsante -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full animate-pulse shadow-lg"></div>
+                    </div>
+                </div>
+                
+                <!-- Testo -->
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-lg font-semibold text-base-content">Caricamento in corso...</p>
+                    
+                    <!-- Barra di progresso animata -->
+                    <div class="w-48 h-1 bg-base-300 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-primary via-secondary to-primary animate-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Punti animati -->
+                <div class="flex gap-2">
+                    <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                    <div class="w-3 h-3 bg-secondary rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                    <div class="w-3 h-3 bg-accent rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                </div>
+            </div>
+        </div>
+        
         <div class="bg-base-100 flex min-h-screen w-full max-w-full overflow-x-hidden">
             <!-- Sidebar sempre visibile su desktop -->
             <div class="hidden lg:block">
@@ -97,5 +136,51 @@
                 </main>
             </div>
         </div>
+        
+        <style>
+            @keyframes spin-slow-reverse {
+                from {
+                    transform: rotate(360deg);
+                }
+                to {
+                    transform: rotate(0deg);
+                }
+            }
+            
+            @keyframes progress-bar {
+                0% {
+                    transform: translateX(-100%);
+                }
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+            
+            .animate-spin-slow-reverse {
+                animation: spin-slow-reverse 2s linear infinite;
+            }
+            
+            .animate-progress-bar {
+                animation: progress-bar 1.5s ease-in-out infinite;
+            }
+        </style>
+        
+        <script>
+            // Verifica che il loader esista
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkLoader);
+            } else {
+                checkLoader();
+            }
+            
+            function checkLoader() {
+                const loader = document.getElementById('app-loader');
+                if (loader) {
+                    console.log('[Loader] ✓ Pronto e in attesa di navigazione');
+                } else {
+                    console.error('[Loader] ✗ ERRORE: Element non trovato!');
+                }
+            }
+        </script>
     </body>
 </html>
