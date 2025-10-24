@@ -144,7 +144,7 @@ class ProduzioneController extends Controller
         $sedeFilter = $request->input('sede', []);
         
         // === QUERY PRINCIPALE SU TABELLA PIVOT PRE-AGGREGATA ===
-        $query = DB::table('report_vendite_pivot_cache');
+        $query = DB::table('report_produzione_pivot_cache');
         
         // Applica filtri
         if ($dataInizio && $dataFine) {
@@ -166,7 +166,7 @@ class ProduzioneController extends Controller
         }
         
         // === KPI TOTALI (aggregazione SQL diretta) ===
-        $kpiTotali = DB::table('report_vendite_pivot_cache')
+        $kpiTotali = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
             ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
@@ -196,7 +196,7 @@ class ProduzioneController extends Controller
         ];
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
-        $datiDettagliati = DB::table('report_vendite_pivot_cache')
+        $datiDettagliati = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
             ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
@@ -277,7 +277,7 @@ class ProduzioneController extends Controller
             });
         
         // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
-        $datiSintetici = DB::table('report_vendite_pivot_cache')
+        $datiSintetici = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
             ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
@@ -350,7 +350,7 @@ class ProduzioneController extends Controller
             });
         
         // === DATI PER FILTRI ===
-        $mandati = DB::table('report_vendite_pivot_cache')
+        $mandati = DB::table('report_produzione_pivot_cache')
             ->distinct()
             ->whereNotNull('commessa')
             ->orderBy('commessa')
@@ -358,7 +358,7 @@ class ProduzioneController extends Controller
         
         // Prendi solo le sedi che hanno dati nella cache
         // e mappa id_sede dalla tabella sedi
-        $sediCache = DB::table('report_vendite_pivot_cache')
+        $sediCache = DB::table('report_produzione_pivot_cache')
             ->select('nome_sede')
             ->distinct()
             ->whereNotNull('nome_sede')
