@@ -193,7 +193,14 @@ Route::group([
         Route::delete('/calendario/{id}', 'ICTController@deleteGiorno')->name('calendario.delete');
         
         Route::get('/kpi-target', 'ICTController@kpiTarget')->name('kpi_target');
+        Route::get('/kpi-target/create', 'ICTController@createKpiTarget')->name('kpi_target.create');
+        Route::post('/kpi-target/store', 'ICTController@storeKpiTarget')->name('kpi_target.store');
+        Route::get('/kpi-target/{id}', 'ICTController@showKpiTarget')->name('kpi_target.show');
+        Route::post('/kpi-target/{id}/update-field', 'ICTController@updateKpiField')->name('kpi_target.update_field');
+        Route::post('/kpi-target/{id}/update-variazione', 'ICTController@updateKpiVariazione')->name('kpi_target.update_variazione');
         Route::post('/kpi-target/update', 'ICTController@updateKpiTarget')->name('kpi_target.update');
+        Route::delete('/kpi-target/{id}', 'ICTController@deleteKpiTarget')->name('kpi_target.delete');
+        Route::post('/kpi-target/bulk-delete', 'ICTController@bulkDeleteKpiTarget')->name('kpi_target.bulk_delete');
         
         Route::get('/stato', 'ICTController@stato')->name('stato');
         Route::get('/categoria-utm-campagna', 'ICTController@categoriaUtmCampagna')->name('categoria_utm_campagna');

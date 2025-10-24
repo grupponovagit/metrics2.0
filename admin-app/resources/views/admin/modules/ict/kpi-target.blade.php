@@ -8,6 +8,10 @@
         iconColor="secondary"
     >
         <x-slot name="actions">
+            <a href="{{ route('admin.ict.kpi_target.create') }}" class="btn btn-success">
+                <x-ui.icon name="plus" class="h-4 w-4" />
+                Nuovo KPI
+            </a>
             <a href="{{ route('admin.ict.index') }}" class="btn btn-outline btn-secondary">
                 <x-ui.icon name="arrow-left" class="h-4 w-4" />
                 Torna
@@ -60,6 +64,13 @@
                 </button>
             </div>
         </form>
+        
+        {{-- Info Filtro Attivo --}}
+        <div class="mt-4 text-sm text-base-content/70">
+            <strong>Filtro attivo:</strong> 
+            {{ date('F Y', mktime(0, 0, 0, $mese, 1, $anno)) }}
+            <span class="ml-2 text-xs">(Anno: {{ $anno }}, Mese: {{ str_pad($mese, 2, '0', STR_PAD_LEFT) }})</span>
+        </div>
     </x-admin.card>
     
     {{-- TABS --}}
@@ -76,54 +87,118 @@
     
     {{-- TABELLA 1: TARGET MENSILI --}}
     <x-admin.card tone="light" shadow="lg" padding="none" id="table-target">
-        <div class="p-6 border-b border-base-300">
-            <h3 class="text-xl font-bold text-base-content">
-                Target Mensili - {{ date('F Y', mktime(0, 0, 0, $mese, 1, $anno)) }}
-            </h3>
-            <p class="text-sm text-base-content/60 mt-1">
-                KPI di target o obiettivi mensili (dati di pianificazione)
-            </p>
+        <div class="p-6 border-b border-base-300 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-bold text-base-content">
+                    Target Mensili - {{ date('F Y', mktime(0, 0, 0, $mese, 1, $anno)) }}
+                </h3>
+                <p class="text-sm text-base-content/60 mt-1">
+                    KPI di target o obiettivi mensili (dati di pianificazione)
+                    <br>
+                    <span class="font-semibold">{{ $targetMensili->total() }}</span> record totali
+                    @if($targetMensili->hasPages())
+                        | Pagina {{ $targetMensili->currentPage() }} di {{ $targetMensili->lastPage() }}
+                    @endif
+                </p>
+            </div>
+            
+            {{-- Pulsanti Bulk Actions --}}
+            <div class="flex gap-2" id="bulk-actions-target" style="display: none;">
+                <button type="button" onclick="bulkDeleteTarget()" class="btn btn-error btn-sm">
+                    <x-ui.icon name="trash" class="h-4 w-4" />
+                    Elimina Selezionati
+                </button>
+                <button type="button" onclick="deselectAllTarget()" class="btn btn-outline btn-sm">
+                    Deseleziona Tutto
+                </button>
+            </div>
         </div>
         
         <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-target">
             @csrf
-            <input type="hidden" name="tabella" value="target">
+            <input type="hidden" name="tabella" value="target_mensili">
             
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
                     <thead class="bg-base-200 sticky top-0">
                         <tr>
+                            <th class="w-12">
+                                <input type="checkbox" id="select-all-target" class="checkbox checkbox-sm" onchange="toggleAllTarget(this)">
+                            </th>
                             <th class="font-bold">Commessa</th>
                             <th class="font-bold">Sede CRM</th>
                             <th class="font-bold">Sede Estesa</th>
                             <th class="font-bold">Nome KPI</th>
+                            <th class="font-bold text-center">Anno</th>
+                            <th class="font-bold text-center">Mese</th>
                             <th class="font-bold text-center">Valore</th>
+                            <th class="font-bold text-center">Variazione KPI</th>
+                            <th class="font-bold text-center">Azioni</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($targetMensili as $kpi)
                             <tr class="hover:bg-base-200/50">
-                                <td class="font-medium">{{ $kpi->commessa }}</td>
-                                <td>{{ $kpi->sede_crm }}</td>
-                                <td class="text-sm text-base-content/70">{{ $kpi->sede_estesa }}</td>
-                                <td>{{ $kpi->nome_kpi }}</td>
+                                <td>
+                                    <input type="checkbox" class="checkbox checkbox-sm kpi-checkbox-target" value="{{ $kpi->id }}" onchange="updateBulkActionsTarget()">
+                                </td>
+                                <td class="font-medium editable-cell" contenteditable="true" data-field="commessa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->commessa }}">{{ $kpi->commessa }}</td>
+                                <td class="editable-cell" contenteditable="true" data-field="sede_crm" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_crm }}">{{ $kpi->sede_crm }}</td>
+                                <td class="text-sm text-base-content/70 editable-cell" contenteditable="true" data-field="sede_estesa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_estesa }}">{{ $kpi->sede_estesa }}</td>
+                                <td class="editable-cell" contenteditable="true" data-field="nome_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->nome_kpi }}">{{ $kpi->nome_kpi }}</td>
+                                <td class="text-center">{{ $kpi->anno }}</td>
+                                <td class="text-center">{{ $kpi->mese }}</td>
                                 <td class="text-center">
                                     <input 
                                         type="number" 
                                         name="kpi[{{ $kpi->id }}]" 
                                         value="{{ $kpi->valore_kpi }}"
-                                        step="1"
+                                        step="0.01"
                                         min="0"
                                         class="input input-sm input-bordered w-24 text-center"
                                     />
                                 </td>
+                                <td class="text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        @if($kpi->kpi_variato)
+                                            <div class="flex flex-col items-start text-xs">
+                                                <span class="badge badge-warning badge-sm">{{ number_format($kpi->kpi_variato, 2) }}</span>
+                                                <span class="text-xs text-base-content/60">
+                                                    {{ $kpi->data_validita_inizio ? \Carbon\Carbon::parse($kpi->data_validita_inizio)->format('d/m') : '' }}
+                                                    @if($kpi->data_validita_fine)
+                                                        - {{ \Carbon\Carbon::parse($kpi->data_validita_fine)->format('d/m') }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="badge badge-ghost badge-sm">Nessuna</span>
+                                        @endif
+                                        <button type="button" onclick="openVariazioneModal({{ json_encode($kpi) }})" class="btn btn-xs btn-outline" title="Modifica Variazione">
+                                            <x-ui.icon name="pencil" class="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="flex gap-1 justify-center">
+                                        <a href="{{ route('admin.ict.kpi_target.show', $kpi->id) }}" class="btn btn-xs btn-info" title="Visualizza">
+                                            <x-ui.icon name="eye" class="h-3 w-3" />
+                                        </a>
+                                        <form action="{{ route('admin.ict.kpi_target.delete', $kpi->id) }}" method="POST" class="inline" onsubmit="return confirm('Sei sicuro di voler eliminare questo KPI?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-xs btn-error" title="Elimina">
+                                                <x-ui.icon name="trash" class="h-3 w-3" />
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-12">
+                                <td colspan="10" class="text-center py-12">
                                     <div>
                                         <h3 class="text-lg font-semibold text-base-content mb-1">Nessun target trovato</h3>
-                                        <p class="text-sm text-base-content/60">Seleziona un periodo diverso</p>
+                                        <p class="text-sm text-base-content/60">Seleziona un periodo diverso o crea un nuovo KPI</p>
                                     </div>
                                 </td>
                             </tr>
@@ -131,6 +206,15 @@
                     </tbody>
                 </table>
             </div>
+            
+            {{-- PAGINAZIONE --}}
+            @if($targetMensili->hasPages())
+                <div class="p-6 bg-base-200/50 border-t border-base-300">
+                    <div class="flex justify-center">
+                        {{ $targetMensili->appends(['anno' => $anno, 'mese' => $mese])->links() }}
+                    </div>
+                </div>
+            @endif
             
             @if($targetMensili->count() > 0)
                 <div class="p-6 bg-base-200/50 border-t border-base-300 flex justify-end">
@@ -156,7 +240,7 @@
         
         <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-rendiconto">
             @csrf
-            <input type="hidden" name="tabella" value="rendiconto">
+            <input type="hidden" name="tabella" value="rendiconto_produzione">
             
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
@@ -231,18 +315,351 @@
         </div>
     @endif
     
+    {{-- Form nascosto per bulk delete --}}
+    <form id="bulk-delete-form-target" action="{{ route('admin.ict.kpi_target.bulk_delete') }}" method="POST" style="display: none;">
+        @csrf
+        <input type="hidden" name="ids" id="bulk-delete-ids-target">
+    </form>
+    
+    {{-- MODAL VARIAZIONE KPI --}}
+    <dialog id="variazione-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">
+                <x-ui.icon name="chart-line" class="h-5 w-5 inline text-warning" />
+                Gestisci Variazione KPI
+            </h3>
+            
+            <form id="form-variazione">
+                <input type="hidden" id="variazione-kpi-id">
+                
+                <div class="space-y-4">
+                    {{-- KPI Variato --}}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Nuovo Valore KPI</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="variazione-kpi-variato"
+                            step="0.01"
+                            min="0"
+                            placeholder="Lascia vuoto per rimuovere variazione"
+                            class="input input-bordered"
+                        />
+                        <label class="label">
+                            <span class="label-text-alt">Valore KPI modificato (se cambia nel mese)</span>
+                        </label>
+                    </div>
+                    
+                    {{-- Data Inizio --}}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Data Cambio <span class="text-error" id="label-required">*</span></span>
+                        </label>
+                        <input 
+                            type="date" 
+                            id="variazione-data-inizio"
+                            class="input input-bordered"
+                        />
+                        <label class="label">
+                            <span class="label-text-alt">Da quale giorno si applica il nuovo valore</span>
+                        </label>
+                    </div>
+                    
+                    {{-- Data Fine --}}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Data Fine (opzionale)</span>
+                        </label>
+                        <input 
+                            type="date" 
+                            id="variazione-data-fine"
+                            class="input input-bordered"
+                        />
+                        <label class="label">
+                            <span class="label-text-alt">Lascia vuoto per applicare fino a fine mese</span>
+                        </label>
+                    </div>
+                    
+                    {{-- Alert Info --}}
+                    <div class="alert alert-info">
+                        <x-ui.icon name="info-circle" class="h-5 w-5" />
+                        <div>
+                            <p class="font-semibold">Come funziona:</p>
+                            <p class="text-sm">Se imposti un nuovo valore KPI con una data, il sistema userà il valore iniziale fino al giorno prima e il nuovo valore dalla data specificata in poi.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="closeVariazioneModal()">Annulla</button>
+                    <button type="button" class="btn btn-error" onclick="rimuoviVariazione()" id="btn-rimuovi-variazione">
+                        <x-ui.icon name="trash" class="h-4 w-4" />
+                        Rimuovi Variazione
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="salvaVariazione()">
+                        <x-ui.icon name="save" class="h-4 w-4" />
+                        Salva
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    
     <script>
+        // Switch tra tab
         function switchTab(tab) {
-            // Update tabs
             document.getElementById('tab-target').classList.remove('tab-active');
             document.getElementById('tab-rendiconto').classList.remove('tab-active');
             document.getElementById('tab-' + tab).classList.add('tab-active');
             
-            // Update tables
             document.getElementById('table-target').classList.add('hidden');
             document.getElementById('table-rendiconto').classList.add('hidden');
             document.getElementById('table-' + tab).classList.remove('hidden');
         }
+        
+        // Seleziona/deseleziona tutti
+        function toggleAllTarget(checkbox) {
+            const checkboxes = document.querySelectorAll('.kpi-checkbox-target');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            updateBulkActionsTarget();
+        }
+        
+        // Aggiorna visibilità pulsanti bulk
+        function updateBulkActionsTarget() {
+            const checkboxes = document.querySelectorAll('.kpi-checkbox-target:checked');
+            const bulkActions = document.getElementById('bulk-actions-target');
+            bulkActions.style.display = checkboxes.length > 0 ? 'flex' : 'none';
+        }
+        
+        // Deseleziona tutti
+        function deselectAllTarget() {
+            document.getElementById('select-all-target').checked = false;
+            toggleAllTarget(document.getElementById('select-all-target'));
+        }
+        
+        // Elimina selezionati
+        function bulkDeleteTarget() {
+            const checkboxes = document.querySelectorAll('.kpi-checkbox-target:checked');
+            if (checkboxes.length === 0) {
+                alert('Seleziona almeno un KPI da eliminare');
+                return;
+            }
+            
+            if (!confirm(`Sei sicuro di voler eliminare ${checkboxes.length} KPI selezionati?`)) {
+                return;
+            }
+            
+            const ids = Array.from(checkboxes).map(cb => cb.value);
+            document.getElementById('bulk-delete-ids-target').value = JSON.stringify(ids);
+            document.getElementById('bulk-delete-form-target').submit();
+        }
+        
+        // ===== MODIFICA INLINE CELLE =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const editableCells = document.querySelectorAll('.editable-cell');
+            
+            editableCells.forEach(cell => {
+                // Evidenzia la cella quando è in focus
+                cell.addEventListener('focus', function() {
+                    this.style.backgroundColor = '#fef3c7';
+                    this.style.outline = '2px solid #f59e0b';
+                });
+                
+                // Rimuovi evidenziazione quando perde il focus
+                cell.addEventListener('blur', function() {
+                    this.style.backgroundColor = '';
+                    this.style.outline = '';
+                    
+                    const originalValue = this.getAttribute('data-original');
+                    const newValue = this.textContent.trim();
+                    
+                    // Se il valore è cambiato, salva
+                    if (originalValue !== newValue) {
+                        saveFieldChange(this);
+                    }
+                });
+                
+                // Salva con Enter
+                cell.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur(); // Trigger il blur che salva
+                    }
+                    // Annulla con Escape
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.textContent = this.getAttribute('data-original');
+                        this.blur();
+                    }
+                });
+            });
+        });
+        
+        // Funzione per salvare la modifica via AJAX
+        function saveFieldChange(cell) {
+            const id = cell.getAttribute('data-id');
+            const field = cell.getAttribute('data-field');
+            const value = cell.textContent.trim();
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Mostra loading
+            const originalContent = cell.textContent;
+            cell.textContent = '⏳ Salvataggio...';
+            cell.style.opacity = '0.6';
+            
+            fetch(`/admin/ict/kpi-target/${id}/update-field`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    field: field,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Aggiorna il valore originale
+                    cell.setAttribute('data-original', value);
+                    cell.textContent = value;
+                    cell.style.opacity = '1';
+                    
+                    // Flash verde
+                    cell.style.backgroundColor = '#d1fae5';
+                    setTimeout(() => {
+                        cell.style.backgroundColor = '';
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Errore durante il salvataggio');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante il salvataggio: ' + error.message);
+                
+                // Ripristina valore originale
+                cell.textContent = cell.getAttribute('data-original');
+                cell.style.opacity = '1';
+                cell.style.backgroundColor = '#fecaca';
+                setTimeout(() => {
+                    cell.style.backgroundColor = '';
+                }, 1000);
+            });
+        }
+        
+        // ===== GESTIONE MODAL VARIAZIONE =====
+        function openVariazioneModal(kpi) {
+            const modal = document.getElementById('variazione-modal');
+            
+            // Popola i campi
+            document.getElementById('variazione-kpi-id').value = kpi.id;
+            document.getElementById('variazione-kpi-variato').value = kpi.kpi_variato || '';
+            document.getElementById('variazione-data-inizio').value = kpi.data_validita_inizio || '';
+            document.getElementById('variazione-data-fine').value = kpi.data_validita_fine || '';
+            
+            // Mostra/nascondi pulsante rimuovi
+            const btnRimuovi = document.getElementById('btn-rimuovi-variazione');
+            btnRimuovi.style.display = kpi.kpi_variato ? 'flex' : 'none';
+            
+            // Apri modal
+            modal.showModal();
+        }
+        
+        function closeVariazioneModal() {
+            const modal = document.getElementById('variazione-modal');
+            modal.close();
+        }
+        
+        function salvaVariazione() {
+            const id = document.getElementById('variazione-kpi-id').value;
+            const kpiVariato = document.getElementById('variazione-kpi-variato').value;
+            const dataInizio = document.getElementById('variazione-data-inizio').value;
+            const dataFine = document.getElementById('variazione-data-fine').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Validazione
+            if (kpiVariato && !dataInizio) {
+                alert('Se imposti un nuovo valore KPI, devi specificare anche la data di inizio!');
+                return;
+            }
+            
+            if (dataFine && dataInizio && dataFine < dataInizio) {
+                alert('La data fine deve essere uguale o successiva alla data inizio!');
+                return;
+            }
+            
+            // Salva via AJAX
+            fetch(`/admin/ict/kpi-target/${id}/update-variazione`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    kpi_variato: kpiVariato || null,
+                    data_validita_inizio: dataInizio || null,
+                    data_validita_fine: dataFine || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Variazione salvata con successo!');
+                    closeVariazioneModal();
+                    location.reload(); // Ricarica la pagina per vedere le modifiche
+                } else {
+                    throw new Error(data.message || 'Errore durante il salvataggio');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante il salvataggio: ' + error.message);
+            });
+        }
+        
+        function rimuoviVariazione() {
+            if (!confirm('Sei sicuro di voler rimuovere la variazione KPI?')) {
+                return;
+            }
+            
+            const id = document.getElementById('variazione-kpi-id').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`/admin/ict/kpi-target/${id}/update-variazione`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    kpi_variato: null,
+                    data_validita_inizio: null,
+                    data_validita_fine: null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Variazione rimossa con successo!');
+                    closeVariazioneModal();
+                    location.reload();
+                } else {
+                    throw new Error(data.message || 'Errore durante la rimozione');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante la rimozione: ' + error.message);
+            });
+        }
     </script>
 </x-admin.wrapper>
-

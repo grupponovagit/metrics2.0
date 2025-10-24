@@ -266,6 +266,21 @@ Breadcrumbs::for('admin.ict.kpi_target', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.ict.index');
     $trail->push('KPI Target', route('admin.ict.kpi_target'));
 });
+
+Breadcrumbs::for('admin.ict.kpi_target.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.kpi_target');
+    $trail->push('Nuovo KPI', route('admin.ict.kpi_target.create'));
+});
+
+Breadcrumbs::for('admin.ict.kpi_target.show', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.ict.kpi_target');
+    
+    // Se $id è un oggetto, usa la sua proprietà id, altrimenti usa il valore diretto
+    $kpiId = is_object($id) ? $id->id : $id;
+    
+    $trail->push('Dettaglio KPI #' . $kpiId);
+});
+
 // Modulo Marketing
 Breadcrumbs::for('admin.marketing.index', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.dashboard');
