@@ -219,7 +219,9 @@
                                     {{-- OBIETTIVI --}}
                                     <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['obiettivo_mensile'] ?? 0 }}</td>
                                     <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['passo_giorno'] ?? 0 }}</td>
-                                    <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300">{{ $datiCampagna['differenza_obj'] ?? 0 }}</td>
+                                    <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($datiCampagna['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
+                                        {{ $datiCampagna['differenza_obj'] ?? 0 }}
+                                    </td>
                                     
                                     {{-- PAF MENSILE --}}
                                     <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($datiCampagna['ore_paf'] ?? 0, 2) }}</td>
@@ -240,6 +242,7 @@
                                 'ore' => 0,
                                 'ore_paf' => 0,
                                 'pezzi_paf' => 0,
+                                'obiettivo_mensile' => 0,
                             ];
                             
                             foreach($sediData as $campagneData) {
@@ -252,6 +255,7 @@
                                     $totaleCliente['ore'] += $dati['ore'] ?? 0;
                                     $totaleCliente['ore_paf'] += $dati['ore_paf'] ?? 0;
                                     $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                                    $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
                                 }
                             }
                             
@@ -259,6 +263,15 @@
                             $totaleCliente['resa_prodotto'] = $totaleCliente['ore'] > 0 ? round($totaleCliente['prodotto_pda'] / $totaleCliente['ore'], 2) : 0;
                             $totaleCliente['resa_inserito'] = $totaleCliente['ore'] > 0 ? round($totaleCliente['inserito_pda'] / $totaleCliente['ore'], 2) : 0;
                             $totaleCliente['resa_paf'] = $totaleCliente['ore_paf'] > 0 ? round($totaleCliente['pezzi_paf'] / $totaleCliente['ore_paf'], 2) : 0;
+                            
+                            // Calcoli obiettivi
+                            $diffObjCliente = $totaleCliente['obiettivo_mensile'] - $totaleCliente['inserito_pda'];
+                            
+                            // Passo giorno: solo se ci sono giorni rimanenti E differenza positiva
+                            $passoGiornoCliente = 0;
+                            if (isset($kpiArray['giorni_lavorativi_rimanenti']) && $kpiArray['giorni_lavorativi_rimanenti'] > 0 && $diffObjCliente > 0) {
+                                $passoGiornoCliente = round($diffObjCliente / $kpiArray['giorni_lavorativi_rimanenti'], 2);
+                            }
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
                             <td colspan="3" class="text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $mandato }}</td>
@@ -271,10 +284,12 @@
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
                             
-                            {{-- Obiettivi (al momento a 0) --}}
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300">0</td>
+                            {{-- Obiettivi --}}
+                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
+                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
+                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
+                                {{ number_format($diffObjCliente, 0) }}
+                            </td>
                             
                             {{-- PAF Mensile --}}
                             <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>
@@ -462,7 +477,9 @@
                                 {{-- OBIETTIVI --}}
                                 <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['obiettivo_mensile'] ?? 0 }}</td>
                                 <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['passo_giorno'] ?? 0 }}</td>
-                                <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300">{{ $dati['differenza_obj'] ?? 0 }}</td>
+                                <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($dati['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
+                                    {{ $dati['differenza_obj'] ?? 0 }}
+                                </td>
                                 
                                 {{-- PAF MENSILE --}}
                                 <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($dati['ore_paf'] ?? 0, 2) }}</td>
@@ -482,6 +499,7 @@
                                 'ore' => 0,
                                 'ore_paf' => 0,
                                 'pezzi_paf' => 0,
+                                'obiettivo_mensile' => 0,
                             ];
                             
                             foreach($sediData as $datiSede) {
@@ -494,12 +512,22 @@
                                 $totaleCliente['ore'] += $dati['ore'] ?? 0;
                                 $totaleCliente['ore_paf'] += $dati['ore_paf'] ?? 0;
                                 $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                                $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
                             }
                             
                             // Calcoli resa
                             $totaleCliente['resa_prodotto'] = $totaleCliente['ore'] > 0 ? round($totaleCliente['prodotto_pda'] / $totaleCliente['ore'], 2) : 0;
                             $totaleCliente['resa_inserito'] = $totaleCliente['ore'] > 0 ? round($totaleCliente['inserito_pda'] / $totaleCliente['ore'], 2) : 0;
                             $totaleCliente['resa_paf'] = $totaleCliente['ore_paf'] > 0 ? round($totaleCliente['pezzi_paf'] / $totaleCliente['ore_paf'], 2) : 0;
+                            
+                            // Calcoli obiettivi
+                            $diffObjCliente = $totaleCliente['obiettivo_mensile'] - $totaleCliente['inserito_pda'];
+                            
+                            // Passo giorno: solo se ci sono giorni rimanenti E differenza positiva
+                            $passoGiornoCliente = 0;
+                            if (isset($kpiArray['giorni_lavorativi_rimanenti']) && $kpiArray['giorni_lavorativi_rimanenti'] > 0 && $diffObjCliente > 0) {
+                                $passoGiornoCliente = round($diffObjCliente / $kpiArray['giorni_lavorativi_rimanenti'], 2);
+                            }
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
                             <td colspan="2" class="text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $cliente }}</td>
@@ -512,10 +540,12 @@
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
                             
-                            {{-- Obiettivi (al momento a 0) --}}
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300">0</td>
+                            {{-- Obiettivi --}}
+                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
+                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
+                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
+                                {{ number_format($diffObjCliente, 0) }}
+                            </td>
                             
                             {{-- PAF Mensile --}}
                             <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>

@@ -154,10 +154,45 @@ class ProduzioneController extends Controller
         // Giorni già trascorsi (escluso oggi)
         $giorniLavoratiEffettivi = CalendarioAziendale::giorniLavorativiTrascorsi($annoCorrente, $meseCorrente);
         
-        // Giorni rimanenti (incluso oggi, ma lo sottraiamo)
-        $giorniLavorativiRimanentiTemp = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
-        $pesoOggi = CalendarioAziendale::pesoGiornata(date('Y-m-d'));
-        $giorniLavorativiRimanenti = max(0, $giorniLavorativiRimanentiTemp - $pesoOggi);
+        // Giorni rimanenti (incluso oggi se è un giorno lavorativo)
+        $giorniLavorativiRimanenti = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
+        
+        // === MAPPING SEDI: kpi_target_mensile.sede_crm -> report_produzione_pivot_cache.nome_sede ===
+        $mappingSedi = [
+            'FRC_FONT' => 'FRANCAVILLA FONTANA',
+            'LMZ' => 'LAMEZIA TERME',
+            'LCR' => 'LOCRI',
+            'TAR' => 'TARANTO',
+            'VIGEVANO' => 'VIGEVANO',
+            'TOTALE' => 'TOTALE',
+            'RND' => 'RND',
+            'MARSALA' => 'MARSALA',
+            // Aggiungi altri mapping se necessario
+        ];
+        
+        // === RECUPERA OBIETTIVI DA kpi_target_mensile ===
+        // IMPORTANTE: Prendiamo SOLO i record con tipologia_obiettivo = 'OBIETTIVO'
+        $obiettiviKpi = DB::table('kpi_target_mensile')
+            ->where('anno', $annoCorrente)
+            ->where('mese', $meseCorrente)
+            ->where('tipologia_obiettivo', 'OBIETTIVO') // SOLO quelli con "OBIETTIVO"
+            ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
+            ->get()
+            ->groupBy(function($item) use ($mappingSedi) {
+                // Usa il mapping per convertire la sede
+                $sedeConvertita = $mappingSedi[$item->sede_crm] ?? $item->sede_crm;
+                return strtoupper($item->commessa) . '|' . strtoupper($sedeConvertita);
+            })
+            ->map(function($group) {
+                // Somma tutti i KPI per questa commessa+sede (se ci sono più record)
+                return $group->sum(function($kpi) {
+                    $kpiTemp = new KpiTargetMensile();
+                    foreach((array)$kpi as $key => $value) {
+                        $kpiTemp->{$key} = $value;
+                    }
+                    return $kpiTemp->getMediaPonderata();
+                });
+            });
         
         // === QUERY PRINCIPALE SU TABELLA PIVOT PRE-AGGREGATA ===
         $query = DB::table('report_produzione_pivot_cache');
@@ -251,26 +286,36 @@ class ProduzioneController extends Controller
             ->orderBy('campagna_id')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
-                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
+            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
+                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
                         $data = $campagneGroup->first();
                         $inseriti = (int)$data->inserito_pda;
                         $prodotto = (int)$data->prodotto_pda;
                         $ore = (float)$data->ore;
                         
+                        // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
+                        $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
+                        $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
+                        
                         // === CALCOLI RESA ===
                         $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                         $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
                         
-                        // === CALCOLI OBIETTIVI (al momento a 0) ===
-                        $obiettivo_mensile = 0;
-                        $passo_giorno = 0;
-                        $differenza_obj = 0;
+                        // === CALCOLI OBIETTIVI ===
+                        // Differenza Obj può essere negativa (è l'unico campo dove ha senso)
+                        $differenzaObj = $obiettivoMensile - $inseriti;
+                        
+                        // Passo Giorno: solo se ci sono giorni rimanenti E c'è ancora da raggiungere l'obiettivo
+                        $passoGiorno = 0;
+                        if ($giorniLavorativiRimanenti > 0 && $differenzaObj > 0) {
+                            $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
+                        }
                         
                         // === CALCOLI PAF MENSILE ===
-                        $ore_paf = $giorniLavoratiEffettivi > 0 ? round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
-                        $pezzi_paf = $giorniLavoratiEffettivi > 0 ? round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                        // Ore PAF e Pezzi PAF devono essere sempre positivi
+                        $ore_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
+                        $pezzi_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
                         $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                         
                         return [
@@ -292,9 +337,9 @@ class ProduzioneController extends Controller
                             'resa_inserito' => $resa_inserito,
                             
                             // === OBIETTIVI ===
-                            'obiettivo_mensile' => $obiettivo_mensile,
-                            'passo_giorno' => $passo_giorno,
-                            'differenza_obj' => $differenza_obj,
+                            'obiettivo_mensile' => round($obiettivoMensile, 0),
+                            'passo_giorno' => $passoGiorno,
+                            'differenza_obj' => round($differenzaObj, 0),
                             
                             // === PAF MENSILE ===
                             'ore_paf' => $ore_paf,
@@ -325,25 +370,35 @@ class ProduzioneController extends Controller
             ->orderBy('nome_sede')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
+            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
                     $data = $sedeGroup->first();
                     $inseriti = (int)$data->inserito_pda;
                     $prodotto = (int)$data->prodotto_pda;
                     $ore = (float)$data->ore;
                     
+                    // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
+                    $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
+                    $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
+                    
                     // === CALCOLI RESA ===
                     $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                     $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
                     
-                    // === CALCOLI OBIETTIVI (al momento a 0) ===
-                    $obiettivo_mensile = 0;
-                    $passo_giorno = 0;
-                    $differenza_obj = 0;
+                    // === CALCOLI OBIETTIVI ===
+                    // Differenza Obj può essere negativa (è l'unico campo dove ha senso)
+                    $differenzaObj = $obiettivoMensile - $inseriti;
+                    
+                    // Passo Giorno: solo se ci sono giorni rimanenti E c'è ancora da raggiungere l'obiettivo
+                    $passoGiorno = 0;
+                    if ($giorniLavorativiRimanenti > 0 && $differenzaObj > 0) {
+                        $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
+                    }
                     
                     // === CALCOLI PAF MENSILE ===
-                    $ore_paf = $giorniLavoratiEffettivi > 0 ? round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
-                    $pezzi_paf = $giorniLavoratiEffettivi > 0 ? round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                    // Ore PAF e Pezzi PAF devono essere sempre positivi
+                    $ore_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
+                    $pezzi_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
                     $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                     
                     return collect([
@@ -366,9 +421,9 @@ class ProduzioneController extends Controller
                             'resa_inserito' => $resa_inserito,
                             
                             // === OBIETTIVI ===
-                            'obiettivo_mensile' => $obiettivo_mensile,
-                            'passo_giorno' => $passo_giorno,
-                            'differenza_obj' => $differenza_obj,
+                            'obiettivo_mensile' => round($obiettivoMensile, 0),
+                            'passo_giorno' => $passoGiorno,
+                            'differenza_obj' => round($differenzaObj, 0),
                             
                             // === PAF MENSILE ===
                             'ore_paf' => $ore_paf,
