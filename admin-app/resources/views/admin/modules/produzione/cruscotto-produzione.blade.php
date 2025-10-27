@@ -100,6 +100,9 @@
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Prodotto</th>
                         
+                        {{-- Obiettivo --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">Obiettivo</th>
+                        
                         {{-- Prodotto --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
                         
@@ -178,6 +181,11 @@
                                         @endif
                                     </td>
                                     
+                                    {{-- Obiettivo --}}
+                                    <td class="text-center text-sm font-bold bg-blue-50 border-r-2 border-base-300">
+                                        {{ number_format($datiCampagna['obiettivo'] ?? 0) }}
+                                    </td>
+                                    
                                     {{-- Prodotto --}}
                                     <td class="text-center text-sm bg-orange-50 border-r-2 border-base-300">{{ number_format($datiCampagna['prodotto_pda']) }}</td>
                                     
@@ -244,6 +252,7 @@
                     @if(!$datiRaggruppati->isEmpty())
                         @php
                             $totali = [
+                                'obiettivo' => 0,
                                 'prodotto_pda' => 0,
                                 'inserito_pda' => 0,
                                 'ko_pda' => 0,
@@ -257,6 +266,7 @@
                             foreach($datiRaggruppati as $sediData) {
                                 foreach($sediData as $campagneData) {
                                     foreach($campagneData as $dati) {
+                                        $totali['obiettivo'] += $dati['obiettivo'] ?? 0;
                                         $totali['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
                                         $totali['inserito_pda'] += $dati['inserito_pda'] ?? 0;
                                         $totali['ko_pda'] += $dati['ko_pda'] ?? 0;
@@ -276,9 +286,20 @@
                             // Calcolo Resa Prodotto e Resa Inserito
                             $resaProdotto = $totali['ore'] > 0 ? round($totali['prodotto_pda'] / $totali['ore'], 2) : 0;
                             $resaInserito = $totali['ore'] > 0 ? round($totali['inserito_pda'] / $totali['ore'], 2) : 0;
+                            
+                            // Calcolo % Raggiungimento Obiettivo
+                            $percRagg = $totali['obiettivo'] > 0 ? round(($totali['prodotto_pda'] / $totali['obiettivo']) * 100, 1) : 0;
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
                             <td colspan="3" class="text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
+                            <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">
+                                {{ number_format($totali['obiettivo']) }}
+                                @if($percRagg > 0)
+                                    <div class="text-xs {{ $percRagg >= 100 ? 'text-success' : 'text-warning' }}">
+                                        ({{ $percRagg }}%)
+                                    </div>
+                                @endif
+                            </td>
                             <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
                             <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
                             <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
@@ -303,6 +324,9 @@
                     <tr>
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
                         <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
+                        
+                        {{-- Obiettivo --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">Obiettivo</th>
                         
                         {{-- Prodotto --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
@@ -360,6 +384,11 @@
                                 {{-- Sede --}}
                                 <td class="font-semibold border-r-2 border-base-300 bg-base-100">
                                     {{ $sede }}
+                                </td>
+                                
+                                {{-- Obiettivo --}}
+                                <td class="text-center text-sm font-bold bg-blue-50 border-r-2 border-base-300">
+                                    {{ number_format($dati['obiettivo'] ?? 0) }}
                                 </td>
                                 
                                 {{-- Totale --}}
@@ -427,6 +456,7 @@
                     @if(!$datiSintetici->isEmpty())
                         @php
                             $totali = [
+                                'obiettivo' => 0,
                                 'prodotto_pda' => 0,
                                 'inserito_pda' => 0,
                                 'ko_pda' => 0,
@@ -440,6 +470,7 @@
                             foreach($datiSintetici as $sediData) {
                                 foreach($sediData as $datiSede) {
                                     $dati = $datiSede['totale'];
+                                    $totali['obiettivo'] += $dati['obiettivo'] ?? 0;
                                     $totali['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
                                     $totali['inserito_pda'] += $dati['inserito_pda'] ?? 0;
                                     $totali['ko_pda'] += $dati['ko_pda'] ?? 0;
@@ -458,9 +489,20 @@
                             // Calcolo Resa Prodotto e Resa Inserito
                             $resaProdotto = $totali['ore'] > 0 ? round($totali['prodotto_pda'] / $totali['ore'], 2) : 0;
                             $resaInserito = $totali['ore'] > 0 ? round($totali['inserito_pda'] / $totali['ore'], 2) : 0;
+                            
+                            // Calcolo % Raggiungimento Obiettivo
+                            $percRagg = $totali['obiettivo'] > 0 ? round(($totali['prodotto_pda'] / $totali['obiettivo']) * 100, 1) : 0;
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
                             <td colspan="2" class="text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
+                            <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">
+                                {{ number_format($totali['obiettivo']) }}
+                                @if($percRagg > 0)
+                                    <div class="text-xs {{ $percRagg >= 100 ? 'text-success' : 'text-warning' }}">
+                                        ({{ $percRagg }}%)
+                                    </div>
+                                @endif
+                            </td>
                             <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
                             <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
                             <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>

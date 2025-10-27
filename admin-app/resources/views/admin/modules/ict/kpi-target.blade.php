@@ -148,16 +148,7 @@
                                 <td class="editable-cell" contenteditable="true" data-field="nome_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->nome_kpi }}">{{ $kpi->nome_kpi }}</td>
                                 <td class="text-center">{{ $kpi->anno }}</td>
                                 <td class="text-center">{{ $kpi->mese }}</td>
-                                <td class="text-center">
-                                    <input 
-                                        type="number" 
-                                        name="kpi[{{ $kpi->id }}]" 
-                                        value="{{ $kpi->valore_kpi }}"
-                                        step="0.01"
-                                        min="0"
-                                        class="input input-sm input-bordered w-24 text-center"
-                                    />
-                                </td>
+                                <td class="text-center font-semibold editable-cell" contenteditable="true" data-field="valore_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->valore_kpi }}">{{ number_format($kpi->valore_kpi, 2) }}</td>
                                 <td class="text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         @if($kpi->kpi_variato)
@@ -503,7 +494,20 @@
         function saveFieldChange(cell) {
             const id = cell.getAttribute('data-id');
             const field = cell.getAttribute('data-field');
-            const value = cell.textContent.trim();
+            let value = cell.textContent.trim();
+            
+            // Se è un campo numerico, rimuovi eventuali separatori di migliaia e converti
+            if (field === 'valore_kpi') {
+                value = value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                const numValue = parseFloat(value);
+                if (isNaN(numValue) || numValue < 0) {
+                    alert('Inserisci un valore numerico valido (maggiore o uguale a 0)');
+                    cell.textContent = cell.getAttribute('data-original');
+                    return;
+                }
+                value = numValue.toString();
+            }
+            
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
             // Mostra loading
@@ -527,8 +531,12 @@
             .then(data => {
                 if (data.success) {
                     // Aggiorna il valore originale
+                    const displayValue = field === 'valore_kpi' 
+                        ? parseFloat(value).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+                        : value;
+                    
                     cell.setAttribute('data-original', value);
-                    cell.textContent = value;
+                    cell.textContent = displayValue;
                     cell.style.opacity = '1';
                     
                     // Flash verde

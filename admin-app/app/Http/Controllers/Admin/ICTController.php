@@ -387,13 +387,20 @@ class ICTController extends Controller
         $this->authorize('ict.edit');
         
         $validated = $request->validate([
-            'field' => 'required|in:commessa,sede_crm,sede_estesa,nome_kpi',
-            'value' => 'required|string|max:255',
+            'field' => 'required|in:commessa,sede_crm,sede_estesa,nome_kpi,valore_kpi',
+            'value' => 'required',
         ]);
         
         try {
             $kpi = KpiTargetMensile::findOrFail($id);
-            $kpi->{$validated['field']} = $validated['value'];
+            
+            // Se il campo è valore_kpi, converti a numero
+            if ($validated['field'] === 'valore_kpi') {
+                $kpi->valore_kpi = floatval($validated['value']);
+            } else {
+                $kpi->{$validated['field']} = $validated['value'];
+            }
+            
             $kpi->save();
             
             return response()->json([

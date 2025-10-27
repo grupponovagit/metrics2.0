@@ -176,7 +176,8 @@ class ProduzioneController extends Controller
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
                 SUM(opzioni_rid) as rid_totale,
-                SUM(ore_lavorate) as ore
+                SUM(ore_lavorate) as ore,
+                SUM(totale_kpi) as obiettivo_totale
             ')
             ->first();
         
@@ -193,6 +194,7 @@ class ProduzioneController extends Controller
             'backlog_partner_pda' => 0, // Non tracciato nella cache
             'backlog_partner_valore' => 0,
             'ore' => $kpiTotali->ore ?? 0,
+            'obiettivo' => $kpiTotali->obiettivo_totale ?? 0,
         ];
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
@@ -210,6 +212,7 @@ class ProduzioneController extends Controller
                 SUM(backlog) as backlog_pda,
                 SUM(opzioni_rid) as count_rid,
                 SUM(ore_lavorate) as ore,
+                SUM(totale_kpi) as obiettivo,
                 0 as backlog_partner_pda
             ')
             ->groupBy('commessa', 'campagna_id', 'nome_sede')
@@ -258,6 +261,7 @@ class ProduzioneController extends Controller
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
                             'ore' => $ore,
+                            'obiettivo' => (int)($data->obiettivo ?? 0),
                             
                             // === METRICHE AGGIUNTIVE ===
                             'resa_prodotto_pda' => $resa_prodotto,
@@ -289,7 +293,8 @@ class ProduzioneController extends Controller
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
                 SUM(opzioni_rid) as count_rid,
-                SUM(ore_lavorate) as ore
+                SUM(ore_lavorate) as ore,
+                SUM(totale_kpi) as obiettivo
             ')
             ->groupBy('commessa', 'nome_sede')
             ->orderBy('commessa')
@@ -331,6 +336,7 @@ class ProduzioneController extends Controller
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
                             'ore' => $ore,
+                            'obiettivo' => (int)($data->obiettivo ?? 0),
                             
                             // === METRICHE AGGIUNTIVE ===
                             'resa_prodotto_pda' => $resa_prodotto,
