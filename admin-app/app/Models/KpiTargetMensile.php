@@ -24,6 +24,8 @@ class KpiTargetMensile extends Model
         'kpi_variato',
         'data_validita_inizio',
         'data_validita_fine',
+        'tipologia_obiettivo',
+        'tipologia_valore_obiettivo',
     ];
     
     protected $casts = [

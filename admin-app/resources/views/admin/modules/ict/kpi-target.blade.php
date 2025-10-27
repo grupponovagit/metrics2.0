@@ -129,6 +129,7 @@
                             <th class="font-bold">Sede CRM</th>
                             <th class="font-bold">Sede Estesa</th>
                             <th class="font-bold">Nome KPI</th>
+                            <th class="font-bold">Tipologia Obiettivo</th>
                             <th class="font-bold text-center">Anno</th>
                             <th class="font-bold text-center">Mese</th>
                             <th class="font-bold text-center">Valore</th>
@@ -146,6 +147,7 @@
                                 <td class="editable-cell" contenteditable="true" data-field="sede_crm" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_crm }}">{{ $kpi->sede_crm }}</td>
                                 <td class="text-sm text-base-content/70 editable-cell" contenteditable="true" data-field="sede_estesa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_estesa }}">{{ $kpi->sede_estesa }}</td>
                                 <td class="editable-cell" contenteditable="true" data-field="nome_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->nome_kpi }}">{{ $kpi->nome_kpi }}</td>
+                                <td class="editable-cell" contenteditable="true" data-field="tipologia_obiettivo" data-id="{{ $kpi->id }}" data-original="{{ $kpi->tipologia_obiettivo }}">{{ $kpi->tipologia_obiettivo }}</td>
                                 <td class="text-center">{{ $kpi->anno }}</td>
                                 <td class="text-center">{{ $kpi->mese }}</td>
                                 <td class="text-center font-semibold editable-cell" contenteditable="true" data-field="valore_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->valore_kpi }}">{{ number_format($kpi->valore_kpi, 2) }}</td>
@@ -186,7 +188,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center py-12">
+                                <td colspan="11" class="text-center py-12">
                                     <div>
                                         <h3 class="text-lg font-semibold text-base-content mb-1">Nessun target trovato</h3>
                                         <p class="text-sm text-base-content/60">Seleziona un periodo diverso o crea un nuovo KPI</p>

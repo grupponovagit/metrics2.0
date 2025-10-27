@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\KpiRendicontoProduzione;
 use App\Models\KpiTargetMensile;
+use App\Models\CalendarioAziendale;
 use App\Services\ModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -143,6 +144,21 @@ class ProduzioneController extends Controller
         $mandatoFilter = $request->input('mandato', []);
         $sedeFilter = $request->input('sede', []);
         
+        // === CALCOLI CALENDARIO (per metriche PAF e Obiettivi) ===
+        $annoCorrente = date('Y');
+        $meseCorrente = date('m');
+        
+        // Giorni lavorativi totali del mese
+        $giorniLavorabiliPrevisti = CalendarioAziendale::giorniLavorativiMese($annoCorrente, $meseCorrente);
+        
+        // Giorni già trascorsi (escluso oggi)
+        $giorniLavoratiEffettivi = CalendarioAziendale::giorniLavorativiTrascorsi($annoCorrente, $meseCorrente);
+        
+        // Giorni rimanenti (incluso oggi, ma lo sottraiamo)
+        $giorniLavorativiRimanentiTemp = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
+        $pesoOggi = CalendarioAziendale::pesoGiornata(date('Y-m-d'));
+        $giorniLavorativiRimanenti = max(0, $giorniLavorativiRimanentiTemp - $pesoOggi);
+        
         // === QUERY PRINCIPALE SU TABELLA PIVOT PRE-AGGREGATA ===
         $query = DB::table('report_produzione_pivot_cache');
         
@@ -175,27 +191,42 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
-                SUM(opzioni_rid) as rid_totale,
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo_totale
             ')
             ->first();
         
-        // Calcola BOLLETTINI = Inseriti - RID
         $kpiArray = [
             'prodotto_pda' => $kpiTotali->prodotto_pda ?? 0,
-            'prodotto_valore' => 0,
             'inserito_pda' => $kpiTotali->inserito_pda ?? 0,
-            'inserito_valore' => 0,
             'ko_pda' => $kpiTotali->ko_pda ?? 0,
-            'ko_valore' => 0,
             'backlog_pda' => $kpiTotali->backlog_pda ?? 0,
-            'backlog_valore' => 0,
             'backlog_partner_pda' => 0, // Non tracciato nella cache
-            'backlog_partner_valore' => 0,
             'ore' => $kpiTotali->ore ?? 0,
             'obiettivo' => $kpiTotali->obiettivo_totale ?? 0,
+            
+            // Resa
+            'resa_prodotto' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->prodotto_pda ?? 0) / $kpiTotali->ore, 2) : 0,
+            'resa_inserito' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $kpiTotali->ore, 2) : 0,
+            
+            // Obiettivi (al momento a 0 come richiesto)
+            'obiettivo_mensile' => 0,
+            'passo_giorno' => 0,
+            'differenza_obj' => 0,
+            
+            // PAF Mensile
+            'ore_paf' => $giorniLavoratiEffettivi > 0 ? round(($kpiTotali->ore ?? 0) / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0,
+            'pezzi_paf' => $giorniLavoratiEffettivi > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0,
+            'resa_paf' => 0, // Calcolato dopo
+            
+            // Dati calendario
+            'giorni_lavorabili_previsti' => $giorniLavorabiliPrevisti,
+            'giorni_lavorati_effettivi' => $giorniLavoratiEffettivi,
+            'giorni_lavorativi_rimanenti' => $giorniLavorativiRimanenti,
         ];
+        
+        // Calcola Resa PAF = Pezzi PAF / Ore PAF
+        $kpiArray['resa_paf'] = $kpiArray['ore_paf'] > 0 ? round($kpiArray['pezzi_paf'] / $kpiArray['ore_paf'], 2) : 0;
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
         $datiDettagliati = DB::table('report_produzione_pivot_cache')
@@ -210,7 +241,6 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
-                SUM(opzioni_rid) as count_rid,
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo,
                 0 as backlog_partner_pda
@@ -221,60 +251,55 @@ class ProduzioneController extends Controller
             ->orderBy('campagna_id')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) {
-                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) {
+            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
+                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
                         $data = $campagneGroup->first();
                         $inseriti = (int)$data->inserito_pda;
-                        $rid = (int)$data->count_rid;
-                        $bollettini = max(0, $inseriti - $rid);
                         $prodotto = (int)$data->prodotto_pda;
                         $ore = (float)$data->ore;
                         
-                        // === CALCOLI AGGIUNTIVI ===
-                        // Resa su Prodotto (PDA) = Prodotto PDA / Ore
+                        // === CALCOLI RESA ===
                         $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
-                        
-                        // Resa su Inserito (PDA) = Inserito PDA / Ore
                         $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
                         
-                        // B/B+R % = Bollettini / (Bollettini + RID)
-                        $totale_pagamenti = $bollettini + $rid;
-                        $boll_rid_pct = $totale_pagamenti > 0 ? round(($bollettini / $totale_pagamenti) * 100, 1) : 0;
+                        // === CALCOLI OBIETTIVI (al momento a 0) ===
+                        $obiettivo_mensile = 0;
+                        $passo_giorno = 0;
+                        $differenza_obj = 0;
+                        
+                        // === CALCOLI PAF MENSILE ===
+                        $ore_paf = $giorniLavoratiEffettivi > 0 ? round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                        $pezzi_paf = $giorniLavoratiEffettivi > 0 ? round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                        $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                         
                         return [
                             'campagna' => $data->campagna,
                             'prodotti_aggiuntivi' => [],
-                            'count_rid' => $rid,
-                            'count_boll' => $bollettini,
                             'prodotto_pda' => $prodotto,
-                            'prodotto_valore' => 0,
                             'inserito_pda' => $inseriti,
-                            'inserito_valore' => 0,
                             'ko_pda' => (int)$data->ko_pda,
-                            'ko_valore' => 0,
                             'backlog_pda' => (int)$data->backlog_pda,
-                            'backlog_valore' => 0,
                             'backlog_partner_pda' => 0,
-                            'backlog_partner_valore' => 0,
                             'cliente' => $data->cliente,
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
                             'ore' => $ore,
                             'obiettivo' => (int)($data->obiettivo ?? 0),
                             
-                            // === METRICHE AGGIUNTIVE ===
-                            'resa_prodotto_pda' => $resa_prodotto,
-                            'resa_inserito_pda' => $resa_inserito,
-                            'boll_rid_pct' => $boll_rid_pct,
+                            // === RESA ===
+                            'resa_prodotto' => $resa_prodotto,
+                            'resa_inserito' => $resa_inserito,
                             
-                            // Metriche non disponibili (dati mancanti)
-                            'commodity_luce' => 'N/D',
-                            'commodity_gas' => 'N/D',
-                            'commodity_dual' => 'N/D',
-                            'post_ok' => 'N/D',
-                            'post_ko' => 'N/D',
-                            'tasso_mortalita' => 'N/D',
+                            // === OBIETTIVI ===
+                            'obiettivo_mensile' => $obiettivo_mensile,
+                            'passo_giorno' => $passo_giorno,
+                            'differenza_obj' => $differenza_obj,
+                            
+                            // === PAF MENSILE ===
+                            'ore_paf' => $ore_paf,
+                            'pezzi_paf' => $pezzi_paf,
+                            'resa_paf' => $resa_paf,
                         ];
                     });
                 });
@@ -292,7 +317,6 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
-                SUM(opzioni_rid) as count_rid,
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo
             ')
@@ -301,55 +325,55 @@ class ProduzioneController extends Controller
             ->orderBy('nome_sede')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) {
+            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti) {
                     $data = $sedeGroup->first();
                     $inseriti = (int)$data->inserito_pda;
-                    $rid = (int)$data->count_rid;
-                    $bollettini = max(0, $inseriti - $rid);
                     $prodotto = (int)$data->prodotto_pda;
                     $ore = (float)$data->ore;
                     
-                    // === CALCOLI AGGIUNTIVI ===
+                    // === CALCOLI RESA ===
                     $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                     $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
-                    $totale_pagamenti = $bollettini + $rid;
-                    $boll_rid_pct = $totale_pagamenti > 0 ? round(($bollettini / $totale_pagamenti) * 100, 1) : 0;
+                    
+                    // === CALCOLI OBIETTIVI (al momento a 0) ===
+                    $obiettivo_mensile = 0;
+                    $passo_giorno = 0;
+                    $differenza_obj = 0;
+                    
+                    // === CALCOLI PAF MENSILE ===
+                    $ore_paf = $giorniLavoratiEffettivi > 0 ? round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                    $pezzi_paf = $giorniLavoratiEffettivi > 0 ? round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0;
+                    $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                     
                     return collect([
                         'totale' => [
                             'campagna' => 'TOTALE SEDE',
                             'prodotti_aggiuntivi' => [],
-                            'count_rid' => $rid,
-                            'count_boll' => $bollettini,
                             'prodotto_pda' => $prodotto,
-                            'prodotto_valore' => 0,
                             'inserito_pda' => $inseriti,
-                            'inserito_valore' => 0,
                             'ko_pda' => (int)$data->ko_pda,
-                            'ko_valore' => 0,
                             'backlog_pda' => (int)$data->backlog_pda,
-                            'backlog_valore' => 0,
                             'backlog_partner_pda' => 0,
-                            'backlog_partner_valore' => 0,
                             'cliente' => $data->cliente,
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
                             'ore' => $ore,
                             'obiettivo' => (int)($data->obiettivo ?? 0),
                             
-                            // === METRICHE AGGIUNTIVE ===
-                            'resa_prodotto_pda' => $resa_prodotto,
-                            'resa_inserito_pda' => $resa_inserito,
-                            'boll_rid_pct' => $boll_rid_pct,
+                            // === RESA ===
+                            'resa_prodotto' => $resa_prodotto,
+                            'resa_inserito' => $resa_inserito,
                             
-                            // Metriche non disponibili
-                            'commodity_luce' => 'N/D',
-                            'commodity_gas' => 'N/D',
-                            'commodity_dual' => 'N/D',
-                            'post_ok' => 'N/D',
-                            'post_ko' => 'N/D',
-                            'tasso_mortalita' => 'N/D',
+                            // === OBIETTIVI ===
+                            'obiettivo_mensile' => $obiettivo_mensile,
+                            'passo_giorno' => $passo_giorno,
+                            'differenza_obj' => $differenza_obj,
+                            
+                            // === PAF MENSILE ===
+                            'ore_paf' => $ore_paf,
+                            'pezzi_paf' => $pezzi_paf,
+                            'resa_paf' => $resa_paf,
                         ]
                     ]);
                 });

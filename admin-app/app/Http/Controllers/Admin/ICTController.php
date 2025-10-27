@@ -387,7 +387,7 @@ class ICTController extends Controller
         $this->authorize('ict.edit');
         
         $validated = $request->validate([
-            'field' => 'required|in:commessa,sede_crm,sede_estesa,nome_kpi,valore_kpi',
+            'field' => 'required|in:commessa,sede_crm,sede_estesa,nome_kpi,valore_kpi,tipologia_obiettivo',
             'value' => 'required',
         ]);
         
