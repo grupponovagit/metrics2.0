@@ -49,15 +49,6 @@ class OptimizeProject extends Command
         if ($this->laravel->has('blade-icons')) {
             $this->call('blade-icons:cache');
         }
-        
-        $this->newLine();
-        $this->info('📚 Ottimizzazione autoload Composer...');
-        exec('composer dump-autoload -o 2>&1', $output, $returnCode);
-        
-        if ($returnCode === 0) {
-            $this->info('   ✓ Autoload ottimizzato');
-        }
-        
         $this->newLine();
         $this->info('✅ Progetto pulito e ottimizzato con successo!');
         $this->newLine();

@@ -156,6 +156,50 @@
         </x-admin.card>
 
         <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.ict.esiti_conversione.index') }}" class="block">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
+                        <i class="fas fa-arrows-left-right text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
+                            Esiti Committenti
+                        </h3>
+                        <p class="text-sm text-base-content/70 mt-1">
+                            Mappa esiti committenti (Plenitude, Enel, ecc.)
+                        </p>
+                        <div class="flex items-center gap-2 mt-3 text-success">
+                            <span class="text-sm font-medium">Accedi</span>
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </x-admin.card>
+
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.ict.esiti_vendita_conversione.index') }}" class="block">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-base-content group-hover:text-success transition-colors">
+                            Esiti Vendita
+                        </h3>
+                        <p class="text-sm text-base-content/70 mt-1">
+                            Mappa esiti vendite in stati globali
+                        </p>
+                        <div class="flex items-center gap-2 mt-3 text-success">
+                            <span class="text-sm font-medium">Accedi</span>
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </x-admin.card>
+
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
             <a href="{{ route('admin.ict.system') }}" class="block">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-all">

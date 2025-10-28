@@ -17,6 +17,7 @@ class KpiTargetMensile extends Model
         'commessa',
         'sede_crm',
         'sede_estesa',
+        'macro_campagna',
         'nome_kpi',
         'anno',
         'mese',

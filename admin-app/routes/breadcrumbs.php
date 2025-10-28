@@ -281,6 +281,40 @@ Breadcrumbs::for('admin.ict.kpi_target.show', function (BreadcrumbTrail $trail, 
     $trail->push('Dettaglio KPI #' . $kpiId);
 });
 
+// Esiti Conversione Committenti
+Breadcrumbs::for('admin.ict.esiti_conversione.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.index');
+    $trail->push('Esiti Committenti', route('admin.ict.esiti_conversione.index'));
+});
+
+Breadcrumbs::for('admin.ict.esiti_conversione.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.esiti_conversione.index');
+    $trail->push('Nuova Conversione', route('admin.ict.esiti_conversione.create'));
+});
+
+Breadcrumbs::for('admin.ict.esiti_conversione.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.ict.esiti_conversione.index');
+    $esitoId = is_object($id) ? $id->id : $id;
+    $trail->push('Modifica #' . $esitoId);
+});
+
+// Esiti Conversione Vendita
+Breadcrumbs::for('admin.ict.esiti_vendita_conversione.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.index');
+    $trail->push('Esiti Vendita', route('admin.ict.esiti_vendita_conversione.index'));
+});
+
+Breadcrumbs::for('admin.ict.esiti_vendita_conversione.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.esiti_vendita_conversione.index');
+    $trail->push('Nuova Conversione', route('admin.ict.esiti_vendita_conversione.create'));
+});
+
+Breadcrumbs::for('admin.ict.esiti_vendita_conversione.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.ict.esiti_vendita_conversione.index');
+    $esitoId = is_object($id) ? $id->id : $id;
+    $trail->push('Modifica #' . $esitoId);
+});
+
 // Modulo Marketing
 Breadcrumbs::for('admin.marketing.index', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.dashboard');

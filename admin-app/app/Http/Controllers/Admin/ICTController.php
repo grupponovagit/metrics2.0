@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarioAziendale;
+use App\Models\EsitoConversione;
+use App\Models\EsitoVenditaConversione;
 use App\Models\KpiTargetMensile;
 use App\Models\KpiRendicontoProduzione;
 use App\Services\ModuleAccessService;
@@ -387,7 +389,7 @@ class ICTController extends Controller
         $this->authorize('ict.edit');
         
         $validated = $request->validate([
-            'field' => 'required|in:commessa,sede_crm,sede_estesa,nome_kpi,valore_kpi,tipologia_obiettivo',
+            'field' => 'required|in:commessa,sede_crm,sede_estesa,macro_campagna,nome_kpi,valore_kpi,tipologia_obiettivo',
             'value' => 'required',
         ]);
         
@@ -621,4 +623,407 @@ class ICTController extends Controller
         $this->authorize('ict.edit');
         return view('admin.modules.ict.aggiorna-mandati');
     }
+
+    // ===================================================================
+    // GESTIONE CONVERSIONE ESITI
+    // ===================================================================
+
+    /**
+     * Lista esiti conversione
+     */
+    public function esitiConversione(Request $request)
+    {
+        $this->authorize('ict.view');
+
+        // Filtro per commessa
+        $commessaSelezionata = $request->get('commessa', '');
+        
+        // Ottieni tutte le commesse disponibili per il filtro
+        $commesse = EsitoConversione::getCommesse();
+
+        // Query base
+        $query = EsitoConversione::query();
+
+        // Applica filtro se selezionato
+        if ($commessaSelezionata) {
+            $query->where('commessa', $commessaSelezionata);
+        }
+
+        // Ordina e pagina
+        $esiti = $query->orderBy('commessa')
+            ->orderBy('esito_globale')
+            ->orderBy('esito_originale')
+            ->paginate(50)
+            ->appends(['commessa' => $commessaSelezionata]);
+
+        // Statistiche
+        $stats = [
+            'totale_conversioni' => EsitoConversione::count(),
+            'totale_commesse' => EsitoConversione::select('commessa')->distinct()->count(),
+            'per_commessa' => EsitoConversione::conteggioPerCommessa(),
+        ];
+
+        return view('admin.modules.ict.esiti-conversione.index', [
+            'esiti' => $esiti,
+            'commesse' => $commesse,
+            'commessaSelezionata' => $commessaSelezionata,
+            'stats' => $stats,
+            'esitiGlobali' => EsitoConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Form creazione esito
+     */
+    public function createEsitoConversione()
+    {
+        $this->authorize('ict.create');
+
+        // Ottieni commesse esistenti + possibilità di aggiungerne nuove
+        $commesseEsistenti = EsitoConversione::getCommesse();
+
+        return view('admin.modules.ict.esiti-conversione.create', [
+            'commesseEsistenti' => $commesseEsistenti,
+            'esitiGlobali' => EsitoConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Salva nuovo esito
+     */
+    public function storeEsitoConversione(Request $request)
+    {
+        $this->authorize('ict.create');
+
+        $validated = $request->validate([
+            'commessa' => 'required|string|max:100',
+            'esito_originale' => 'required|string|max:255',
+            'esito_globale' => 'required|in:' . implode(',', array_keys(EsitoConversione::ESITI_GLOBALI)),
+            'note' => 'nullable|string|max:1000',
+        ], [
+            'commessa.required' => 'La commessa è obbligatoria',
+            'esito_originale.required' => 'L\'esito originale è obbligatorio',
+            'esito_globale.required' => 'L\'esito globale è obbligatorio',
+            'esito_globale.in' => 'Esito globale non valido',
+        ]);
+
+        try {
+            // Normalizza i valori
+            $validated['commessa'] = strtoupper(trim($validated['commessa']));
+            $validated['esito_originale'] = trim($validated['esito_originale']);
+
+            EsitoConversione::create($validated);
+
+            return redirect()
+                ->route('admin.ict.esiti_conversione.index')
+                ->with('success', 'Conversione esito creata con successo');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Gestisci duplicati (UNIQUE constraint)
+            if ($e->errorInfo[1] == 1062) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Questa conversione esiste già per la commessa selezionata');
+            }
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante il salvataggio: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Form modifica esito
+     */
+    public function editEsitoConversione($id)
+    {
+        $this->authorize('ict.edit');
+
+        $esito = EsitoConversione::findOrFail($id);
+        $commesseEsistenti = EsitoConversione::getCommesse();
+
+        return view('admin.modules.ict.esiti-conversione.edit', [
+            'esito' => $esito,
+            'commesseEsistenti' => $commesseEsistenti,
+            'esitiGlobali' => EsitoConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Aggiorna esito
+     */
+    public function updateEsitoConversione(Request $request, $id)
+    {
+        $this->authorize('ict.edit');
+
+        $esito = EsitoConversione::findOrFail($id);
+
+        $validated = $request->validate([
+            'commessa' => 'required|string|max:100',
+            'esito_originale' => 'required|string|max:255',
+            'esito_globale' => 'required|in:' . implode(',', array_keys(EsitoConversione::ESITI_GLOBALI)),
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            // Normalizza i valori
+            $validated['commessa'] = strtoupper(trim($validated['commessa']));
+            $validated['esito_originale'] = trim($validated['esito_originale']);
+
+            $esito->update($validated);
+
+            return redirect()
+                ->route('admin.ict.esiti_conversione.index')
+                ->with('success', 'Conversione esito aggiornata con successo');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Questa conversione esiste già per la commessa selezionata');
+            }
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante l\'aggiornamento: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Elimina esito
+     */
+    public function destroyEsitoConversione($id)
+    {
+        $this->authorize('ict.delete');
+
+        try {
+            $esito = EsitoConversione::findOrFail($id);
+            $esito->delete();
+
+            return redirect()
+                ->route('admin.ict.esiti_conversione.index')
+                ->with('success', 'Conversione esito eliminata con successo');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Elimina esiti multipli
+     */
+    public function bulkDeleteEsitoConversione(Request $request)
+    {
+        $this->authorize('ict.delete');
+
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:esiti_conversione,id',
+        ]);
+
+        try {
+            $deleted = EsitoConversione::whereIn('id', $validated['ids'])->delete();
+
+            return redirect()
+                ->route('admin.ict.esiti_conversione.index')
+                ->with('success', "Eliminate {$deleted} conversioni esito");
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+
+    // ===================================================================
+    // GESTIONE CONVERSIONE ESITI VENDITA
+    // ===================================================================
+
+    /**
+     * Lista esiti vendita conversione
+     */
+    public function esitiVenditaConversione(Request $request)
+    {
+        $this->authorize('ict.view');
+
+        // Filtro per esito globale
+        $esitoGlobaleSelezionato = $request->get('esito_globale', '');
+
+        // Query base
+        $query = EsitoVenditaConversione::query();
+
+        // Applica filtro se selezionato
+        if ($esitoGlobaleSelezionato) {
+            $query->where('esito_globale', $esitoGlobaleSelezionato);
+        }
+
+        // Ordina e pagina
+        $esiti = $query->orderBy('esito_globale')
+            ->orderBy('esito_originale')
+            ->paginate(50)
+            ->appends(['esito_globale' => $esitoGlobaleSelezionato]);
+
+        // Statistiche
+        $stats = [
+            'totale_conversioni' => EsitoVenditaConversione::count(),
+            'per_tipo' => EsitoVenditaConversione::conteggioPerTipo(),
+        ];
+
+        return view('admin.modules.ict.esiti-vendita-conversione.index', [
+            'esiti' => $esiti,
+            'esitoGlobaleSelezionato' => $esitoGlobaleSelezionato,
+            'stats' => $stats,
+            'esitiGlobali' => EsitoVenditaConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Form creazione esito vendita
+     */
+    public function createEsitoVenditaConversione()
+    {
+        $this->authorize('ict.create');
+
+        return view('admin.modules.ict.esiti-vendita-conversione.create', [
+            'esitiGlobali' => EsitoVenditaConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Salva nuovo esito vendita
+     */
+    public function storeEsitoVenditaConversione(Request $request)
+    {
+        $this->authorize('ict.create');
+
+        $validated = $request->validate([
+            'esito_originale' => 'required|string|max:255',
+            'esito_globale' => 'required|in:' . implode(',', array_keys(EsitoVenditaConversione::ESITI_GLOBALI)),
+            'note' => 'nullable|string|max:1000',
+        ], [
+            'esito_originale.required' => 'L\'esito originale è obbligatorio',
+            'esito_globale.required' => 'L\'esito globale è obbligatorio',
+            'esito_globale.in' => 'Esito globale non valido',
+        ]);
+
+        try {
+            // Mantieni il case esatto come viene inserito
+            $validated['esito_originale'] = trim($validated['esito_originale']);
+
+            EsitoVenditaConversione::create($validated);
+
+            return redirect()
+                ->route('admin.ict.esiti_vendita_conversione.index')
+                ->with('success', 'Conversione esito vendita creata con successo');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante il salvataggio: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Form modifica esito vendita
+     */
+    public function editEsitoVenditaConversione($id)
+    {
+        $this->authorize('ict.edit');
+
+        $esito = EsitoVenditaConversione::findOrFail($id);
+
+        return view('admin.modules.ict.esiti-vendita-conversione.edit', [
+            'esito' => $esito,
+            'esitiGlobali' => EsitoVenditaConversione::ESITI_GLOBALI,
+        ]);
+    }
+
+    /**
+     * Aggiorna esito vendita
+     */
+    public function updateEsitoVenditaConversione(Request $request, $id)
+    {
+        $this->authorize('ict.edit');
+
+        $esito = EsitoVenditaConversione::findOrFail($id);
+
+        $validated = $request->validate([
+            'esito_originale' => 'required|string|max:255',
+            'esito_globale' => 'required|in:' . implode(',', array_keys(EsitoVenditaConversione::ESITI_GLOBALI)),
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            // Mantieni il case esatto come viene inserito
+            $validated['esito_originale'] = trim($validated['esito_originale']);
+
+            $esito->update($validated);
+
+            return redirect()
+                ->route('admin.ict.esiti_vendita_conversione.index')
+                ->with('success', 'Conversione esito vendita aggiornata con successo');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante l\'aggiornamento: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Elimina esito vendita
+     */
+    public function destroyEsitoVenditaConversione($id)
+    {
+        $this->authorize('ict.delete');
+
+        try {
+            $esito = EsitoVenditaConversione::findOrFail($id);
+            $esito->delete();
+
+            return redirect()
+                ->route('admin.ict.esiti_vendita_conversione.index')
+                ->with('success', 'Conversione esito vendita eliminata con successo');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Elimina esiti vendita multipli
+     */
+    public function bulkDeleteEsitoVenditaConversione(Request $request)
+    {
+        $this->authorize('ict.delete');
+
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:esiti_vendita_conversione,id',
+        ]);
+
+        try {
+            $deleted = EsitoVenditaConversione::whereIn('id', $validated['ids'])->delete();
+
+            return redirect()
+                ->route('admin.ict.esiti_vendita_conversione.index')
+                ->with('success', "Eliminate {$deleted} conversioni esito vendita");
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
 }
+

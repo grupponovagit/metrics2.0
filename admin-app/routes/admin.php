@@ -205,6 +205,24 @@ Route::group([
         Route::get('/stato', 'ICTController@stato')->name('stato');
         Route::get('/categoria-utm-campagna', 'ICTController@categoriaUtmCampagna')->name('categoria_utm_campagna');
         Route::get('/aggiorna-mandati', 'ICTController@aggiornaMandati')->name('aggiorna_mandati');
+        
+        // Gestione Conversione Esiti Committenti
+        Route::get('/esiti-conversione', 'ICTController@esitiConversione')->name('esiti_conversione.index');
+        Route::get('/esiti-conversione/create', 'ICTController@createEsitoConversione')->name('esiti_conversione.create');
+        Route::post('/esiti-conversione/store', 'ICTController@storeEsitoConversione')->name('esiti_conversione.store');
+        Route::get('/esiti-conversione/{id}/edit', 'ICTController@editEsitoConversione')->name('esiti_conversione.edit');
+        Route::put('/esiti-conversione/{id}', 'ICTController@updateEsitoConversione')->name('esiti_conversione.update');
+        Route::delete('/esiti-conversione/{id}', 'ICTController@destroyEsitoConversione')->name('esiti_conversione.destroy');
+        Route::post('/esiti-conversione/bulk-delete', 'ICTController@bulkDeleteEsitoConversione')->name('esiti_conversione.bulk_delete');
+        
+        // Gestione Conversione Esiti Vendita
+        Route::get('/esiti-vendita-conversione', 'ICTController@esitiVenditaConversione')->name('esiti_vendita_conversione.index');
+        Route::get('/esiti-vendita-conversione/create', 'ICTController@createEsitoVenditaConversione')->name('esiti_vendita_conversione.create');
+        Route::post('/esiti-vendita-conversione/store', 'ICTController@storeEsitoVenditaConversione')->name('esiti_vendita_conversione.store');
+        Route::get('/esiti-vendita-conversione/{id}/edit', 'ICTController@editEsitoVenditaConversione')->name('esiti_vendita_conversione.edit');
+        Route::put('/esiti-vendita-conversione/{id}', 'ICTController@updateEsitoVenditaConversione')->name('esiti_vendita_conversione.update');
+        Route::delete('/esiti-vendita-conversione/{id}', 'ICTController@destroyEsitoVenditaConversione')->name('esiti_vendita_conversione.destroy');
+        Route::post('/esiti-vendita-conversione/bulk-delete', 'ICTController@bulkDeleteEsitoVenditaConversione')->name('esiti_vendita_conversione.bulk_delete');
     });
 
 });

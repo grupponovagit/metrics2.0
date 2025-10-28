@@ -58,7 +58,7 @@
                                             $submoduleCount = 5 + (in_array('reports', $module['permissions']) ? 1 : 0);
                                             break;
                                         case 'ict':
-                                            $viewLinks = 7; // Sistema, Ticket, Calendario, KPI Target, Stato, Categoria UTM, Aggiorna Mandati
+                                            $viewLinks = 9; // Sistema, Ticket, Calendario, KPI Target, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati
                                             $adminLinks = in_array('admin', $module['permissions']) ? 2 : 0; // Utenti, Sicurezza
                                             $reportLinks = in_array('reports', $module['permissions']) ? 1 : 0;
                                             $submoduleCount = $viewLinks + $adminLinks + $reportLinks;
@@ -296,6 +296,8 @@
                                         ['route' => 'admin.ict.tickets', 'icon' => 'ticket', 'title' => 'Ticket'],
                                         ['route' => 'admin.ict.calendario', 'icon' => 'calendar', 'title' => 'Calendario'],
                                         ['route' => 'admin.ict.kpi_target', 'icon' => 'bullseye', 'title' => 'KPI Target'],
+                                        ['route' => 'admin.ict.esiti_conversione.index', 'icon' => 'arrows-left-right', 'title' => 'Esiti Committenti'],
+                                        ['route' => 'admin.ict.esiti_vendita_conversione.index', 'icon' => 'shopping-cart', 'title' => 'Esiti Vendita'],
                                         ['route' => 'admin.ict.stato', 'icon' => 'signal', 'title' => 'Stato'],
                                         ['route' => 'admin.ict.categoria_utm_campagna', 'icon' => 'tag', 'title' => 'Categoria UTM'],
                                         ['route' => 'admin.ict.aggiorna_mandati', 'icon' => 'sync', 'title' => 'Aggiorna Mandati']
