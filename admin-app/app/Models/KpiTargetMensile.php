@@ -19,6 +19,7 @@ class KpiTargetMensile extends Model
         'sede_estesa',
         'macro_campagna',
         'nome_kpi',
+        'tipo_kpi',
         'anno',
         'mese',
         'valore_kpi',

@@ -369,7 +369,7 @@ class ICTController extends Controller
             ->sort()
             ->values();
         
-        return view('admin.modules.ict.kpi-target', [
+        return view('admin.modules.ict.kpi-target.index', [
             'targetMensili' => $targetMensili,
             'rendicontoProduzione' => $rendicontoProduzione,
             'targetPerCommessa' => $targetPerCommessa,
@@ -389,7 +389,7 @@ class ICTController extends Controller
         $this->authorize('ict.edit');
         
         $validated = $request->validate([
-            'field' => 'required|in:commessa,sede_crm,sede_estesa,macro_campagna,nome_kpi,valore_kpi,tipologia_obiettivo',
+            'field' => 'required|in:commessa,sede_crm,sede_estesa,macro_campagna,nome_kpi,tipo_kpi,valore_kpi,tipologia_obiettivo',
             'value' => 'required',
         ]);
         
@@ -470,7 +470,7 @@ class ICTController extends Controller
             ->sort()
             ->values();
         
-        return view('admin.modules.ict.kpi-target-create', [
+        return view('admin.modules.ict.kpi-target.create', [
             'commesse' => $commesse,
             'sedi' => $sedi,
         ]);
@@ -520,7 +520,7 @@ class ICTController extends Controller
         
         $kpi = KpiTargetMensile::findOrFail($id);
         
-        return view('admin.modules.ict.kpi-target-show', compact('kpi'));
+        return view('admin.modules.ict.kpi-target.show', compact('kpi'));
     }
     
     /**
