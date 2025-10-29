@@ -141,21 +141,45 @@ class ProduzioneController extends Controller
         // === FILTRI ===
         $dataInizio = $request->input('data_inizio');
         $dataFine = $request->input('data_fine');
-        $mandatoFilter = $request->input('mandato', []);
-        $sedeFilter = $request->input('sede', []);
+        $commessaFilter = $request->input('commessa'); // Singola commessa
+        $sedeFilter = $request->input('sede'); // Singola sede
+        $macroCampagnaFilter = $request->input('macro_campagna'); // Singola campagna
         
         // === CALCOLI CALENDARIO (per metriche PAF e Obiettivi) ===
         $annoCorrente = date('Y');
         $meseCorrente = date('m');
         
-        // Giorni lavorativi totali del mese
-        $giorniLavorabiliPrevisti = CalendarioAziendale::giorniLavorativiMese($annoCorrente, $meseCorrente);
+        // === VERIFICA SE MOSTRARE PAF ===
+        // La PAF deve essere visibile SOLO se stiamo filtrando il mese corrente
+        // Se l'utente filtra anche un solo giorno del mese precedente, la PAF non deve uscire
+        $mostraPaf = false;
+        if ($dataInizio && $dataFine) {
+            $dataInizioObj = new \DateTime($dataInizio);
+            $dataFineObj = new \DateTime($dataFine);
+            $primoGiornoMeseCorrente = new \DateTime(date('Y-m-01'));
+            $ultimoGiornoMeseCorrente = new \DateTime(date('Y-m-t'));
+            
+            // Verifica che entrambe le date siano all'interno del mese corrente
+            $mostraPaf = ($dataInizioObj >= $primoGiornoMeseCorrente && $dataFineObj <= $ultimoGiornoMeseCorrente);
+        }
         
-        // Giorni già trascorsi (escluso oggi)
-        $giorniLavoratiEffettivi = CalendarioAziendale::giorniLavorativiTrascorsi($annoCorrente, $meseCorrente);
-        
-        // Giorni rimanenti (incluso oggi se è un giorno lavorativo)
+        // Giorni rimanenti (incluso oggi se è un giorno lavorativo) - dal calendario generale
         $giorniLavorativiRimanenti = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
+        
+        // === RECUPERA GIORNI LAVORATI PER SEDE E MACRO_CAMPAGNA DALLA VISTA ===
+        // Questa vista contiene i giorni effettivamente lavorati per ogni combinazione sede+campagna
+        $giorniLavoratiPerCampagna = collect();
+        if ($mostraPaf) {
+            $giorniLavoratiPerCampagna = DB::table('view_giorni_paf')
+                ->where('anno', $annoCorrente)
+                ->where('mese', $meseCorrente)
+                ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
+                ->when($macroCampagnaFilter, fn($q) => $q->where('macro_campagna', $macroCampagnaFilter))
+                ->get()
+                ->keyBy(function($item) {
+                    return strtoupper($item->nome_sede) . '|' . strtoupper($item->macro_campagna);
+                });
+        }
         
         // === MAPPING SEDI: kpi_target_mensile.sede_crm -> report_produzione_pivot_cache.nome_sede ===
         $mappingSedi = [
@@ -176,7 +200,7 @@ class ProduzioneController extends Controller
             ->where('anno', $annoCorrente)
             ->where('mese', $meseCorrente)
             ->where('tipologia_obiettivo', 'OBIETTIVO') // SOLO quelli con "OBIETTIVO"
-            ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
+            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->get()
             ->groupBy(function($item) use ($mappingSedi) {
                 // Usa il mapping per convertire la sede
@@ -202,25 +226,24 @@ class ProduzioneController extends Controller
             $query->whereBetween('data_vendita', [$dataInizio, $dataFine]);
         }
         
-        if (!empty($mandatoFilter) && is_array($mandatoFilter)) {
-            $query->whereIn('commessa', $mandatoFilter);
+        if ($commessaFilter) {
+            $query->where('commessa', $commessaFilter);
         }
         
-        // Converti id_sede in nomi_sede per il filtro (include TUTTE le id_sede con stesso nome)
-        $nomiSediFiltro = [];
-        if (!empty($sedeFilter) && is_array($sedeFilter)) {
-            $nomiSediFiltro = DB::table('sedi')
-                ->whereIn('id_sede', $sedeFilter)
-                ->pluck('nome_sede')
-                ->unique() // Rimuove duplicati se più id hanno stesso nome
-                ->toArray();
+        if ($sedeFilter) {
+            $query->where('nome_sede', $sedeFilter);
+        }
+        
+        if ($macroCampagnaFilter) {
+            $query->where('campagna_id', $macroCampagnaFilter);
         }
         
         // === KPI TOTALI (aggregazione SQL diretta) ===
         $kpiTotali = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
-            ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
+            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
+            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
+            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
             ->selectRaw('
                 SUM(totale_vendite) as prodotto_pda,
                 SUM(ok_definitivo) as inserito_pda,
@@ -230,6 +253,25 @@ class ProduzioneController extends Controller
                 SUM(totale_kpi) as obiettivo_totale
             ')
             ->first();
+        
+        // === CALCOLI PAF GLOBALI (NUOVO METODO CON VISTA) ===
+        $ore_paf_globale = 0;
+        $pezzi_paf_globale = 0;
+        $resa_paf_globale = 0;
+        
+        if ($mostraPaf && $giorniLavoratiPerCampagna->isNotEmpty()) {
+            // Media pesata dei giorni lavorati di tutte le campagne coinvolte
+            $mediaGiorniLavoratiGlobale = $giorniLavoratiPerCampagna->avg('giorni_lavorati');
+            
+            if ($mediaGiorniLavoratiGlobale > 0) {
+                $giorniTotaliPrevisti = $mediaGiorniLavoratiGlobale + $giorniLavorativiRimanenti;
+                
+                // PAF globale
+                $ore_paf_globale = round(($kpiTotali->ore ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+                $pezzi_paf_globale = round(($kpiTotali->inserito_pda ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+                $resa_paf_globale = $ore_paf_globale > 0 ? round($pezzi_paf_globale / $ore_paf_globale, 2) : 0;
+            }
+        }
         
         $kpiArray = [
             'prodotto_pda' => $kpiTotali->prodotto_pda ?? 0,
@@ -249,25 +291,22 @@ class ProduzioneController extends Controller
             'passo_giorno' => 0,
             'differenza_obj' => 0,
             
-            // PAF Mensile
-            'ore_paf' => $giorniLavoratiEffettivi > 0 ? round(($kpiTotali->ore ?? 0) / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0,
-            'pezzi_paf' => $giorniLavoratiEffettivi > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2) : 0,
-            'resa_paf' => 0, // Calcolato dopo
+            // PAF Mensile (NUOVO CALCOLO)
+            'ore_paf' => $ore_paf_globale,
+            'pezzi_paf' => $pezzi_paf_globale,
+            'resa_paf' => $resa_paf_globale,
             
             // Dati calendario
-            'giorni_lavorabili_previsti' => $giorniLavorabiliPrevisti,
-            'giorni_lavorati_effettivi' => $giorniLavoratiEffettivi,
             'giorni_lavorativi_rimanenti' => $giorniLavorativiRimanenti,
+            'mostra_paf' => $mostraPaf, // Flag per sapere se mostrare la PAF nella vista
         ];
-        
-        // Calcola Resa PAF = Pezzi PAF / Ore PAF
-        $kpiArray['resa_paf'] = $kpiArray['ore_paf'] > 0 ? round($kpiArray['pezzi_paf'] / $kpiArray['ore_paf'], 2) : 0;
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
         $datiDettagliati = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
-            ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
+            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
+            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
+            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
             ->selectRaw('
                 commessa as cliente,
                 campagna_id as campagna,
@@ -286,9 +325,9 @@ class ProduzioneController extends Controller
             ->orderBy('campagna_id')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
-                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
+                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
                         $data = $campagneGroup->first();
                         $inseriti = (int)$data->inserito_pda;
                         $prodotto = (int)$data->prodotto_pda;
@@ -312,11 +351,26 @@ class ProduzioneController extends Controller
                             $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
                         }
                         
-                        // === CALCOLI PAF MENSILE ===
-                        // Ore PAF e Pezzi PAF devono essere sempre positivi
-                        $ore_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
-                        $pezzi_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
-                        $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                        // === CALCOLI PAF MENSILE (NUOVO METODO CON VISTA) ===
+                        $ore_paf = 0;
+                        $pezzi_paf = 0;
+                        $resa_paf = 0;
+                        
+                        if ($mostraPaf) {
+                            // Cerca i giorni lavorati per questa specifica combinazione sede+campagna
+                            $chiavePaf = strtoupper($data->sede) . '|' . strtoupper($data->campagna);
+                            $infoPaf = $giorniLavoratiPerCampagna->get($chiavePaf);
+                            
+                            if ($infoPaf && $infoPaf->giorni_lavorati > 0) {
+                                // Calcola PAF usando i giorni effettivamente lavorati + giorni rimanenti
+                                $giorniTotaliPrevisti = $infoPaf->giorni_lavorati + $giorniLavorativiRimanenti;
+                                
+                                // PAF = (valori attuali / giorni lavorati) * giorni totali previsti
+                                $ore_paf = max(0, round($ore / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                                $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                                $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                            }
+                        }
                         
                         return [
                             'campagna' => $data->campagna,
@@ -353,8 +407,9 @@ class ProduzioneController extends Controller
         // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
         $datiSintetici = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when(!empty($mandatoFilter), fn($q) => $q->whereIn('commessa', $mandatoFilter))
-            ->when(!empty($nomiSediFiltro), fn($q) => $q->whereIn('nome_sede', $nomiSediFiltro))
+            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
+            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
+            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
             ->selectRaw('
                 commessa as cliente,
                 nome_sede as sede,
@@ -370,8 +425,8 @@ class ProduzioneController extends Controller
             ->orderBy('nome_sede')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorabiliPrevisti, $giorniLavoratiEffettivi, $giorniLavorativiRimanenti, $obiettiviKpi) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
                     $data = $sedeGroup->first();
                     $inseriti = (int)$data->inserito_pda;
                     $prodotto = (int)$data->prodotto_pda;
@@ -395,11 +450,37 @@ class ProduzioneController extends Controller
                         $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
                     }
                     
-                    // === CALCOLI PAF MENSILE ===
-                    // Ore PAF e Pezzi PAF devono essere sempre positivi
-                    $ore_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($ore / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
-                    $pezzi_paf = $giorniLavoratiEffettivi > 0 ? max(0, round($inseriti / $giorniLavoratiEffettivi * $giorniLavorabiliPrevisti, 2)) : 0;
-                    $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                    // === CALCOLI PAF MENSILE (NUOVO METODO CON VISTA) ===
+                    // Per la vista sintetica, sommiamo tutti i giorni lavorati delle campagne di questa sede
+                    $ore_paf = 0;
+                    $pezzi_paf = 0;
+                    $resa_paf = 0;
+                    
+                    if ($mostraPaf) {
+                        // Somma giorni lavorati per tutte le campagne di questa sede
+                        $giorniLavoratiTotaliSede = $giorniLavoratiPerCampagna
+                            ->filter(function($item) use ($data) {
+                                return stripos($item->nome_sede, $data->sede) !== false || stripos($data->sede, $item->nome_sede) !== false;
+                            })
+                            ->sum('giorni_lavorati');
+                        
+                        if ($giorniLavoratiTotaliSede > 0) {
+                            // Media pesata dei giorni lavorati per la sede
+                            $numCampagne = $giorniLavoratiPerCampagna->filter(function($item) use ($data) {
+                                return stripos($item->nome_sede, $data->sede) !== false || stripos($data->sede, $item->nome_sede) !== false;
+                            })->count();
+                            
+                            if ($numCampagne > 0) {
+                                $mediaGiorniLavorati = $giorniLavoratiTotaliSede / $numCampagne;
+                                $giorniTotaliPrevisti = $mediaGiorniLavorati + $giorniLavorativiRimanenti;
+                                
+                                // PAF = (valori attuali / media giorni lavorati) * giorni totali previsti
+                                $ore_paf = max(0, round($ore / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
+                                $pezzi_paf = max(0, round($inseriti / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
+                                $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                            }
+                        }
+                    }
                     
                     return collect([
                         'totale' => [
@@ -435,30 +516,37 @@ class ProduzioneController extends Controller
             });
         
         // === DATI PER FILTRI ===
-        $mandati = DB::table('report_produzione_pivot_cache')
+        // Lista tutte le commesse disponibili
+        $commesse = DB::table('report_produzione_pivot_cache')
             ->distinct()
             ->whereNotNull('commessa')
             ->orderBy('commessa')
-            ->pluck('commessa', 'commessa');
+            ->pluck('commessa');
         
-        // Prendi solo le sedi che hanno dati nella cache
-        // e mappa id_sede dalla tabella sedi
-        $sediCache = DB::table('report_produzione_pivot_cache')
-            ->select('nome_sede')
-            ->distinct()
-            ->whereNotNull('nome_sede')
-            ->where('nome_sede', '!=', '')
-            ->orderBy('nome_sede')
-            ->pluck('nome_sede');
+        // Sedi filtrate per commessa selezionata (se presente)
+        $sedi = collect();
+        if ($commessaFilter) {
+            $sedi = DB::table('report_produzione_pivot_cache')
+                ->where('commessa', $commessaFilter)
+                ->distinct()
+                ->whereNotNull('nome_sede')
+                ->where('nome_sede', '!=', '')
+                ->orderBy('nome_sede')
+                ->pluck('nome_sede');
+        }
         
-        // Mappa nome_sede -> id_sede dalla tabella sedi
-        $sedi = DB::table('sedi')
-            ->whereIn('nome_sede', $sediCache)
-            ->orderBy('nome_sede')
-            ->pluck('nome_sede', 'id_sede')
-            ->unique(); // Rimuove duplicati per id diverse ma stesso nome
-        
-        $canali = []; // Non disponibile nella cache
+        // Macro campagne filtrate per commessa + sede (se presenti)
+        $macroCampagne = collect();
+        if ($commessaFilter && $sedeFilter) {
+            $macroCampagne = DB::table('report_produzione_pivot_cache')
+                ->where('commessa', $commessaFilter)
+                ->where('nome_sede', $sedeFilter)
+                ->distinct()
+                ->whereNotNull('campagna_id')
+                ->where('campagna_id', '!=', '')
+                ->orderBy('campagna_id')
+                ->pluck('campagna_id');
+        }
         
         return view('admin.modules.produzione.cruscotto-produzione', [
             'kpiTotali' => $kpiArray,
@@ -466,15 +554,65 @@ class ProduzioneController extends Controller
             'datiDettagliati' => $datiDettagliati,
             'datiSintetici' => $datiSintetici,
             'oreRaggruppate' => [], // Già incluse nella cache!
-            'mandati' => $mandati,
+            'commesse' => $commesse,
             'sedi' => $sedi,
-            'canali' => $canali,
+            'macroCampagne' => $macroCampagne,
             'dataInizio' => $dataInizio ?? '',
             'dataFine' => $dataFine ?? '',
-            'mandatoFilter' => is_array($mandatoFilter) ? $mandatoFilter : [],
-            'sedeFilter' => is_array($sedeFilter) ? $sedeFilter : [],
-            'canaleFilter' => [],
+            'commessaFilter' => $commessaFilter ?? '',
+            'sedeFilter' => $sedeFilter ?? '',
+            'macroCampagnaFilter' => $macroCampagnaFilter ?? '',
         ]);
+    }
+
+    /**
+     * API: Ottieni sedi per una specifica commessa
+     */
+    public function getSedi(Request $request)
+    {
+        $this->authorize('produzione.view');
+        
+        $commessa = $request->input('commessa');
+        
+        if (!$commessa) {
+            return response()->json([]);
+        }
+        
+        $sedi = DB::table('report_produzione_pivot_cache')
+            ->where('commessa', $commessa)
+            ->distinct()
+            ->whereNotNull('nome_sede')
+            ->where('nome_sede', '!=', '')
+            ->orderBy('nome_sede')
+            ->pluck('nome_sede');
+        
+        return response()->json($sedi);
+    }
+
+    /**
+     * API: Ottieni macro campagne per una specifica commessa e sede
+     */
+    public function getCampagne(Request $request)
+    {
+        $this->authorize('produzione.view');
+        
+        $commessa = $request->input('commessa');
+        $sede = $request->input('sede');
+        
+        if (!$commessa || !$sede) {
+            return response()->json([]);
+        }
+        
+        $campagne = DB::table('report_produzione_pivot_cache')
+            ->where('commessa', $commessa)
+            ->where('nome_sede', $sede)
+            ->distinct()
+            ->whereNotNull('campagna_id')
+            ->where('campagna_id', '!=', '')
+            ->orderBy('campagna_id')
+            ->pluck('campagna_id');
+        
+        return response()->json($campagne);
     }
 
     /**

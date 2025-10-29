@@ -145,6 +145,11 @@ Route::group([
         // Sottomenu Produzione
         Route::get('/tabella-obiettivi', 'ProduzioneController@tabellaObiettivi')->name('tabella_obiettivi');
         Route::get('/cruscotto-produzione', 'ProduzioneController@cruscottoProduzione')->name('cruscotto_produzione');
+        
+        // API per filtri dinamici cruscotto produzione
+        Route::get('/get-sedi', 'ProduzioneController@getSedi')->name('get_sedi');
+        Route::get('/get-campagne', 'ProduzioneController@getCampagne')->name('get_campagne');
+        
         Route::get('/cruscotto-operatore', 'ProduzioneController@cruscottoOperatore')->name('cruscotto_operatore');
         Route::get('/cruscotto-mensile', 'ProduzioneController@cruscottoMensile')->name('cruscotto_mensile');
         Route::get('/input-manuale', 'ProduzioneController@inputManuale')->name('input_manuale');

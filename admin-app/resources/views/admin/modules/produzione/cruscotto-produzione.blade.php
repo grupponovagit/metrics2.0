@@ -15,57 +15,176 @@
         </x-slot>
     </x-admin.page-header>
     
-    {{-- FILTRI CON SELECT MULTIPLE --}}
-    @php
-    $filterConfig = [
-        'dates' => [
-            [
-                'name' => 'data_inizio',
-                'label' => 'Data Inizio',
-                'type' => 'date',
-                'value' => $dataInizio,
-            ],
-            [
-                'name' => 'data_fine',
-                'label' => 'Data Fine',
-                'type' => 'date',
-                'value' => $dataFine,
-            ],
-        ],
-        'selects' => [
-            [
-                'name' => 'mandato',
-                'label' => 'Cliente',
-                'type' => 'select-multiple',
-                'multiple' => true,
-                'options' => $mandati->toArray(),
-                'value' => $mandatoFilter,
-            ],
-            [
-                'name' => 'sede',
-                'label' => 'Sede',
-                'type' => 'select-multiple',
-                'multiple' => true,
-                'options' => $sedi->toArray(),
-                'value' => $sedeFilter,
-            ],
-        ],
-    ];
-    @endphp
+    {{-- FILTRI DINAMICI A CASCATA - UI MIGLIORATA --}}
+    <x-admin.card tone="light" shadow="lg" padding="lg" class="mb-6">
+        <form method="GET" action="{{ route('admin.produzione.cruscotto_produzione') }}" id="filterForm">
+            
+            <div class="flex flex-col lg:flex-row gap-6">
+                {{-- Colonna Sinistra: Date --}}
+                <div class="lg:w-1/4 space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold text-base">
+                                <x-ui.icon name="calendar" class="h-4 w-4 inline" />
+                                Data Inizio
+                            </span>
+                        </label>
+                        <input type="date" name="data_inizio" value="{{ $dataInizio }}" class="input input-bordered w-full" required>
+                        <label class="label">
+                            <span class="label-text-alt">Data di inizio periodo</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold text-base">
+                                <x-ui.icon name="calendar" class="h-4 w-4 inline" />
+                                Data Fine
+                            </span>
+                        </label>
+                        <input type="date" name="data_fine" value="{{ $dataFine }}" class="input input-bordered w-full" required>
+                        <label class="label">
+                            <span class="label-text-alt">Data di fine periodo</span>
+                        </label>
+                    </div>
+                    
+                    {{-- Pulsanti azione --}}
+                    <div class="divider"></div>
+                    <div class="space-y-2">
+                        <button type="submit" class="btn btn-primary w-full">
+                            <x-ui.icon name="filter" class="h-5 w-5" />
+                            Applica Filtri
+                        </button>
+                        <a href="{{ route('admin.produzione.cruscotto_produzione') }}" class="btn btn-outline w-full">
+                            <x-ui.icon name="x" class="h-5 w-5" />
+                            Reset Filtri
+                        </a>
+                    </div>
+                </div>
+                
+                {{-- Colonna Destra: Filtri a cascata --}}
+                <div class="lg:w-3/4">
+                    <div class="bg-base-200/50 rounded-lg p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <x-ui.icon name="funnel" class="h-5 w-5 text-primary" />
+                            Filtri Avanzati (Opzionali)
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {{-- Commessa --}}
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <x-ui.icon name="briefcase" class="h-4 w-4 inline text-warning" />
+                                        Commessa
+                                    </span>
+                                </label>
+                                <select name="commessa" id="commessaSelect" class="select select-bordered select-warning">
+                                    <option value="">Tutte le commesse</option>
+                                    @foreach($commesse as $commessa)
+                                        <option value="{{ $commessa }}" {{ $commessaFilter == $commessa ? 'selected' : '' }}>
+                                            {{ $commessa }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Seleziona per filtrare</span>
+                                </label>
+                            </div>
+                            
+                            {{-- Sede --}}
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <x-ui.icon name="building" class="h-4 w-4 inline text-info" />
+                                        Sede
+                                    </span>
+                                    @if(!$commessaFilter)
+                                        <span class="badge badge-sm">Richiede Commessa</span>
+                                    @endif
+                                </label>
+                                <select name="sede" id="sedeSelect" class="select select-bordered select-info" {{ !$commessaFilter ? 'disabled' : '' }}>
+                                    <option value="">Tutte le sedi</option>
+                                    @if($commessaFilter)
+                                        @foreach($sedi as $sede)
+                                            <option value="{{ $sede }}" {{ $sedeFilter == $sede ? 'selected' : '' }}>
+                                                {{ $sede }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Dipende da commessa</span>
+                                </label>
+                            </div>
+                            
+                            {{-- Macro Campagna --}}
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <x-ui.icon name="bullseye" class="h-4 w-4 inline text-success" />
+                                        Macro Campagna
+                                    </span>
+                                    @if(!$sedeFilter)
+                                        <span class="badge badge-sm">Richiede Sede</span>
+                                    @endif
+                                </label>
+                                <select name="macro_campagna" id="macroCampagnaSelect" class="select select-bordered select-success" {{ !$sedeFilter ? 'disabled' : '' }}>
+                                    <option value="">Tutte le campagne</option>
+                                    @if($sedeFilter)
+                                        @foreach($macroCampagne as $campagna)
+                                            <option value="{{ $campagna }}" {{ $macroCampagnaFilter == $campagna ? 'selected' : '' }}>
+                                                {{ $campagna }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Dipende da sede</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        {{-- Info box --}}
+                        @if($commessaFilter || $sedeFilter || $macroCampagnaFilter)
+                        <div class="alert alert-info mt-4">
+                            <x-ui.icon name="info-circle" class="h-5 w-5" />
+                            <div>
+                                <div class="font-bold">Filtri attivi:</div>
+                                <div class="text-sm">
+                                    @if($commessaFilter) <span class="badge badge-warning">{{ $commessaFilter }}</span> @endif
+                                    @if($sedeFilter) <span class="badge badge-info">{{ $sedeFilter }}</span> @endif
+                                    @if($macroCampagnaFilter) <span class="badge badge-success">{{ $macroCampagnaFilter }}</span> @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </form>
+    </x-admin.card>
     
-    <x-filters-multi 
-        :filters="$filterConfig"
-        :action="route('admin.produzione.cruscotto_produzione')"
-        :showReset="true"
-    />
     <br/>
     {{-- TABELLA DETTAGLIATA - Visibile solo se ci sono filtri applicati --}}
-    @if(request()->hasAny(['data_inizio', 'data_fine', 'mandato', 'sede']))
+    @if(request()->hasAny(['data_inizio', 'data_fine', 'commessa', 'sede', 'macro_campagna']))
+    
+    {{-- Alert PAF --}}
+    @if(!($kpiTotali['mostra_paf'] ?? false))
+    <div class="alert alert-warning mb-4">
+        <x-ui.icon name="info-circle" class="h-5 w-5" />
+        <div>
+            <div class="font-bold">Attenzione</div>
+            <div class="text-sm">I dati PAF (Proiezione A Fine mese) sono visibili solo quando si filtra esclusivamente il mese corrente. Le colonne PAF verranno mostrate come zero poiché il periodo filtrato non corrisponde al mese corrente.</div>
+        </div>
+    </div>
+    @endif
+    
     <x-admin.card tone="light" shadow="lg" padding="none">
         <div class="p-6 border-b border-base-300 flex justify-between items-center">
             <div>
                 <h3 class="text-xl font-bold text-base-content">
-                    Dettaglio KPI per Cliente, Sede e Campagna
+                    Dettaglio KPI per Commessa, Sede e Campagna
                 </h3>
                 <p class="text-sm text-base-content/60 mt-1">
                     Visualizzazione gerarchica delle metriche di produzione
@@ -96,7 +215,7 @@
             <table class="table table-zebra w-full" style="min-width: 2400px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
-                        <th class="sticky-det-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
+                        <th class="sticky-det-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Commessa</th>
                         <th class="sticky-det-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
                         <th class="sticky-det-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Macro Campagna</th>
                         
@@ -375,7 +494,7 @@
             <table class="table table-zebra w-full" style="min-width: 2200px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
-                        <th class="sticky-col-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
+                        <th class="sticky-col-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Commessa</th>
                         <th class="sticky-col-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
                         
                         {{-- Prodotto --}}
@@ -667,7 +786,7 @@
 
         /* ===== TABELLA SINTETICA - 2 COLONNE STICKY ===== */
 
-        /* Colonna 1: Cliente - sticky */
+        /* Colonna 1: Commessa - sticky */
         .sticky-col-cliente {
             position: sticky !important;
             left: 0 !important;
@@ -758,7 +877,7 @@
             border-spacing: 0 !important;
         }
 
-        /* Colonna 1: Cliente - sticky (dettagliato) */
+        /* Colonna 1: Commessa - sticky (dettagliato) */
         .sticky-det-cliente {
             position: sticky !important;
             left: 0 !important;
@@ -993,4 +1112,74 @@
         </x-admin.card>
     @endif
 
+    {{-- Script per filtri dinamici a cascata --}}
+    <script>
+        // Dati per i filtri dinamici
+        const filtersData = @json([
+            'sedi' => $sediPerCommessa ?? [],
+            'campagne' => $campagnePerSede ?? []
+        ]);
+
+        // Gestione select Commessa
+        document.getElementById('commessaSelect').addEventListener('change', function() {
+            const commessa = this.value;
+            const sedeSelect = document.getElementById('sedeSelect');
+            const campagnaSelect = document.getElementById('macroCampagnaSelect');
+            
+            // Reset e disabilita select successive
+            sedeSelect.innerHTML = '<option value="">-- Tutte le sedi --</option>';
+            campagnaSelect.innerHTML = '<option value="">-- Tutte le campagne --</option>';
+            campagnaSelect.disabled = true;
+            
+            if (commessa) {
+                // Abilita sede select
+                sedeSelect.disabled = false;
+                
+                // Carica sedi per la commessa selezionata via AJAX
+                fetch(`/admin/produzione/get-sedi?commessa=${encodeURIComponent(commessa)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(sede => {
+                            const option = document.createElement('option');
+                            option.value = sede;
+                            option.textContent = sede;
+                            sedeSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Errore caricamento sedi:', error));
+            } else {
+                sedeSelect.disabled = true;
+            }
+        });
+
+        // Gestione select Sede
+        document.getElementById('sedeSelect').addEventListener('change', function() {
+            const commessa = document.getElementById('commessaSelect').value;
+            const sede = this.value;
+            const campagnaSelect = document.getElementById('macroCampagnaSelect');
+            
+            // Reset campagna select
+            campagnaSelect.innerHTML = '<option value="">-- Tutte le campagne --</option>';
+            
+            if (sede && commessa) {
+                // Abilita campagna select
+                campagnaSelect.disabled = false;
+                
+                // Carica campagne per commessa + sede via AJAX
+                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessa)}&sede=${encodeURIComponent(sede)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(campagna => {
+                            const option = document.createElement('option');
+                            option.value = campagna;
+                            option.textContent = campagna;
+                            campagnaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Errore caricamento campagne:', error));
+            } else {
+                campagnaSelect.disabled = true;
+            }
+        });
+    </script>
 </x-admin.wrapper>
