@@ -8,7 +8,7 @@
         iconColor="info"
     >
         <x-slot name="actions">
-            <a href="{{ route('admin.ict.kpi_target', ['anno' => $kpi->anno, 'mese' => sprintf('%02d', $kpi->mese)]) }}" class="btn btn-outline btn-secondary">
+            <a href="{{ route('admin.produzione.kpi_target', ['anno' => $kpi->anno, 'mese' => sprintf('%02d', $kpi->mese)]) }}" class="btn btn-outline btn-secondary">
                 <x-ui.icon name="arrow-left" class="h-4 w-4" />
                 Torna
             </a>
@@ -186,12 +186,12 @@
                         Gestisci Variazione
                     </button>
                     
-                    <a href="{{ route('admin.ict.kpi_target', ['anno' => $kpi->anno, 'mese' => sprintf('%02d', $kpi->mese)]) }}" class="btn btn-outline btn-secondary btn-block">
+                    <a href="{{ route('admin.produzione.kpi_target', ['anno' => $kpi->anno, 'mese' => sprintf('%02d', $kpi->mese)]) }}" class="btn btn-outline btn-secondary btn-block">
                         <x-ui.icon name="arrow-left" class="h-4 w-4" />
                         Torna alla Lista
                     </a>
                     
-                    <form action="{{ route('admin.ict.kpi_target.delete', $kpi->id) }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare questo KPI?')">
+                    <form action="{{ route('admin.produzione.kpi_target.delete', $kpi->id) }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare questo KPI?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-error btn-block">
@@ -224,7 +224,7 @@
                 Modifica Dati Base
             </h3>
             
-            <form action="{{ route('admin.ict.kpi_target.store') }}" method="POST" id="form-edit">
+            <form action="{{ route('admin.produzione.kpi_target.store') }}" method="POST" id="form-edit">
                 @csrf
                 <input type="hidden" name="_method" value="PUT">
                 
@@ -419,7 +419,7 @@
             }
             
             // Salva via AJAX
-            fetch(`/admin/ict/kpi-target/${kpiId}/update-variazione`, {
+            fetch(`/admin/produzione/kpi-target/${kpiId}/update-variazione`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -452,7 +452,7 @@
                 return;
             }
             
-            fetch(`/admin/ict/kpi-target/${kpiId}/update-variazione`, {
+            fetch(`/admin/produzione/kpi-target/${kpiId}/update-variazione`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -487,7 +487,7 @@
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
             
-            fetch(`/admin/ict/kpi-target/${kpiId}/update-field`, {
+            fetch(`/admin/produzione/kpi-target/${kpiId}/update-field`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

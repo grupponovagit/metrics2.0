@@ -35,33 +35,6 @@
                 <form action="{{ route('admin.ict.esiti_vendita_conversione.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    {{-- Commessa --}}
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Commessa <span class="text-error">*</span></span>
-                        </label>
-                        <div class="flex gap-2">
-                            <select name="commessa" id="commessaSelect" class="select select-bordered flex-1" onchange="toggleCustomCommessa()">
-                                <option value="">Seleziona o inserisci nuova commessa</option>
-                                <option value="__CUSTOM__">➕ Nuova Commessa...</option>
-                                @foreach($commesseEsistenti as $commessa)
-                                    <option value="{{ $commessa }}" {{ old('commessa') === $commessa ? 'selected' : '' }}>
-                                        {{ $commessa }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <input type="text" name="commessa_custom" id="commessaCustom" class="input input-bordered mt-2" placeholder="Inserisci nome commessa (es: ENI_CONSUMER)" style="display:none;" value="{{ old('commessa_custom') }}">
-                        @error('commessa')
-                            <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
-                            </label>
-                        @enderror
-                        <label class="label">
-                            <span class="label-text-alt">Seleziona una commessa esistente o creane una nuova</span>
-                        </label>
-                    </div>
-
                     {{-- Esito Originale --}}
                     <div class="form-control">
                         <label class="label">
@@ -155,33 +128,5 @@
         </div>
     </div>
 </div>
-
-<script>
-function toggleCustomCommessa() {
-    const select = document.getElementById('commessaSelect');
-    const customInput = document.getElementById('commessaCustom');
-    
-    if (select.value === '__CUSTOM__') {
-        customInput.style.display = 'block';
-        customInput.required = true;
-        select.name = '';
-        customInput.name = 'commessa';
-    } else {
-        customInput.style.display = 'none';
-        customInput.required = false;
-        select.name = 'commessa';
-        customInput.name = 'commessa_custom';
-    }
-}
-
-// Al caricamento, se c'è un valore custom da old(), mostralo
-window.addEventListener('DOMContentLoaded', function() {
-    const customInput = document.getElementById('commessaCustom');
-    if (customInput.value) {
-        document.getElementById('commessaSelect').value = '__CUSTOM__';
-        toggleCustomCommessa();
-    }
-});
-</script>
 </x-admin.wrapper>
 

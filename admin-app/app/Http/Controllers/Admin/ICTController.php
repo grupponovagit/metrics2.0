@@ -958,6 +958,10 @@ class ICTController extends Controller
             'esito_originale' => 'required|string|max:255',
             'esito_globale' => 'required|in:' . implode(',', array_keys(EsitoVenditaConversione::ESITI_GLOBALI)),
             'note' => 'nullable|string|max:1000',
+        ], [
+            'esito_originale.required' => 'L\'esito originale è obbligatorio',
+            'esito_globale.required' => 'L\'esito globale è obbligatorio',
+            'esito_globale.in' => 'Esito globale non valido',
         ]);
 
         try {

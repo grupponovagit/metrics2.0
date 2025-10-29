@@ -8,7 +8,7 @@
         iconColor="success"
     >
         <x-slot name="actions">
-            <a href="{{ route('admin.ict.kpi_target') }}" class="btn btn-outline btn-secondary">
+            <a href="{{ route('admin.produzione.kpi_target') }}" class="btn btn-outline btn-secondary">
                 <x-ui.icon name="arrow-left" class="h-4 w-4" />
                 Torna
             </a>
@@ -16,7 +16,7 @@
     </x-admin.page-header>
     
     <x-admin.card tone="light" shadow="lg" padding="normal">
-        <form method="POST" action="{{ route('admin.ict.kpi_target.store') }}">
+        <form method="POST" action="{{ route('admin.produzione.kpi_target.store') }}">
             @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -290,7 +290,7 @@
             
             {{-- Pulsanti --}}
             <div class="flex justify-end gap-4 mt-8">
-                <a href="{{ route('admin.ict.kpi_target') }}" class="btn btn-ghost">
+                <a href="{{ route('admin.produzione.kpi_target') }}" class="btn btn-ghost">
                     Annulla
                 </a>
                 <button type="submit" class="btn btn-success">

@@ -151,6 +151,17 @@ Route::group([
         Route::get('/avanzamento-mensile', 'ProduzioneController@avanzamentoMensile')->name('avanzamento_mensile');
         Route::get('/kpi-lead-quartili', 'ProduzioneController@kpiLeadQuartili')->name('kpi_lead_quartili');
         Route::get('/controllo-stato-lead', 'ProduzioneController@controlloStatoLead')->name('controllo_stato_lead');
+        
+        // KPI Target Mensili
+        Route::get('/kpi-target', 'ProduzioneController@kpiTarget')->name('kpi_target');
+        Route::get('/kpi-target/create', 'ProduzioneController@createKpiTarget')->name('kpi_target.create');
+        Route::post('/kpi-target/store', 'ProduzioneController@storeKpiTarget')->name('kpi_target.store');
+        Route::get('/kpi-target/{id}', 'ProduzioneController@showKpiTarget')->name('kpi_target.show');
+        Route::post('/kpi-target/{id}/update-field', 'ProduzioneController@updateKpiField')->name('kpi_target.update_field');
+        Route::post('/kpi-target/{id}/update-variazione', 'ProduzioneController@updateKpiVariazione')->name('kpi_target.update_variazione');
+        Route::post('/kpi-target/update', 'ProduzioneController@updateKpiTarget')->name('kpi_target.update');
+        Route::delete('/kpi-target/{id}', 'ProduzioneController@deleteKpiTarget')->name('kpi_target.delete');
+        Route::post('/kpi-target/bulk-delete', 'ProduzioneController@bulkDeleteKpiTarget')->name('kpi_target.bulk_delete');
     });
 
     // Modulo Marketing - Solo per ruoli autorizzati
@@ -191,16 +202,6 @@ Route::group([
         Route::post('/calendario/add-festivo', 'ICTController@addFestivo')->name('calendario.add_festivo');
         Route::post('/calendario/add-eccezione-mandato', 'ICTController@addEccezioneMandato')->name('calendario.add_eccezione_mandato');
         Route::delete('/calendario/{id}', 'ICTController@deleteGiorno')->name('calendario.delete');
-        
-        Route::get('/kpi-target', 'ICTController@kpiTarget')->name('kpi_target');
-        Route::get('/kpi-target/create', 'ICTController@createKpiTarget')->name('kpi_target.create');
-        Route::post('/kpi-target/store', 'ICTController@storeKpiTarget')->name('kpi_target.store');
-        Route::get('/kpi-target/{id}', 'ICTController@showKpiTarget')->name('kpi_target.show');
-        Route::post('/kpi-target/{id}/update-field', 'ICTController@updateKpiField')->name('kpi_target.update_field');
-        Route::post('/kpi-target/{id}/update-variazione', 'ICTController@updateKpiVariazione')->name('kpi_target.update_variazione');
-        Route::post('/kpi-target/update', 'ICTController@updateKpiTarget')->name('kpi_target.update');
-        Route::delete('/kpi-target/{id}', 'ICTController@deleteKpiTarget')->name('kpi_target.delete');
-        Route::post('/kpi-target/bulk-delete', 'ICTController@bulkDeleteKpiTarget')->name('kpi_target.bulk_delete');
         
         Route::get('/stato', 'ICTController@stato')->name('stato');
         Route::get('/categoria-utm-campagna', 'ICTController@categoriaUtmCampagna')->name('categoria_utm_campagna');

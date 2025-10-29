@@ -8,11 +8,11 @@
         iconColor="secondary"
     >
         <x-slot name="actions">
-            <a href="{{ route('admin.ict.kpi_target.create') }}" class="btn btn-success">
+            <a href="{{ route('admin.produzione.kpi_target.create') }}" class="btn btn-success">
                 <x-ui.icon name="plus" class="h-4 w-4" />
                 Nuovo KPI
             </a>
-            <a href="{{ route('admin.ict.index') }}" class="btn btn-outline btn-secondary">
+            <a href="{{ route('admin.produzione.index') }}" class="btn btn-outline btn-secondary">
                 <x-ui.icon name="arrow-left" class="h-4 w-4" />
                 Torna
             </a>
@@ -21,7 +21,7 @@
     
     {{-- FILTRO MESE/ANNO --}}
     <x-admin.card tone="light" shadow="md" padding="normal" class="mb-6">
-        <form method="GET" action="{{ route('admin.ict.kpi_target') }}" class="flex flex-wrap items-end gap-4">
+        <form method="GET" action="{{ route('admin.produzione.kpi_target') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[200px]">
                 <label for="mese" class="block text-sm font-medium text-base-content mb-2">
                     Mese
@@ -114,7 +114,7 @@
             </div>
         </div>
         
-        <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-target">
+        <form method="POST" action="{{ route('admin.produzione.kpi_target.update') }}" id="form-target">
             @csrf
             <input type="hidden" name="tabella" value="target_mensili">
             
@@ -181,10 +181,10 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="flex gap-1 justify-center">
-                                        <a href="{{ route('admin.ict.kpi_target.show', $kpi->id) }}" class="btn btn-xs btn-info" title="Visualizza">
+                                        <a href="{{ route('admin.produzione.kpi_target.show', $kpi->id) }}" class="btn btn-xs btn-info" title="Visualizza">
                                             <x-ui.icon name="eye" class="h-3 w-3" />
                                         </a>
-                                        <form action="{{ route('admin.ict.kpi_target.delete', $kpi->id) }}" method="POST" class="inline" onsubmit="return confirm('Sei sicuro di voler eliminare questo KPI?')">
+                                        <form action="{{ route('admin.produzione.kpi_target.delete', $kpi->id) }}" method="POST" class="inline" onsubmit="return confirm('Sei sicuro di voler eliminare questo KPI?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-xs btn-error" title="Elimina">
@@ -239,7 +239,7 @@
             </p>
         </div>
         
-        <form method="POST" action="{{ route('admin.ict.kpi_target.update') }}" id="form-rendiconto">
+        <form method="POST" action="{{ route('admin.produzione.kpi_target.update') }}" id="form-rendiconto">
             @csrf
             <input type="hidden" name="tabella" value="rendiconto_produzione">
             
@@ -317,7 +317,7 @@
     @endif
     
     {{-- Form nascosto per bulk delete --}}
-    <form id="bulk-delete-form-target" action="{{ route('admin.ict.kpi_target.bulk_delete') }}" method="POST" style="display: none;">
+    <form id="bulk-delete-form-target" action="{{ route('admin.produzione.kpi_target.bulk_delete') }}" method="POST" style="display: none;">
         @csrf
         <input type="hidden" name="ids" id="bulk-delete-ids-target">
     </form>
@@ -525,7 +525,7 @@
             cell.textContent = '⏳ Salvataggio...';
             cell.style.opacity = '0.6';
             
-            fetch(`/admin/ict/kpi-target/${id}/update-field`, {
+            fetch(`/admin/produzione/kpi-target/${id}/update-field`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -614,7 +614,7 @@
             }
             
             // Salva via AJAX
-            fetch(`/admin/ict/kpi-target/${id}/update-variazione`, {
+            fetch(`/admin/produzione/kpi-target/${id}/update-variazione`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -651,7 +651,7 @@
             const id = document.getElementById('variazione-kpi-id').value;
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            fetch(`/admin/ict/kpi-target/${id}/update-variazione`, {
+            fetch(`/admin/produzione/kpi-target/${id}/update-variazione`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

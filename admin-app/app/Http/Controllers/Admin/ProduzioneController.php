@@ -538,31 +538,24 @@ class ProduzioneController extends Controller
     {
         $this->authorize('produzione.view');
         
-        // Filtro mese/anno (default: mese corrente)
         $anno = $request->input('anno', date('Y'));
         $mese = $request->input('mese', date('m'));
         
-        // === TARGET MENSILI (Pianificazione) ===
         $targetMensili = KpiTargetMensile::where('anno', $anno)
             ->where('mese', $mese)
             ->orderBy('commessa')
             ->orderBy('sede_crm')
             ->orderBy('nome_kpi')
-            ->get();
+            ->paginate(50);
         
-        // === RENDICONTO PRODUZIONE (Consuntivo/Esecuzione) ===
         $rendicontoProduzione = KpiRendicontoProduzione::orderBy('commessa')
             ->orderBy('servizio_mandato')
             ->orderBy('nome_kpi')
             ->get();
         
-        // Raggruppa target per commessa
         $targetPerCommessa = $targetMensili->groupBy('commessa');
-        
-        // Raggruppa rendiconto per commessa
         $rendicontoPerCommessa = $rendicontoProduzione->groupBy('commessa');
         
-        // Liste per filtri
         $commesse = DB::table('kpi_target_mensile')
             ->distinct()
             ->pluck('commessa')
@@ -575,7 +568,7 @@ class ProduzioneController extends Controller
             ->sort()
             ->values();
         
-        return view('admin.modules.produzione.kpi-target', [
+        return view('admin.modules.produzione.kpi-target.index', [
             'targetMensili' => $targetMensili,
             'rendicontoProduzione' => $rendicontoProduzione,
             'targetPerCommessa' => $targetPerCommessa,
@@ -585,6 +578,194 @@ class ProduzioneController extends Controller
             'commesse' => $commesse,
             'sedi' => $sedi,
         ]);
+    }
+    
+    /**
+     * Aggiorna singolo campo KPI via AJAX
+     */
+    public function updateKpiField(Request $request, $id)
+    {
+        $this->authorize('produzione.edit');
+        
+        $validated = $request->validate([
+            'field' => 'required|in:commessa,sede_crm,sede_estesa,macro_campagna,nome_kpi,tipo_kpi,valore_kpi,tipologia_obiettivo',
+            'value' => 'required',
+        ]);
+        
+        try {
+            $kpi = KpiTargetMensile::findOrFail($id);
+            
+            // Se il campo è valore_kpi, converti a numero
+            if ($validated['field'] === 'valore_kpi') {
+                $kpi->valore_kpi = floatval($validated['value']);
+            } else {
+                $kpi->{$validated['field']} = $validated['value'];
+            }
+            
+            $kpi->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Campo aggiornato con successo',
+                'data' => $kpi
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante l\'aggiornamento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Mostra form creazione KPI Target
+     */
+    public function createKpiTarget()
+    {
+        $this->authorize('produzione.create');
+        
+        // Lista commesse e sedi disponibili
+        $commesse = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('commessa')
+            ->sort()
+            ->values();
+        
+        $sedi = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('sede_crm')
+            ->sort()
+            ->values();
+        
+        return view('admin.modules.produzione.kpi-target.create', [
+            'commesse' => $commesse,
+            'sedi' => $sedi,
+        ]);
+    }
+    
+    /**
+     * Salva nuovo KPI Target
+     */
+    public function storeKpiTarget(Request $request)
+    {
+        $this->authorize('produzione.create');
+        
+        $validated = $request->validate([
+            'commessa' => 'required|string|max:100',
+            'sede_crm' => 'required|string|max:100',
+            'sede_estesa' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|string|max:255',
+            'nome_kpi' => 'required|string|max:100',
+            'tipo_kpi' => 'nullable|string|max:50',
+            'anno' => 'required|integer|min:2020|max:2030',
+            'mese' => 'required|integer|min:1|max:12',
+            'valore_kpi' => 'required|numeric|min:0',
+            'tipologia_obiettivo' => 'nullable|string|max:50',
+            'tipologia_valore_obiettivo' => 'nullable|string|max:50',
+            'kpi_variato' => 'nullable|numeric|min:0',
+            'data_validita_inizio' => 'nullable|date',
+            'data_validita_fine' => 'nullable|date|after_or_equal:data_validita_inizio',
+        ], [
+            'commessa.required' => 'La commessa è obbligatoria',
+            'sede_crm.required' => 'La sede CRM è obbligatoria',
+            'nome_kpi.required' => 'Il nome KPI è obbligatorio',
+            'anno.required' => 'L\'anno è obbligatorio',
+            'mese.required' => 'Il mese è obbligatorio',
+            'valore_kpi.required' => 'Il valore KPI è obbligatorio',
+            'data_validita_fine.after_or_equal' => 'La data fine deve essere uguale o successiva alla data inizio',
+        ]);
+        
+        KpiTargetMensile::create($validated);
+        
+        return redirect()
+            ->route('admin.produzione.kpi_target', ['anno' => $validated['anno'], 'mese' => sprintf('%02d', $validated['mese'])])
+            ->with('success', 'KPI Target creato con successo');
+    }
+    
+    /**
+     * Mostra dettaglio KPI Target
+     */
+    public function showKpiTarget($id)
+    {
+        $this->authorize('produzione.view');
+        
+        $kpi = KpiTargetMensile::findOrFail($id);
+        
+        return view('admin.modules.produzione.kpi-target.show', compact('kpi'));
+    }
+    
+    /**
+     * Elimina singolo KPI Target
+     */
+    public function deleteKpiTarget($id)
+    {
+        $this->authorize('produzione.delete');
+        
+        try {
+            $kpi = KpiTargetMensile::findOrFail($id);
+            $kpi->delete();
+            
+            return redirect()->back()->with('success', 'KPI eliminato con successo');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Elimina multipli KPI Target (bulk delete)
+     */
+    public function bulkDeleteKpiTarget(Request $request)
+    {
+        $this->authorize('produzione.delete');
+        
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:kpi_target_mensile,id',
+        ]);
+        
+        try {
+            $count = KpiTargetMensile::whereIn('id', $validated['ids'])->delete();
+            
+            return redirect()->back()->with('success', "Eliminati {$count} KPI con successo");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Aggiorna i campi di variazione KPI (kpi_variato, data_validita_inizio, data_validita_fine)
+     */
+    public function updateKpiVariazione(Request $request, $id)
+    {
+        $this->authorize('produzione.edit');
+        
+        $validated = $request->validate([
+            'kpi_variato' => 'nullable|numeric|min:0',
+            'data_validita_inizio' => 'nullable|date',
+            'data_validita_fine' => 'nullable|date|after_or_equal:data_validita_inizio',
+        ]);
+        
+        try {
+            $kpi = KpiTargetMensile::findOrFail($id);
+            
+            // Aggiorna i campi
+            $kpi->kpi_variato = $validated['kpi_variato'];
+            $kpi->data_validita_inizio = $validated['data_validita_inizio'];
+            $kpi->data_validita_fine = $validated['data_validita_fine'];
+            
+            $kpi->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Variazione KPI aggiornata con successo',
+                'data' => $kpi
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante l\'aggiornamento: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
