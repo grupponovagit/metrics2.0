@@ -154,7 +154,7 @@
                             @endphp
                             
                             @foreach($campagneData as $datiCampagna)
-                                <tr class="hover:bg-base-200/50 transition-colors">
+                                <tr>
                                 {{-- Cliente --}}
                                 @if($firstMandato)
                                     <td class="sticky-det-cliente font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $mandatoRowspan }}">
@@ -429,7 +429,7 @@
                             @php
                                 $dati = $datiSede['totale'];
                             @endphp
-                            <tr class="hover:bg-base-200/50 transition-colors">
+                            <tr>
                                 {{-- Cliente --}}
                                 @if($firstCliente)
                                     <td class="sticky-col-cliente font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $clienteRowspan }}">
@@ -909,24 +909,6 @@
         #table-sintetico tbody tr:nth-child(even),
         #table-dettagliato tbody tr:nth-child(even) {
             background-color: #f8fafc !important;
-        }
-
-        /* Hover più evidente */
-        #table-sintetico tbody tr:hover,
-        #table-dettagliato tbody tr:hover {
-            background-color: #dbeafe !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-            transform: scale(1.001) !important;
-            transition: all 0.2s ease !important;
-        }
-
-        /* Celle sticky mantengono background corretto anche su hover */
-        #table-sintetico tbody tr:hover td.sticky-col-cliente,
-        #table-sintetico tbody tr:hover td.sticky-col-sede,
-        #table-dettagliato tbody tr:hover td.sticky-det-cliente,
-        #table-dettagliato tbody tr:hover td.sticky-det-sede,
-        #table-dettagliato tbody tr:hover td.sticky-det-campagna {
-            background-color: #dbeafe !important;
         }
 
         /* Righe totale con bordi più evidenti */
