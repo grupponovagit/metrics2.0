@@ -96,9 +96,9 @@
             <table class="table table-zebra w-full" style="min-width: 2400px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
-                        <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
-                        <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
-                        <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Macro Campagna</th>
+                        <th class="sticky-det-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
+                        <th class="sticky-det-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
+                        <th class="sticky-det-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Macro Campagna</th>
                         
                         {{-- Prodotto --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
@@ -157,7 +157,7 @@
                                 <tr class="hover:bg-base-200/50 transition-colors">
                                 {{-- Cliente --}}
                                 @if($firstMandato)
-                                    <td class="font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $mandatoRowspan }}">
+                                    <td class="sticky-det-cliente font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $mandatoRowspan }}">
                                         {{-- Mostra il nome originale dalla cache (es: TIM_CONSUMER) --}}
                                         {{ collect($campagneData)->first()['cliente_originale'] ?? $mandato }}
                                     </td>
@@ -166,14 +166,14 @@
                                     
                                     {{-- Sede --}}
                                     @if($firstSede)
-                                        <td class="font-semibold border-r-2 border-base-300 bg-base-100" rowspan="{{ $sedeRowspan }}">
+                                        <td class="sticky-det-sede font-semibold border-r-2 border-base-300 bg-base-100" rowspan="{{ $sedeRowspan }}">
                                             {{ $sede }}
                                         </td>
                                         @php $firstSede = false; @endphp
                                     @endif
                                     
                                     {{-- Campagna/Prodotto --}}
-                                    <td class="border-r-2 border-base-300">
+                                    <td class="sticky-det-campagna border-r-2 border-base-300">
                                         <div class="text-sm font-medium">{{ $datiCampagna['campagna'] }}</div>
                                         
                                         {{-- Prodotti Aggiuntivi --}}
@@ -274,7 +274,7 @@
                             }
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
-                            <td colspan="3" class="text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $mandato }}</td>
+                            <td colspan="3" class="sticky-det-totale text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $mandato }}</td>
                             <td class="text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
                             <td class="text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
                             <td class="text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
@@ -345,7 +345,7 @@
                             $totali['resa_paf'] = $totali['ore_paf'] > 0 ? round($totali['pezzi_paf'] / $totali['ore_paf'], 2) : 0;
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
-                            <td colspan="3" class="text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
+                            <td colspan="3" class="sticky-det-totale text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
                             <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
                             <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
                             <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
@@ -375,8 +375,8 @@
             <table class="table table-zebra w-full" style="min-width: 2200px;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
-                        <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
-                        <th class="font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
+                        <th class="sticky-col-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Cliente</th>
+                        <th class="sticky-col-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
                         
                         {{-- Prodotto --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
@@ -432,7 +432,7 @@
                             <tr class="hover:bg-base-200/50 transition-colors">
                                 {{-- Cliente --}}
                                 @if($firstCliente)
-                                    <td class="font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $clienteRowspan }}">
+                                    <td class="sticky-col-cliente font-bold border-r-2 border-base-300 bg-base-200/30" rowspan="{{ $clienteRowspan }}">
                                         {{-- Mostra il nome originale dalla cache (es: TIM_CONSUMER) --}}
                                         {{ $dati['cliente_originale'] ?? $cliente }}
                                     </td>
@@ -440,7 +440,7 @@
                                 @endif
                                 
                                 {{-- Sede --}}
-                                <td class="font-semibold border-r-2 border-base-300 bg-base-100">
+                                <td class="sticky-col-sede font-semibold border-r-2 border-base-300 bg-base-100">
                                     {{ $sede }}
                                 </td>
                                 
@@ -530,7 +530,7 @@
                             }
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
-                            <td colspan="2" class="text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $cliente }}</td>
+                            <td colspan="2" class="sticky-totale-commessa text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $cliente }}</td>
                             <td class="text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
                             <td class="text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
                             <td class="text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
@@ -600,7 +600,7 @@
                             $totali['resa_paf'] = $totali['ore_paf'] > 0 ? round($totali['pezzi_paf'] / $totali['ore_paf'], 2) : 0;
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
-                            <td colspan="2" class="text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
+                            <td colspan="2" class="sticky-totale-commessa text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
                             <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
                             <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
                             <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
@@ -650,6 +650,329 @@
 
     </x-admin.card>
     
+    {{-- STILI CSS PER COLONNE STICKY NELLA TABELLA SINTETICA --}}
+    <style>
+        /* Container scroll con ombra sulle colonne sticky */
+        .table-scroll-container {
+            position: relative;
+            width: 100%;
+        }
+
+        /* Tabella sintetica con layout fisso */
+        #table-sintetico table {
+            table-layout: auto !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+
+        /* ===== TABELLA SINTETICA - 2 COLONNE STICKY ===== */
+
+        /* Colonna 1: Cliente - sticky */
+        .sticky-col-cliente {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            background-color: white !important;
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Colonna 2: Sede - sticky */
+        .sticky-col-sede {
+            position: sticky !important;
+            left: 200px !important;
+            z-index: 3 !important;
+            background-color: white !important;
+            width: 250px !important;
+            min-width: 250px !important;
+            max-width: 250px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Header sticky con z-index maggiore */
+        #table-sintetico thead th.sticky-col-cliente,
+        #table-sintetico thead th.sticky-col-sede {
+            z-index: 5 !important;
+            background-color: #f3f4f6 !important;
+        }
+
+        /* Totale commessa sticky (2 colspan) */
+        .sticky-totale-commessa {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            width: 450px !important;
+            min-width: 450px !important;
+            max-width: 450px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Mantieni background su righe alternate per colonne sticky */
+        #table-sintetico tbody tr:nth-child(odd) td.sticky-col-cliente,
+        #table-sintetico tbody tr:nth-child(odd) td.sticky-col-sede {
+            background-color: white !important;
+        }
+
+        #table-sintetico tbody tr:nth-child(even) td.sticky-col-cliente,
+        #table-sintetico tbody tr:nth-child(even) td.sticky-col-sede {
+            background-color: #f9fafb !important;
+        }
+
+        /* Background per righe totale */
+        #table-sintetico tbody tr.bg-slate-100 td.sticky-col-cliente,
+        #table-sintetico tbody tr.bg-slate-100 td.sticky-col-sede,
+        #table-sintetico tbody tr.bg-slate-100 td.sticky-totale-commessa {
+            background-color: #f1f5f9 !important;
+        }
+
+        #table-sintetico tbody tr.bg-slate-200 td.sticky-totale-commessa {
+            background-color: #e2e8f0 !important;
+        }
+
+        /* Hover sulle righe */
+        #table-sintetico tbody tr:hover td.sticky-col-cliente,
+        #table-sintetico tbody tr:hover td.sticky-col-sede {
+            background-color: #f0f9ff !important;
+        }
+
+        /* Padding consistente */
+        .sticky-col-cliente,
+        .sticky-col-sede {
+            padding: 12px 16px !important;
+        }
+
+        /* ===== TABELLA DETTAGLIATA - 3 COLONNE STICKY ===== */
+
+        /* Tabella dettagliata con layout fisso */
+        #table-dettagliato table {
+            table-layout: auto !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+
+        /* Colonna 1: Cliente - sticky (dettagliato) */
+        .sticky-det-cliente {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            background-color: white !important;
+            width: 150px !important;
+            min-width: 150px !important;
+            max-width: 150px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Colonna 2: Sede - sticky (dettagliato) */
+        .sticky-det-sede {
+            position: sticky !important;
+            left: 150px !important;
+            z-index: 3 !important;
+            background-color: white !important;
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Colonna 3: Macro Campagna - sticky (dettagliato) */
+        .sticky-det-campagna {
+            position: sticky !important;
+            left: 330px !important;
+            z-index: 3 !important;
+            background-color: white !important;
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Header sticky con z-index maggiore (dettagliato) */
+        #table-dettagliato thead th.sticky-det-cliente,
+        #table-dettagliato thead th.sticky-det-sede,
+        #table-dettagliato thead th.sticky-det-campagna {
+            z-index: 5 !important;
+            background-color: #f3f4f6 !important;
+        }
+
+        /* Totale dettagliato sticky (3 colspan) */
+        .sticky-det-totale {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            width: 530px !important;
+            min-width: 530px !important;
+            max-width: 530px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Mantieni background su righe alternate per colonne sticky (dettagliato) */
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-cliente,
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-sede,
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-campagna {
+            background-color: white !important;
+        }
+
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-cliente,
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-sede,
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-campagna {
+            background-color: #f9fafb !important;
+        }
+
+        /* Background per righe totale (dettagliato) */
+        #table-dettagliato tbody tr.bg-slate-100 td.sticky-det-cliente,
+        #table-dettagliato tbody tr.bg-slate-100 td.sticky-det-sede,
+        #table-dettagliato tbody tr.bg-slate-100 td.sticky-det-campagna,
+        #table-dettagliato tbody tr.bg-slate-100 td.sticky-det-totale {
+            background-color: #f1f5f9 !important;
+        }
+
+        #table-dettagliato tbody tr.bg-slate-200 td.sticky-det-totale {
+            background-color: #e2e8f0 !important;
+        }
+
+        /* Hover sulle righe (dettagliato) */
+        #table-dettagliato tbody tr:hover td.sticky-det-cliente,
+        #table-dettagliato tbody tr:hover td.sticky-det-sede,
+        #table-dettagliato tbody tr:hover td.sticky-det-campagna {
+            background-color: #f0f9ff !important;
+        }
+
+        /* Padding consistente (dettagliato) */
+        .sticky-det-cliente,
+        .sticky-det-sede,
+        .sticky-det-campagna {
+            padding: 12px 16px !important;
+        }
+
+        /* ===== MIGLIORAMENTI VISIVI PER DISTINGUERE LE RIGHE ===== */
+
+        /* ===== STILI PER HEADER (TH) ===== */
+
+        /* Bordi inferiori per le celle TH (solo orizzontali) */
+        #table-sintetico thead th,
+        #table-dettagliato thead th {
+            border-bottom: 3px solid #94a3b8 !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            font-weight: 700 !important;
+        }
+
+        /* Bordo inferiore più marcato tra le due righe di header */
+        #table-sintetico thead tr:first-child th,
+        #table-dettagliato thead tr:first-child th {
+            border-bottom: 2px solid #94a3b8 !important;
+        }
+
+        #table-sintetico thead tr:last-child th,
+        #table-dettagliato thead tr:last-child th {
+            border-bottom: 3px solid #64748b !important;
+        }
+
+        /* ===== STILI PER BODY (TD) ===== */
+
+        /* Bordi orizzontali marcati tra le righe */
+        #table-sintetico tbody tr,
+        #table-dettagliato tbody tr {
+            border-bottom: 2px solid #d1d5db !important;
+        }
+
+        /* Bordi orizzontali per tutte le celle (solo orizzontali) */
+        #table-sintetico tbody tr td,
+        #table-dettagliato tbody tr td {
+            border-bottom: 1px solid #d1d5db !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        /* Contrasto maggiore per righe alternate */
+        #table-sintetico tbody tr:nth-child(odd),
+        #table-dettagliato tbody tr:nth-child(odd) {
+            background-color: #ffffff !important;
+        }
+
+        #table-sintetico tbody tr:nth-child(even),
+        #table-dettagliato tbody tr:nth-child(even) {
+            background-color: #f8fafc !important;
+        }
+
+        /* Hover più evidente */
+        #table-sintetico tbody tr:hover,
+        #table-dettagliato tbody tr:hover {
+            background-color: #dbeafe !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            transform: scale(1.001) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        /* Celle sticky mantengono background corretto anche su hover */
+        #table-sintetico tbody tr:hover td.sticky-col-cliente,
+        #table-sintetico tbody tr:hover td.sticky-col-sede,
+        #table-dettagliato tbody tr:hover td.sticky-det-cliente,
+        #table-dettagliato tbody tr:hover td.sticky-det-sede,
+        #table-dettagliato tbody tr:hover td.sticky-det-campagna {
+            background-color: #dbeafe !important;
+        }
+
+        /* Righe totale con bordi più evidenti */
+        #table-sintetico tbody tr.bg-slate-100,
+        #table-dettagliato tbody tr.bg-slate-100 {
+            border-top: 3px solid #94a3b8 !important;
+            border-bottom: 3px solid #94a3b8 !important;
+            background-color: #f1f5f9 !important;
+        }
+
+        #table-sintetico tbody tr.bg-slate-200,
+        #table-dettagliato tbody tr.bg-slate-200 {
+            border-top: 4px solid #64748b !important;
+            border-bottom: 4px solid #64748b !important;
+            background-color: #e2e8f0 !important;
+        }
+
+        /* Hover su righe totale */
+        #table-sintetico tbody tr.bg-slate-100:hover,
+        #table-dettagliato tbody tr.bg-slate-100:hover {
+            background-color: #e0e7ef !important;
+        }
+
+        #table-sintetico tbody tr.bg-slate-200:hover,
+        #table-dettagliato tbody tr.bg-slate-200:hover {
+            background-color: #cbd5e1 !important;
+        }
+
+        /* Alternanza colori preservata su colonne sticky */
+        #table-sintetico tbody tr:nth-child(odd) td.sticky-col-cliente,
+        #table-sintetico tbody tr:nth-child(odd) td.sticky-col-sede,
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-cliente,
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-sede,
+        #table-dettagliato tbody tr:nth-child(odd) td.sticky-det-campagna {
+            background-color: #ffffff !important;
+        }
+
+        #table-sintetico tbody tr:nth-child(even) td.sticky-col-cliente,
+        #table-sintetico tbody tr:nth-child(even) td.sticky-col-sede,
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-cliente,
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-sede,
+        #table-dettagliato tbody tr:nth-child(even) td.sticky-det-campagna {
+            background-color: #f8fafc !important;
+        }
+    </style>
+
     {{-- Script per switchare tra visualizzazioni --}}
     <script>
         function switchView(view) {
