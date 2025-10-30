@@ -569,7 +569,7 @@ class ProduzioneController extends Controller
                 ->pluck('campagna_id');
         }
         
-        return view('admin.modules.produzione.cruscotto-produzione', [
+        return view('admin.modules.produzione.cruscotto-produzione.index', [
             'kpiTotali' => $kpiArray,
             'datiRaggruppati' => $datiDettagliati, // Default
             'datiDettagliati' => $datiDettagliati,
