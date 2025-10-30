@@ -1629,6 +1629,65 @@
         document.addEventListener('DOMContentLoaded', function() {
             attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
             attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+            
+            // Inizializza drag-to-scroll per le tabelle
+            initDragToScroll();
         });
+        
+        // Funzione per abilitare drag-to-scroll sulle tabelle (solo orizzontale)
+        function initDragToScroll() {
+            const scrollContainers = [
+                document.getElementById('table-sintetico'),
+                document.getElementById('table-dettagliato'),
+                document.getElementById('table-giornaliero')
+            ];
+            
+            scrollContainers.forEach(container => {
+                if (!container) return;
+                
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+                
+                // Aggiungi cursore pointer quando si passa sopra
+                container.style.cursor = 'grab';
+                
+                container.addEventListener('mousedown', (e) => {
+                    // Ignora se si clicca su un link o button
+                    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+                        return;
+                    }
+                    
+                    isDown = true;
+                    container.style.cursor = 'grabbing';
+                    container.style.userSelect = 'none';
+                    
+                    startX = e.pageX - container.offsetLeft;
+                    scrollLeft = container.scrollLeft;
+                });
+                
+                container.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    container.style.cursor = 'grab';
+                    container.style.userSelect = '';
+                });
+                
+                container.addEventListener('mouseup', () => {
+                    isDown = false;
+                    container.style.cursor = 'grab';
+                    container.style.userSelect = '';
+                });
+                
+                container.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    
+                    const x = e.pageX - container.offsetLeft;
+                    const walkX = (x - startX) * 1.5; // Moltiplicatore per velocità scroll orizzontale
+                    
+                    container.scrollLeft = scrollLeft - walkX;
+                });
+            });
+        }
     </script>
 </x-admin.wrapper>
