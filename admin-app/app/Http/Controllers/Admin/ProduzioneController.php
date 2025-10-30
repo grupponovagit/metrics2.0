@@ -129,12 +129,14 @@ class ProduzioneController extends Controller
             $request->validate([
                 'data_inizio' => 'required|date',
                 'data_fine' => 'required|date|after_or_equal:data_inizio',
+                'commessa' => 'required|string',
             ], [
                 'data_inizio.required' => 'La data di inizio è obbligatoria.',
                 'data_inizio.date' => 'La data di inizio deve essere una data valida.',
                 'data_fine.required' => 'La data di fine è obbligatoria.',
                 'data_fine.date' => 'La data di fine deve essere una data valida.',
                 'data_fine.after_or_equal' => 'La data di fine deve essere uguale o successiva alla data di inizio.',
+                'commessa.required' => 'La selezione della commessa è obbligatoria.',
             ]);
         }
         

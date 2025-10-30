@@ -51,8 +51,8 @@
                             Commessa
                         </span>
                     </label>
-                    <select name="commessa" id="commessaSelect" class="select select-bordered select-warning select-md w-full text-base">
-                        <option value="">Tutte</option>
+                    <select name="commessa" id="commessaSelect" class="select select-bordered select-warning select-md w-full text-base" required>
+                        <option value="">Seleziona commessa</option>
                         @foreach($commesse as $commessa)
                             <option value="{{ $commessa }}" {{ $commessaFilter == $commessa ? 'selected' : '' }}>
                                 {{ $commessa }}
