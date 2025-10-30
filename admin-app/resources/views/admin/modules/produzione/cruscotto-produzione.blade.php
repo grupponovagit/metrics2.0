@@ -19,146 +19,139 @@
     <x-admin.card tone="light" shadow="lg" padding="lg" class="mb-6">
         <form method="GET" action="{{ route('admin.produzione.cruscotto_produzione') }}" id="filterForm">
             
-            <div class="flex flex-col lg:flex-row gap-6">
-                {{-- Colonna Sinistra: Date --}}
-                <div class="lg:w-1/4 space-y-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-base">
-                                <x-ui.icon name="calendar" class="h-4 w-4 inline" />
-                                Data Inizio
-                            </span>
-                        </label>
-                        <input type="date" name="data_inizio" value="{{ $dataInizio }}" class="input input-bordered w-full" required>
-                        <label class="label">
-                            <span class="label-text-alt">Data di inizio periodo</span>
-                        </label>
-                    </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-base">
-                                <x-ui.icon name="calendar" class="h-4 w-4 inline" />
-                                Data Fine
-                            </span>
-                        </label>
-                        <input type="date" name="data_fine" value="{{ $dataFine }}" class="input input-bordered w-full" required>
-                        <label class="label">
-                            <span class="label-text-alt">Data di fine periodo</span>
-                        </label>
-                    </div>
-                    
-                    {{-- Pulsanti azione --}}
-                    <div class="divider"></div>
-                    <div class="space-y-2">
-                        <button type="submit" class="btn btn-primary w-full">
-                            <x-ui.icon name="filter" class="h-5 w-5" />
-                            Applica Filtri
+            {{-- RIGA 1: Data Inizio, Data Fine, Commessa --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {{-- Data Inizio --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Data Inizio
+                        </span>
+                    </label>
+                    <input type="date" name="data_inizio" value="{{ $dataInizio }}" class="input input-bordered input-md w-full text-base" required>
+                </div>
+                
+                {{-- Data Fine --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Data Fine
+                        </span>
+                    </label>
+                    <input type="date" name="data_fine" value="{{ $dataFine }}" class="input input-bordered input-md w-full text-base" required>
+                </div>
+                
+                {{-- Commessa --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Commessa
+                        </span>
+                    </label>
+                    <select name="commessa" id="commessaSelect" class="select select-bordered select-warning select-md w-full text-base">
+                        <option value="">Tutte</option>
+                        @foreach($commesse as $commessa)
+                            <option value="{{ $commessa }}" {{ $commessaFilter == $commessa ? 'selected' : '' }}>
+                                {{ $commessa }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            
+            {{-- RIGA 2: Campagne, Sedi, Pulsanti --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {{-- Macro Campagna --}}
+                <div class="form-control">
+                    <label class="label py-1 pb-2">
+                        <span class="label-text font-semibold text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                        </span>
+                        <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-success gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Tutte
                         </button>
-                        <a href="{{ route('admin.produzione.cruscotto_produzione') }}" class="btn btn-outline w-full">
-                            <x-ui.icon name="x" class="h-5 w-5" />
-                            Reset Filtri
-                        </a>
+                    </label>
+                    <div id="campagnaContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
+                        @if($commessaFilter && count($macroCampagne) > 0)
+                            @foreach($macroCampagne as $campagna)
+                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-campagna" data-checkbox-label>
+                                    <input type="checkbox" name="macro_campagna[]" value="{{ $campagna }}" 
+                                           class="checkbox checkbox-success checkbox-sm campagna-checkbox" 
+                                           {{ is_array(request('macro_campagna')) && in_array($campagna, request('macro_campagna')) ? 'checked' : '' }}>
+                                    <span class="text-sm leading-tight">{{ $campagna }}</span>
+                                </label>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona commessa</p>
+                        @endif
                     </div>
                 </div>
                 
-                {{-- Colonna Destra: Filtri a cascata --}}
-                <div class="lg:w-3/4">
-                    <div class="bg-base-200/50 rounded-lg p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <x-ui.icon name="funnel" class="h-5 w-5 text-primary" />
-                            Filtri Avanzati (Opzionali)
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {{-- Commessa --}}
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text font-semibold">
-                                        <x-ui.icon name="briefcase" class="h-4 w-4 inline text-warning" />
-                                        Commessa
-                                    </span>
+                {{-- Sede --}}
+                <div class="form-control">
+                    <label class="label py-1 pb-2">
+                        <span class="label-text font-semibold text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Sedi <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                        </span>
+                        <button type="button" onclick="toggleAllSedi(true)" class="btn btn-xs btn-info gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Tutte
+                        </button>
+                    </label>
+                    <div id="sedeContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
+                        @if($commessaFilter && count($sedi) > 0)
+                            @foreach($sedi as $sede)
+                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede" data-checkbox-label>
+                                    <input type="checkbox" name="sede[]" value="{{ $sede }}" 
+                                           class="checkbox checkbox-info checkbox-sm sede-checkbox" 
+                                           {{ is_array(request('sede')) && in_array($sede, request('sede')) ? 'checked' : '' }}>
+                                    <span class="text-sm leading-tight">{{ $sede }}</span>
                                 </label>
-                                <select name="commessa" id="commessaSelect" class="select select-bordered select-warning">
-                                    <option value="">Tutte le commesse</option>
-                                    @foreach($commesse as $commessa)
-                                        <option value="{{ $commessa }}" {{ $commessaFilter == $commessa ? 'selected' : '' }}>
-                                            {{ $commessa }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <label class="label">
-                                    <span class="label-text-alt">Seleziona per filtrare</span>
-                                </label>
-                            </div>
-                            
-                            {{-- Sede --}}
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text font-semibold">
-                                        <x-ui.icon name="building" class="h-4 w-4 inline text-info" />
-                                        Sede
-                                    </span>
-                                    @if(!$commessaFilter)
-                                        <span class="badge badge-sm">Richiede Commessa</span>
-                                    @endif
-                                </label>
-                                <select name="sede" id="sedeSelect" class="select select-bordered select-info" {{ !$commessaFilter ? 'disabled' : '' }}>
-                                    <option value="">Tutte le sedi</option>
-                                    @if($commessaFilter)
-                                        @foreach($sedi as $sede)
-                                            <option value="{{ $sede }}" {{ $sedeFilter == $sede ? 'selected' : '' }}>
-                                                {{ $sede }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                                <label class="label">
-                                    <span class="label-text-alt">Dipende da commessa</span>
-                                </label>
-                            </div>
-                            
-                            {{-- Macro Campagna --}}
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text font-semibold">
-                                        <x-ui.icon name="bullseye" class="h-4 w-4 inline text-success" />
-                                        Macro Campagna
-                                    </span>
-                                    @if(!$sedeFilter)
-                                        <span class="badge badge-sm">Richiede Sede</span>
-                                    @endif
-                                </label>
-                                <select name="macro_campagna" id="macroCampagnaSelect" class="select select-bordered select-success" {{ !$sedeFilter ? 'disabled' : '' }}>
-                                    <option value="">Tutte le campagne</option>
-                                    @if($sedeFilter)
-                                        @foreach($macroCampagne as $campagna)
-                                            <option value="{{ $campagna }}" {{ $macroCampagnaFilter == $campagna ? 'selected' : '' }}>
-                                                {{ $campagna }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                                <label class="label">
-                                    <span class="label-text-alt">Dipende da sede</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        {{-- Info box --}}
-                        @if($commessaFilter || $sedeFilter || $macroCampagnaFilter)
-                        <div class="alert alert-info mt-4">
-                            <x-ui.icon name="info-circle" class="h-5 w-5" />
-                            <div>
-                                <div class="font-bold">Filtri attivi:</div>
-                                <div class="text-sm">
-                                    @if($commessaFilter) <span class="badge badge-warning">{{ $commessaFilter }}</span> @endif
-                                    @if($sedeFilter) <span class="badge badge-info">{{ $sedeFilter }}</span> @endif
-                                    @if($macroCampagnaFilter) <span class="badge badge-success">{{ $macroCampagnaFilter }}</span> @endif
-                                </div>
-                            </div>
-                        </div>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona commessa</p>
                         @endif
+                    </div>
+                </div>
+                
+                {{-- Pulsanti Azione --}}
+                <div class="form-control">
+                    <label class="label py-1 pb-2">
+                        <span class="label-text font-semibold text-sm opacity-0">Azioni</span>
+                    </label>
+                    <div class="space-y-2.5 pt-1">
+                        <button type="submit" class="btn btn-primary btn-md w-full gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <span class="text-base">Applica Filtri</span>
+                        </button>
+                        <a href="{{ route('admin.produzione.cruscotto_produzione') }}" class="btn btn-outline btn-md w-full gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span class="text-base">Reset Filtri</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1120,66 +1113,175 @@
             'campagne' => $campagnePerSede ?? []
         ]);
 
-        // Gestione select Commessa
+        // Variabili per gestire la selezione con Shift
+        let lastCheckedCampagna = null;
+        let lastCheckedSede = null;
+
+        // Funzione per gestire shift-click su checkbox o label
+        function handleShiftClick(checkboxes, lastChecked, currentCheckbox, event) {
+            if (!lastChecked) {
+                return currentCheckbox;
+            }
+
+            if (event.shiftKey) {
+                const start = Array.from(checkboxes).indexOf(lastChecked);
+                const end = Array.from(checkboxes).indexOf(currentCheckbox);
+                const checkboxesToToggle = Array.from(checkboxes).slice(
+                    Math.min(start, end),
+                    Math.max(start, end) + 1
+                );
+                
+                checkboxesToToggle.forEach(checkbox => {
+                    checkbox.checked = currentCheckbox.checked;
+                });
+            }
+
+            return currentCheckbox;
+        }
+        
+        // Funzione per aggiungere event listener a label con checkbox
+        function attachLabelClickListeners(containerSelector, checkboxClass, lastCheckedVar) {
+            const container = document.querySelector(containerSelector);
+            if (!container) return;
+            
+            const labels = container.querySelectorAll('[data-checkbox-label]');
+            labels.forEach(label => {
+                const checkbox = label.querySelector(`.${checkboxClass}`);
+                if (!checkbox) return;
+                
+                // Click sulla label (ma non sulla checkbox stessa)
+                label.addEventListener('click', function(e) {
+                    // Se il click è sulla checkbox, lascia che gestisca lei
+                    if (e.target.type === 'checkbox') return;
+                    
+                    // Altrimenti, previeni il default e gestisci manualmente
+                    e.preventDefault();
+                    
+                    // Toggle checkbox
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Gestisci shift-click
+                    const allCheckboxes = container.querySelectorAll(`.${checkboxClass}`);
+                    if (checkboxClass === 'campagna-checkbox') {
+                        lastCheckedCampagna = handleShiftClick(allCheckboxes, lastCheckedCampagna, checkbox, e);
+                    } else if (checkboxClass === 'sede-checkbox') {
+                        lastCheckedSede = handleShiftClick(allCheckboxes, lastCheckedSede, checkbox, e);
+                    }
+                });
+                
+                // Click diretto sulla checkbox
+                checkbox.addEventListener('click', function(e) {
+                    const allCheckboxes = container.querySelectorAll(`.${checkboxClass}`);
+                    if (checkboxClass === 'campagna-checkbox') {
+                        lastCheckedCampagna = handleShiftClick(allCheckboxes, lastCheckedCampagna, this, e);
+                    } else if (checkboxClass === 'sede-checkbox') {
+                        lastCheckedSede = handleShiftClick(allCheckboxes, lastCheckedSede, this, e);
+                    }
+                });
+            });
+        }
+        
+        // Funzioni per "Seleziona Tutte"
+        function toggleAllCampagne(selectAll) {
+            const checkboxes = document.querySelectorAll('.campagna-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+        }
+        
+        function toggleAllSedi(selectAll) {
+            const checkboxes = document.querySelectorAll('.sede-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+        }
+
+        // Gestione select Commessa - aggiorna checkbox campagne e sedi
         document.getElementById('commessaSelect').addEventListener('change', function() {
             const commessa = this.value;
-            const sedeSelect = document.getElementById('sedeSelect');
-            const campagnaSelect = document.getElementById('macroCampagnaSelect');
+            const campagnaContainer = document.getElementById('campagnaContainer');
+            const sedeContainer = document.getElementById('sedeContainer');
             
-            // Reset e disabilita select successive
-            sedeSelect.innerHTML = '<option value="">-- Tutte le sedi --</option>';
-            campagnaSelect.innerHTML = '<option value="">-- Tutte le campagne --</option>';
-            campagnaSelect.disabled = true;
+            // Reset delle ultime checkbox selezionate
+            lastCheckedCampagna = null;
+            lastCheckedSede = null;
             
             if (commessa) {
-                // Abilita sede select
-                sedeSelect.disabled = false;
+                // Carica campagne per la commessa selezionata via AJAX
+                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessa)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        campagnaContainer.innerHTML = '';
+                        campagnaContainer.classList.remove('opacity-50', 'pointer-events-none');
+                        
+                        if (data.length > 0) {
+                            data.forEach(campagna => {
+                                const label = document.createElement('label');
+                                label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-campagna';
+                                label.setAttribute('data-checkbox-label', '');
+                                label.innerHTML = `
+                                    <input type="checkbox" name="macro_campagna[]" value="${campagna}" 
+                                           class="checkbox checkbox-success checkbox-sm campagna-checkbox">
+                                    <span class="text-sm leading-tight">${campagna}</span>
+                                `;
+                                campagnaContainer.appendChild(label);
+                            });
+                            
+                            // Aggiungi event listener per shift-click e label click
+                            attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
+                        } else {
+                            campagnaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna campagna disponibile</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore caricamento campagne:', error);
+                        campagnaContainer.innerHTML = '<p class="text-[10px] text-error text-center py-3">Errore caricamento</p>';
+                    });
                 
                 // Carica sedi per la commessa selezionata via AJAX
                 fetch(`/admin/produzione/get-sedi?commessa=${encodeURIComponent(commessa)}`)
                     .then(response => response.json())
                     .then(data => {
-                        data.forEach(sede => {
-                            const option = document.createElement('option');
-                            option.value = sede;
-                            option.textContent = sede;
-                            sedeSelect.appendChild(option);
-                        });
+                        sedeContainer.innerHTML = '';
+                        sedeContainer.classList.remove('opacity-50', 'pointer-events-none');
+                        
+                        if (data.length > 0) {
+                            data.forEach(sede => {
+                                const label = document.createElement('label');
+                                label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede';
+                                label.setAttribute('data-checkbox-label', '');
+                                label.innerHTML = `
+                                    <input type="checkbox" name="sede[]" value="${sede}" 
+                                           class="checkbox checkbox-info checkbox-sm sede-checkbox">
+                                    <span class="text-sm leading-tight">${sede}</span>
+                                `;
+                                sedeContainer.appendChild(label);
+                            });
+                            
+                            // Aggiungi event listener per shift-click e label click
+                            attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+                        } else {
+                            sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna sede disponibile</p>';
+                        }
                     })
-                    .catch(error => console.error('Errore caricamento sedi:', error));
+                    .catch(error => {
+                        console.error('Errore caricamento sedi:', error);
+                        sedeContainer.innerHTML = '<p class="text-[10px] text-error text-center py-3">Errore caricamento</p>';
+                    });
             } else {
-                sedeSelect.disabled = true;
+                // Reset containers
+                campagnaContainer.classList.add('opacity-50', 'pointer-events-none');
+                campagnaContainer.innerHTML = '<p class="text-[10px] text-base-content/50 text-center py-3">Seleziona una commessa</p>';
+                
+                sedeContainer.classList.add('opacity-50', 'pointer-events-none');
+                sedeContainer.innerHTML = '<p class="text-[10px] text-base-content/50 text-center py-3">Seleziona una commessa</p>';
             }
         });
 
-        // Gestione select Sede
-        document.getElementById('sedeSelect').addEventListener('change', function() {
-            const commessa = document.getElementById('commessaSelect').value;
-            const sede = this.value;
-            const campagnaSelect = document.getElementById('macroCampagnaSelect');
-            
-            // Reset campagna select
-            campagnaSelect.innerHTML = '<option value="">-- Tutte le campagne --</option>';
-            
-            if (sede && commessa) {
-                // Abilita campagna select
-                campagnaSelect.disabled = false;
-                
-                // Carica campagne per commessa + sede via AJAX
-                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessa)}&sede=${encodeURIComponent(sede)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(campagna => {
-                            const option = document.createElement('option');
-                            option.value = campagna;
-                            option.textContent = campagna;
-                            campagnaSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Errore caricamento campagne:', error));
-            } else {
-                campagnaSelect.disabled = true;
-            }
+        // Inizializza shift-click per checkbox già presenti al caricamento pagina
+        document.addEventListener('DOMContentLoaded', function() {
+            attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
+            attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
         });
     </script>
 </x-admin.wrapper>

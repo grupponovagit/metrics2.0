@@ -139,11 +139,11 @@ class ProduzioneController extends Controller
         }
         
         // === FILTRI ===
-        $dataInizio = $request->input('data_inizio');
-        $dataFine = $request->input('data_fine');
+        $dataInizio = $request->input('data_inizio', date('Y-m-01')); // Default: primo giorno del mese corrente
+        $dataFine = $request->input('data_fine', date('Y-m-d')); // Default: oggi
         $commessaFilter = $request->input('commessa'); // Singola commessa
-        $sedeFilter = $request->input('sede'); // Singola sede
-        $macroCampagnaFilter = $request->input('macro_campagna'); // Singola campagna
+        $sedeFilters = $request->input('sede', []); // Array di sedi
+        $macroCampagnaFilters = $request->input('macro_campagna', []); // Array di campagne
         
         // === CALCOLI CALENDARIO (per metriche PAF e Obiettivi) ===
         $annoCorrente = date('Y');
@@ -173,8 +173,8 @@ class ProduzioneController extends Controller
             $giorniLavoratiPerCampagna = DB::table('view_giorni_paf')
                 ->where('anno', $annoCorrente)
                 ->where('mese', $meseCorrente)
-                ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
-                ->when($macroCampagnaFilter, fn($q) => $q->where('macro_campagna', $macroCampagnaFilter))
+                ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+                ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('macro_campagna', $macroCampagnaFilters))
                 ->get()
                 ->keyBy(function($item) {
                     return strtoupper($item->nome_sede) . '|' . strtoupper($item->macro_campagna);
@@ -230,20 +230,20 @@ class ProduzioneController extends Controller
             $query->where('commessa', $commessaFilter);
         }
         
-        if ($sedeFilter) {
-            $query->where('nome_sede', $sedeFilter);
+        if (!empty($sedeFilters)) {
+            $query->whereIn('nome_sede', $sedeFilters);
         }
         
-        if ($macroCampagnaFilter) {
-            $query->where('campagna_id', $macroCampagnaFilter);
+        if (!empty($macroCampagnaFilters)) {
+            $query->whereIn('campagna_id', $macroCampagnaFilters);
         }
         
         // === KPI TOTALI (aggregazione SQL diretta) ===
         $kpiTotali = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
-            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
+            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
             ->selectRaw('
                 SUM(totale_vendite) as prodotto_pda,
                 SUM(ok_definitivo) as inserito_pda,
@@ -305,8 +305,8 @@ class ProduzioneController extends Controller
         $datiDettagliati = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
-            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
+            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
             ->selectRaw('
                 commessa as cliente,
                 campagna_id as campagna,
@@ -408,8 +408,8 @@ class ProduzioneController extends Controller
         $datiSintetici = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when($sedeFilter, fn($q) => $q->where('nome_sede', $sedeFilter))
-            ->when($macroCampagnaFilter, fn($q) => $q->where('campagna_id', $macroCampagnaFilter))
+            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
             ->selectRaw('
                 commessa as cliente,
                 nome_sede as sede,
@@ -535,12 +535,11 @@ class ProduzioneController extends Controller
                 ->pluck('nome_sede');
         }
         
-        // Macro campagne filtrate per commessa + sede (se presenti)
+        // Macro campagne filtrate per commessa (se presente)
         $macroCampagne = collect();
-        if ($commessaFilter && $sedeFilter) {
+        if ($commessaFilter) {
             $macroCampagne = DB::table('report_produzione_pivot_cache')
                 ->where('commessa', $commessaFilter)
-                ->where('nome_sede', $sedeFilter)
                 ->distinct()
                 ->whereNotNull('campagna_id')
                 ->where('campagna_id', '!=', '')
@@ -560,8 +559,8 @@ class ProduzioneController extends Controller
             'dataInizio' => $dataInizio ?? '',
             'dataFine' => $dataFine ?? '',
             'commessaFilter' => $commessaFilter ?? '',
-            'sedeFilter' => $sedeFilter ?? '',
-            'macroCampagnaFilter' => $macroCampagnaFilter ?? '',
+            'sedeFilters' => $sedeFilters ?? [],
+            'macroCampagnaFilters' => $macroCampagnaFilters ?? [],
         ]);
     }
 
@@ -597,15 +596,13 @@ class ProduzioneController extends Controller
         $this->authorize('produzione.view');
         
         $commessa = $request->input('commessa');
-        $sede = $request->input('sede');
         
-        if (!$commessa || !$sede) {
+        if (!$commessa) {
             return response()->json([]);
         }
         
         $campagne = DB::table('report_produzione_pivot_cache')
             ->where('commessa', $commessa)
-            ->where('nome_sede', $sede)
             ->distinct()
             ->whereNotNull('campagna_id')
             ->where('campagna_id', '!=', '')
