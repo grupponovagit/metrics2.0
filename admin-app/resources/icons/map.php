@@ -48,6 +48,7 @@ return [
     'save' => ['set' => 'heroicon-o', 'icon' => 'check'],
     'close' => ['set' => 'heroicon-o', 'icon' => 'x-mark'],
     'x' => ['set' => 'heroicon-o', 'icon' => 'x-mark'],
+    'times' => ['set' => 'heroicon-o', 'icon' => 'x-mark'],
     
     // === UTENTI & PROFILI ===
     'user' => ['set' => 'heroicon-o', 'icon' => 'user'],
@@ -121,6 +122,8 @@ return [
     'file-invoice-dollar' => ['set' => 'heroicon-o', 'icon' => 'document-currency-dollar'],
     'building-columns' => ['set' => 'heroicon-o', 'icon' => 'building-library'],
     'bank' => ['set' => 'heroicon-o', 'icon' => 'building-library'],
+    'briefcase' => ['set' => 'heroicon-o', 'icon' => 'briefcase'],
+    'building' => ['set' => 'heroicon-o', 'icon' => 'building-office'],
     
     // === MARKETING ===
     'bullhorn' => ['set' => 'heroicon-o', 'icon' => 'megaphone'],
@@ -159,6 +162,7 @@ return [
     
     // === VARIE ===
     'target' => ['set' => 'heroicon-o', 'icon' => 'arrow-trending-up'],
+    'bullseye' => ['set' => 'heroicon-s', 'icon' => 'arrow-trending-up'],
     'eye' => ['set' => 'heroicon-o', 'icon' => 'eye'],
     'eye-slash' => ['set' => 'heroicon-o', 'icon' => 'eye-slash'],
     'lock' => ['set' => 'heroicon-o', 'icon' => 'lock-closed'],
@@ -170,6 +174,8 @@ return [
     'print' => ['set' => 'heroicon-o', 'icon' => 'printer'],
     'list-check' => ['set' => 'heroicon-o', 'icon' => 'clipboard-document-check'],
     'arrow-right-arrow-left' => ['set' => 'heroicon-o', 'icon' => 'arrow-path-rounded-square'],
+    'info-circle' => ['set' => 'heroicon-o', 'icon' => 'information-circle'],
+    'exclamation-triangle' => ['set' => 'heroicon-o', 'icon' => 'exclamation-triangle'],
     
     // === FALLBACK ===
     'default' => ['set' => 'heroicon-o', 'icon' => 'question-mark-circle'],
