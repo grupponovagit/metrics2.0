@@ -193,7 +193,6 @@ class ProduzioneController extends Controller
             'TOTALE' => 'TOTALE',
             'RND' => 'RND',
             'MARSALA' => 'MARSALA',
-            // Aggiungi altri mapping se necessario
         ];
         
         // === RECUPERA OBIETTIVI DA kpi_target_mensile ===
@@ -251,6 +250,7 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
+                SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo_totale
             ')
@@ -280,13 +280,14 @@ class ProduzioneController extends Controller
             'inserito_pda' => $kpiTotali->inserito_pda ?? 0,
             'ko_pda' => $kpiTotali->ko_pda ?? 0,
             'backlog_pda' => $kpiTotali->backlog_pda ?? 0,
-            'backlog_partner_pda' => 0, // Non tracciato nella cache
+            'backlog_partner_pda' => $kpiTotali->backlog_partner_pda ?? 0,
             'ore' => $kpiTotali->ore ?? 0,
             'obiettivo' => $kpiTotali->obiettivo_totale ?? 0,
             
             // Resa
             'resa_prodotto' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->prodotto_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_inserito' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $kpiTotali->ore, 2) : 0,
+            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
             
             // Obiettivi (al momento a 0 come richiesto)
             'obiettivo_mensile' => 0,
@@ -317,9 +318,9 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
+                SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo,
-                0 as backlog_partner_pda
+                SUM(totale_kpi) as obiettivo
             ')
             ->groupBy('commessa', 'campagna_id', 'nome_sede')
             ->orderBy('commessa')
@@ -381,7 +382,7 @@ class ProduzioneController extends Controller
                             'inserito_pda' => $inseriti,
                             'ko_pda' => (int)$data->ko_pda,
                             'backlog_pda' => (int)$data->backlog_pda,
-                            'backlog_partner_pda' => 0,
+                            'backlog_partner_pda' => (int)$data->backlog_partner_pda,
                             'cliente' => $data->cliente,
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
@@ -391,6 +392,7 @@ class ProduzioneController extends Controller
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
+                            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
                             
                             // === OBIETTIVI ===
                             'obiettivo_mensile' => round($obiettivoMensile, 0),
@@ -419,6 +421,7 @@ class ProduzioneController extends Controller
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
+                SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo
             ')
@@ -492,7 +495,7 @@ class ProduzioneController extends Controller
                             'inserito_pda' => $inseriti,
                             'ko_pda' => (int)$data->ko_pda,
                             'backlog_pda' => (int)$data->backlog_pda,
-                            'backlog_partner_pda' => 0,
+                            'backlog_partner_pda' => (int)$data->backlog_partner_pda,
                             'cliente' => $data->cliente,
                             'cliente_originale' => $data->cliente,
                             'sede' => $data->sede,
@@ -502,6 +505,7 @@ class ProduzioneController extends Controller
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
+                            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
                             
                             // === OBIETTIVI ===
                             'obiettivo_mensile' => round($obiettivoMensile, 0),
@@ -623,14 +627,7 @@ class ProduzioneController extends Controller
         return view('admin.modules.produzione.cruscotto-operatore');
     }
 
-    /**
-     * Cruscotto Mensile
-     */
-    public function cruscottoMensile()
-    {
-        $this->authorize('produzione.view');
-        return view('admin.modules.produzione.cruscotto-mensile');
-    }
+  
 
     /**
      * Input Manuale

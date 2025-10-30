@@ -215,6 +215,7 @@
                         {{-- RESA --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
                         
                         {{-- OBIETTIVI (3 sottocolonne) --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3">Obiettivi</th>
@@ -310,6 +311,11 @@
                                         {{ $datiCampagna['resa_inserito'] ?? '-' }}
                                     </td>
                                     
+                                    {{-- R/H --}}
+                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        {{ $datiCampagna['resa_oraria'] ?? '-' }}
+                                    </td>
+                                    
                                     {{-- OBIETTIVI --}}
                                     <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['obiettivo_mensile'] ?? 0 }}</td>
                                     <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['passo_giorno'] ?? 0 }}</td>
@@ -377,6 +383,7 @@
                             <td class="text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
+                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi --}}
                             <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
@@ -448,6 +455,7 @@
                             <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
                             <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
                             <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
+                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi (al momento a 0) --}}
                             <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
@@ -493,6 +501,7 @@
                         {{-- RESA --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
                         
                         {{-- OBIETTIVI (3 sottocolonne) --}}
                         <th class="font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3">Obiettivi</th>
@@ -568,6 +577,11 @@
                                     {{ $dati['resa_inserito'] ?? '-' }}
                                 </td>
                                 
+                                {{-- R/H --}}
+                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    {{ $dati['resa_oraria'] ?? '-' }}
+                                </td>
+                                
                                 {{-- OBIETTIVI --}}
                                 <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['obiettivo_mensile'] ?? 0 }}</td>
                                 <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['passo_giorno'] ?? 0 }}</td>
@@ -633,6 +647,7 @@
                             <td class="text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
                             <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
+                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi --}}
                             <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
@@ -703,6 +718,7 @@
                             <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
                             <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
                             <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
+                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi (al momento a 0) --}}
                             <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>

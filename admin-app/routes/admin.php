@@ -151,7 +151,6 @@ Route::group([
         Route::get('/get-campagne', 'ProduzioneController@getCampagne')->name('get_campagne');
         
         Route::get('/cruscotto-operatore', 'ProduzioneController@cruscottoOperatore')->name('cruscotto_operatore');
-        Route::get('/cruscotto-mensile', 'ProduzioneController@cruscottoMensile')->name('cruscotto_mensile');
         Route::get('/input-manuale', 'ProduzioneController@inputManuale')->name('input_manuale');
         Route::get('/avanzamento-mensile', 'ProduzioneController@avanzamentoMensile')->name('avanzamento_mensile');
         Route::get('/kpi-lead-quartili', 'ProduzioneController@kpiLeadQuartili')->name('kpi_lead_quartili');

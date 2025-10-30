@@ -218,7 +218,6 @@
                                         ['route' => 'admin.produzione.tabella_obiettivi', 'icon' => 'table', 'title' => 'Tabella Obiettivi'],
                                         ['route' => 'admin.produzione.cruscotto_produzione', 'icon' => 'chart-line', 'title' => 'Cruscotto Produzione'],
                                         ['route' => 'admin.produzione.cruscotto_operatore', 'icon' => 'user-gear', 'title' => 'Cruscotto Operatore'],
-                                        ['route' => 'admin.produzione.cruscotto_mensile', 'icon' => 'calendar-days', 'title' => 'Cruscotto Mensile'],
                                         ['route' => 'admin.produzione.input_manuale', 'icon' => 'keyboard', 'title' => 'Input Manuale'],
                                         ['route' => 'admin.produzione.avanzamento_mensile', 'icon' => 'chart-column', 'title' => 'Avanzamento Mensile'],
                                         ['route' => 'admin.produzione.kpi_lead_quartili', 'icon' => 'chart-simple', 'title' => 'KPI Lead Quartili'],
