@@ -96,23 +96,6 @@
             </a>
         </x-admin.card>
 
-        {{-- Card 4: Cruscotto Mensile --}}
-        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
-            <a href="{{ route('admin.produzione.cruscotto_mensile') }}" class="block">
-                <div class="flex flex-col gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-all">
-                            <x-ui.icon name="calendar-check" class="h-5 w-5" />
-                        </div>
-                        <h3 class="font-semibold text-base text-base-content group-hover:text-warning transition-colors">
-                            Cruscotto Mensile
-                        </h3>
-                    </div>
-                    <p class="text-xs text-base-content/70">Analisi mensile produzione</p>
-                </div>
-            </a>
-        </x-admin.card>
-
         {{-- Card 5: Input Manuale --}}
         <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
             <a href="{{ route('admin.produzione.input_manuale') }}" class="block">
