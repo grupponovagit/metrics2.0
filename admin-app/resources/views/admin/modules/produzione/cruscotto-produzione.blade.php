@@ -179,7 +179,7 @@
             </div>
             
             {{-- Pulsanti Sintetico/Dettagliato/Giornaliero --}}
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
                 <button 
                     onclick="switchView('sintetico')" 
                     id="btn-sintetico"
@@ -201,12 +201,85 @@
                 >
                     Giornaliero
                 </button>
+                
+                {{-- Separatore --}}
+                <div class="divider divider-horizontal mx-2"></div>
+                
+                {{-- Dropdown per gestire colonne visibili --}}
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-sm btn-outline gap-2">
+                        <x-ui.icon name="cog" class="h-4 w-4" />
+                        Colonne
+                    </label>
+                    <div tabindex="0" class="dropdown-content z-[999] menu p-3 shadow-lg bg-base-100 rounded-box w-72 mt-2 border border-base-300">
+                        <div class="mb-2 px-2">
+                            <p class="font-semibold text-sm mb-2">Colonne Visibili</p>
+                            <p class="text-xs text-base-content/60 mb-3">Seleziona le colonne da visualizzare</p>
+                        </div>
+                        
+                        {{-- Checkbox per ogni colonna --}}
+                        <div class="space-y-1 max-h-96 overflow-y-auto">
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="prodotto" checked>
+                                <span class="text-sm">Prodotto</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="inserito" checked>
+                                <span class="text-sm">Inserito</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="ko" checked>
+                                <span class="text-sm">KO</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="backlog" checked>
+                                <span class="text-sm">BackLog</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="backlog_partner" checked>
+                                <span class="text-sm">BackLog Partner</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="ore" checked>
+                                <span class="text-sm">Ore</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="resa_prodotto" checked>
+                                <span class="text-sm">Resa Prodotto</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="resa_inserito" checked>
+                                <span class="text-sm">Resa Inserito</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="resa_oraria" checked>
+                                <span class="text-sm">R/H</span>
+                            </label>
+                            <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded">
+                                <input type="checkbox" class="checkbox checkbox-xs column-toggle" data-column="paf" checked>
+                                <span class="text-sm">PAF</span>
+                            </label>
+                        </div>
+                        
+                        <div class="divider my-2"></div>
+                        
+                        {{-- Pulsanti rapidi --}}
+                        <div class="flex gap-2 px-2">
+                            <button onclick="toggleAllColumns(true)" class="btn btn-xs btn-success flex-1">
+                                Tutte
+                            </button>
+                            <button onclick="toggleAllColumns(false)" class="btn btn-xs btn-outline btn-success flex-1">
+                                Nessuna
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
         {{-- TABELLA DETTAGLIATA --}}
         <div id="table-dettagliato" class="table-scroll-container max-h-[70vh] hidden" style="overflow-x: auto !important; overflow-y: auto !important;">
-            <table class="table table-zebra w-full" style="min-width: 2400px;">
+            <table class="table table-zebra w-full" style="min-width: 100%; table-layout: auto;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
                         <th class="sticky-det-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Commessa</th>
@@ -214,44 +287,44 @@
                         <th class="sticky-det-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Macro Campagna</th>
                         
                         {{-- Prodotto --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
+                        <th class="col-prodotto font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Prodotto</th>
                         
                         {{-- Inserito --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2">Inserito</th>
+                        <th class="col-inserito font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Inserito</th>
                         
                         {{-- KO --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2">KO</th>
+                        <th class="col-ko font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">KO</th>
                         
                         {{-- BackLog --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2">BackLog</th>
+                        <th class="col-backlog font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">BackLog</th>
                         
                         {{-- BackLog Partner --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">BackLog Partner</th>
+                        <th class="col-backlog_partner font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2" style="min-width: 120px; width: auto;">BackLog Partner</th>
                         
                         {{-- Ore --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
+                        <th class="col-ore font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">Ore</th>
                         
                         {{-- RESA --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
+                        <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Prod.</th>
+                        <th class="col-resa_inserito font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Ins.</th>
+                        <th class="col-resa_oraria font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">R/H</th>
                         
                         {{-- OBIETTIVI (3 sottocolonne) --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3">Obiettivi</th>
+                        <th class="col-paf font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3" style="min-width: 240px;">Obiettivi</th>
                         
                         {{-- PAF MENSILE (3 sottocolonne) --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" colspan="3">Paf Mensile</th>
+                        <th class="col-paf font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" colspan="3" style="min-width: 240px;">Paf Mensile</th>
                     </tr>
                     <tr>
                         {{-- Sottocolonne Obiettivi --}}
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r border-base-200">Mensile</th>
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r border-base-200">Passo Giorno</th>
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r-2 border-base-300">Diff. Obj</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r border-base-200" style="min-width: 80px; width: auto;">Mensile</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r border-base-200" style="min-width: 80px; width: auto;">Passo Giorno</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r-2 border-base-300" style="min-width: 80px; width: auto;">Diff. Obj</th>
                         
                         {{-- Sottocolonne PAF --}}
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r border-base-200">Ore Paf</th>
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r border-base-200">Pezzi Paf</th>
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300">Resa Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r border-base-200" style="min-width: 80px; width: auto;">Ore Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r border-base-200" style="min-width: 80px; width: auto;">Pezzi Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300" style="min-width: 80px; width: auto;">Resa Paf</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -301,51 +374,51 @@
                                     </td>
                                     
                                     {{-- Prodotto --}}
-                                    <td class="text-center text-sm bg-orange-50 border-r-2 border-base-300">{{ number_format($datiCampagna['prodotto_pda']) }}</td>
+                                    <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">{{ number_format($datiCampagna['prodotto_pda']) }}</td>
                                     
                                     {{-- Inserito --}}
-                                    <td class="text-center text-sm bg-green-50 border-r-2 border-base-300">{{ number_format($datiCampagna['inserito_pda']) }}</td>
+                                    <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">{{ number_format($datiCampagna['inserito_pda']) }}</td>
                                     
                                     {{-- KO --}}
-                                    <td class="text-center text-sm bg-red-50 border-r-2 border-base-300">{{ number_format($datiCampagna['ko_pda']) }}</td>
+                                    <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">{{ number_format($datiCampagna['ko_pda']) }}</td>
                                     
                                     {{-- BackLog --}}
-                                    <td class="text-center text-sm bg-yellow-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_pda']) }}</td>
+                                    <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_pda']) }}</td>
                                     
                                     {{-- BackLog Partner --}}
-                                    <td class="text-center text-sm bg-blue-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
+                                    <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">{{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
                                     
                                     {{-- Ore --}}
-                                    <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                    <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
                                         {{ ($datiCampagna['ore'] ?? 0) > 0 ? number_format($datiCampagna['ore'], 2) : '-' }}
                                     </td>
                                     
                                     {{-- Resa Prodotto --}}
-                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    <td class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                         {{ $datiCampagna['resa_prodotto'] ?? '-' }}
                                     </td>
                                     
                                     {{-- Resa Inserito --}}
-                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    <td class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                         {{ $datiCampagna['resa_inserito'] ?? '-' }}
                                     </td>
                                     
                                     {{-- R/H --}}
-                                    <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                    <td class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                         {{ $datiCampagna['resa_oraria'] ?? '-' }}
                                     </td>
                                     
                                     {{-- OBIETTIVI --}}
-                                    <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['obiettivo_mensile'] ?? 0 }}</td>
-                                    <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['passo_giorno'] ?? 0 }}</td>
-                                    <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($datiCampagna['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
+                                    <td class="col-paf text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['obiettivo_mensile'] ?? 0 }}</td>
+                                    <td class="col-paf text-center text-xs bg-teal-50 border-r border-base-200">{{ $datiCampagna['passo_giorno'] ?? 0 }}</td>
+                                    <td class="col-paf text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($datiCampagna['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
                                         {{ $datiCampagna['differenza_obj'] ?? 0 }}
                                     </td>
                                     
                                     {{-- PAF MENSILE --}}
-                                    <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($datiCampagna['ore_paf'] ?? 0, 2) }}</td>
-                                    <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}</td>
-                                    <td class="text-center text-xs bg-purple-50 border-r-2 border-base-300">{{ $datiCampagna['resa_paf'] ?? 0 }}</td>
+                                    <td class="col-paf text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($datiCampagna['ore_paf'] ?? 0, 2) }}</td>
+                                    <td class="col-paf text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}</td>
+                                    <td class="col-paf text-center text-xs bg-purple-50 border-r-2 border-base-300">{{ $datiCampagna['resa_paf'] ?? 0 }}</td>
                                 </tr>
                             @endforeach
                         @endforeach
@@ -394,27 +467,27 @@
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
                             <td colspan="3" class="sticky-det-totale text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $mandato }}</td>
-                            <td class="text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
-                            <td class="text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
-                            <td class="text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
-                            <td class="text-center text-sm bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_pda']) }}</td>
-                            <td class="text-center text-sm bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_partner_pda']) }}</td>
-                            <td class="text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
+                            <td class="col-prodotto text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
+                            <td class="col-inserito text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
+                            <td class="col-ko text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
+                            <td class="col-backlog text-center text-sm bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_pda']) }}</td>
+                            <td class="col-backlog_partner text-center text-sm bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_partner_pda']) }}</td>
+                            <td class="col-ore text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
+                            <td class="col-resa_prodotto text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
+                            <td class="col-resa_inserito text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
+                            <td class="col-resa_oraria text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi --}}
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
-                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
                                 {{ number_format($diffObjCliente, 0) }}
                             </td>
                             
                             {{-- PAF Mensile --}}
-                            <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>
-                            <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
-                            <td class="text-center text-xs bg-purple-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_paf'] }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_paf'] }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -466,25 +539,25 @@
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
                             <td colspan="3" class="sticky-det-totale text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
-                            <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
-                            <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
-                            <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
-                            <td class="text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_pda']) }}</td>
-                            <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_partner_pda']) }}</td>
-                            <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
+                            <td class="col-prodotto text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
+                            <td class="col-inserito text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
+                            <td class="col-ko text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
+                            <td class="col-backlog text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_pda']) }}</td>
+                            <td class="col-backlog_partner text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_partner_pda']) }}</td>
+                            <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
+                            <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
+                            <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
+                            <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi (al momento a 0) --}}
-                            <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-sm bg-teal-100 border-r-2 border-slate-300">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r-2 border-slate-300">0</td>
                             
                             {{-- PAF Mensile --}}
-                            <td class="text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['ore_paf'], 2) }}</td>
-                            <td class="text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['pezzi_paf'], 0) }}</td>
-                            <td class="text-center text-sm bg-purple-100 border-r-2 border-slate-300">{{ $totali['resa_paf'] }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['ore_paf'], 2) }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['pezzi_paf'], 0) }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r-2 border-slate-300">{{ $totali['resa_paf'] }}</td>
                         </tr>
                     @endif
                 </tbody>
@@ -493,51 +566,51 @@
         
         {{-- TABELLA SINTETICA --}}
         <div id="table-sintetico" class="table-scroll-container max-h-[70vh] w-full" style="overflow-x: auto !important; overflow-y: auto !important;">
-            <table class="table table-zebra w-full" style="min-width: 2200px;">
+            <table class="table table-zebra w-full" style="min-width: 100%; table-layout: auto;">
                 <thead class="bg-base-200 sticky top-0 z-10" style="background-color: #f3f4f6 !important;">
                     <tr>
                         <th class="sticky-col-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Commessa</th>
                         <th class="sticky-col-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2">Sede</th>
                         
                         {{-- Prodotto --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
+                        <th class="col-prodotto font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Prodotto</th>
                         
                         {{-- Inserito --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2">Inserito</th>
+                        <th class="col-inserito font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Inserito</th>
                         
                         {{-- KO --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2">KO</th>
+                        <th class="col-ko font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">KO</th>
                         
                         {{-- BackLog --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2">BackLog</th>
+                        <th class="col-backlog font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">BackLog</th>
                         
                         {{-- BackLog Partner --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">BackLog Partner</th>
+                        <th class="col-backlog_partner font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2" style="min-width: 120px; width: auto;">BackLog Partner</th>
                         
                         {{-- Ore --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
+                        <th class="col-ore font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">Ore</th>
                         
                         {{-- RESA --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
+                        <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Prod.</th>
+                        <th class="col-resa_inserito font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Ins.</th>
+                        <th class="col-resa_oraria font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">R/H</th>
                         
                         {{-- OBIETTIVI (3 sottocolonne) --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3">Obiettivi</th>
+                        <th class="col-paf font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300" colspan="3" style="min-width: 240px;">Obiettivi</th>
                         
                         {{-- PAF MENSILE (3 sottocolonne) --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" colspan="3">Paf Mensile</th>
+                        <th class="col-paf font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300" colspan="3" style="min-width: 240px;">Paf Mensile</th>
                     </tr>
                     <tr>
                         {{-- Sottocolonne Obiettivi --}}
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r border-base-200">Mensile</th>
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r border-base-200">Passo Giorno</th>
-                        <th class="font-bold text-xs text-center bg-teal-50 border-r-2 border-base-300">Diff. Obj</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r border-base-200" style="min-width: 80px; width: auto;">Mensile</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r border-base-200" style="min-width: 80px; width: auto;">Passo Giorno</th>
+                        <th class="col-paf font-bold text-xs text-center bg-teal-50 border-r-2 border-base-300" style="min-width: 80px; width: auto;">Diff. Obj</th>
                         
                         {{-- Sottocolonne PAF --}}
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r border-base-200">Ore Paf</th>
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r border-base-200">Pezzi Paf</th>
-                        <th class="font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300">Resa Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r border-base-200" style="min-width: 80px; width: auto;">Ore Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r border-base-200" style="min-width: 80px; width: auto;">Pezzi Paf</th>
+                        <th class="col-paf font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300" style="min-width: 80px; width: auto;">Resa Paf</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -567,51 +640,51 @@
                                 </td>
                                 
                                 {{-- Prodotto --}}
-                                <td class="text-center text-sm bg-orange-50 border-r-2 border-base-300">{{ number_format($dati['prodotto_pda']) }}</td>
+                                <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">{{ number_format($dati['prodotto_pda']) }}</td>
                                 
                                 {{-- Inserito --}}
-                                <td class="text-center text-sm bg-green-50 border-r-2 border-base-300">{{ number_format($dati['inserito_pda']) }}</td>
+                                <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">{{ number_format($dati['inserito_pda']) }}</td>
                                 
                                 {{-- KO --}}
-                                <td class="text-center text-sm bg-red-50 border-r-2 border-base-300">{{ number_format($dati['ko_pda']) }}</td>
+                                <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">{{ number_format($dati['ko_pda']) }}</td>
                                 
                                 {{-- BackLog --}}
-                                <td class="text-center text-sm bg-yellow-50 border-r-2 border-base-300">{{ number_format($dati['backlog_pda']) }}</td>
+                                <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">{{ number_format($dati['backlog_pda']) }}</td>
                                 
                                 {{-- BackLog Partner --}}
-                                <td class="text-center text-sm bg-blue-50 border-r-2 border-base-300">{{ number_format($dati['backlog_partner_pda']) }}</td>
+                                <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">{{ number_format($dati['backlog_partner_pda']) }}</td>
                                 
                                 {{-- Ore --}}
-                                <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
                                     {{ ($dati['ore'] ?? 0) > 0 ? number_format($dati['ore'], 2) : '-' }}
                                 </td>
                                 
                                 {{-- Resa Prodotto --}}
-                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                <td class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                     {{ $dati['resa_prodotto'] ?? '-' }}
                                 </td>
                                 
                                 {{-- Resa Inserito --}}
-                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                <td class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                     {{ $dati['resa_inserito'] ?? '-' }}
                                 </td>
                                 
                                 {{-- R/H --}}
-                                <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                <td class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                     {{ $dati['resa_oraria'] ?? '-' }}
                                 </td>
                                 
                                 {{-- OBIETTIVI --}}
-                                <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['obiettivo_mensile'] ?? 0 }}</td>
-                                <td class="text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['passo_giorno'] ?? 0 }}</td>
-                                <td class="text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($dati['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
+                                <td class="col-paf text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['obiettivo_mensile'] ?? 0 }}</td>
+                                <td class="col-paf text-center text-xs bg-teal-50 border-r border-base-200">{{ $dati['passo_giorno'] ?? 0 }}</td>
+                                <td class="col-paf text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($dati['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
                                     {{ $dati['differenza_obj'] ?? 0 }}
                                 </td>
                                 
                                 {{-- PAF MENSILE --}}
-                                <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($dati['ore_paf'] ?? 0, 2) }}</td>
-                                <td class="text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($dati['pezzi_paf'] ?? 0, 0) }}</td>
-                                <td class="text-center text-xs bg-purple-50 border-r-2 border-base-300">{{ $dati['resa_paf'] ?? 0 }}</td>
+                                <td class="col-paf text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($dati['ore_paf'] ?? 0, 2) }}</td>
+                                <td class="col-paf text-center text-xs bg-purple-50 border-r border-base-200">{{ number_format($dati['pezzi_paf'] ?? 0, 0) }}</td>
+                                <td class="col-paf text-center text-xs bg-purple-50 border-r-2 border-base-300">{{ $dati['resa_paf'] ?? 0 }}</td>
                             </tr>
                         @endforeach
                         
@@ -658,27 +731,27 @@
                         @endphp
                         <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
                             <td colspan="2" class="sticky-totale-commessa text-left text-sm font-bold py-2 px-4 border-r-2 border-slate-300">TOTALE {{ $cliente }}</td>
-                            <td class="text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
-                            <td class="text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
-                            <td class="text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
-                            <td class="text-center text-sm bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_pda']) }}</td>
-                            <td class="text-center text-sm bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_partner_pda']) }}</td>
-                            <td class="text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
-                            <td class="text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
+                            <td class="col-prodotto text-center text-sm bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['prodotto_pda']) }}</td>
+                            <td class="col-inserito text-center text-sm bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['inserito_pda']) }}</td>
+                            <td class="col-ko text-center text-sm bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ko_pda']) }}</td>
+                            <td class="col-backlog text-center text-sm bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_pda']) }}</td>
+                            <td class="col-backlog_partner text-center text-sm bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['backlog_partner_pda']) }}</td>
+                            <td class="col-ore text-center text-sm bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleCliente['ore'], 2) }}</td>
+                            <td class="col-resa_prodotto text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_prodotto'] }}</td>
+                            <td class="col-resa_inserito text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_inserito'] }}</td>
+                            <td class="col-resa_oraria text-center text-sm bg-indigo-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi --}}
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
-                            <td class="text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
-                            <td class="text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r border-slate-200">{{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r border-slate-200">{{ $passoGiornoCliente }}</td>
+                            <td class="col-paf text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
                                 {{ number_format($diffObjCliente, 0) }}
                             </td>
                             
                             {{-- PAF Mensile --}}
-                            <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>
-                            <td class="text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
-                            <td class="text-center text-xs bg-purple-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_paf'] }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['ore_paf'], 2) }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r border-slate-200">{{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
+                            <td class="col-paf text-center text-xs bg-purple-100 border-r-2 border-slate-300">{{ $totaleCliente['resa_paf'] }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -729,25 +802,25 @@
                         @endphp
                         <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
                             <td colspan="2" class="sticky-totale-commessa text-left text-base font-bold py-3 px-4 border-r-2 border-slate-300">TOTALE</td>
-                            <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
-                            <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
-                            <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
-                            <td class="text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_pda']) }}</td>
-                            <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_partner_pda']) }}</td>
-                            <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
-                            <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
+                            <td class="col-prodotto text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totali['prodotto_pda']) }}</td>
+                            <td class="col-inserito text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totali['inserito_pda']) }}</td>
+                            <td class="col-ko text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totali['ko_pda']) }}</td>
+                            <td class="col-backlog text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_pda']) }}</td>
+                            <td class="col-backlog_partner text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totali['backlog_partner_pda']) }}</td>
+                            <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totali['ore'], 2) }}</td>
+                            <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_prodotto'] }}</td>
+                            <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_inserito'] }}</td>
+                            <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totali['resa_oraria'] ?? 0 }}</td>
                             
                             {{-- Obiettivi (al momento a 0) --}}
-                            <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
-                            <td class="text-center text-sm bg-teal-100 border-r-2 border-slate-300">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r border-slate-200">0</td>
+                            <td class="col-paf text-center text-sm bg-teal-100 border-r-2 border-slate-300">0</td>
                             
                             {{-- PAF Mensile --}}
-                            <td class="text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['ore_paf'], 2) }}</td>
-                            <td class="text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['pezzi_paf'], 0) }}</td>
-                            <td class="text-center text-sm bg-purple-100 border-r-2 border-slate-300">{{ $totali['resa_paf'] }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['ore_paf'], 2) }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r border-slate-200">{{ number_format($totali['pezzi_paf'], 0) }}</td>
+                            <td class="col-paf text-center text-sm bg-purple-100 border-r-2 border-slate-300">{{ $totali['resa_paf'] }}</td>
                         </tr>
                     @endif
                 </tbody>
@@ -756,43 +829,43 @@
         
         {{-- TABELLA GIORNALIERA --}}
         <div id="table-giornaliero" class="table-scroll-container max-h-[70vh] hidden" style="overflow-x: auto !important; overflow-y: auto !important;">
-            <table class="table table-zebra w-full" style="min-width: 2400px;">
+            <table class="table table-zebra w-full" style="min-width: 100%; table-layout: auto;">
                 <thead>
                     <tr>
                         {{-- Data --}}
-                        <th class="sticky-giorn-data font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 120px;">Data</th>
+                        <th class="sticky-giorn-data font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 100px; width: auto;">Data</th>
                         
                         {{-- Cliente --}}
-                        <th class="sticky-giorn-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 150px;">Commessa</th>
+                        <th class="sticky-giorn-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 140px; width: auto;">Commessa</th>
                         
                         {{-- Sede --}}
-                        <th class="sticky-giorn-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 180px;">Sede</th>
+                        <th class="sticky-giorn-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 140px; width: auto;">Sede</th>
                         
                         {{-- Macro Campagna --}}
-                        <th class="sticky-giorn-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 200px;">Macro Campagna</th>
+                        <th class="sticky-giorn-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 160px; width: auto;">Macro Campagna</th>
                         
                         {{-- Prodotto --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
+                        <th class="col-prodotto font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Prodotto</th>
                         
                         {{-- Inserito --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2">Inserito</th>
+                        <th class="col-inserito font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Inserito</th>
                         
                         {{-- KO --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2">KO</th>
+                        <th class="col-ko font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">KO</th>
                         
                         {{-- BackLog --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2">BackLog</th>
+                        <th class="col-backlog font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">BackLog</th>
                         
                         {{-- BackLog Partner --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">BackLog Partner</th>
+                        <th class="col-backlog_partner font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2" style="min-width: 120px; width: auto;">BackLog Partner</th>
                         
                         {{-- Ore --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
+                        <th class="col-ore font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">Ore</th>
                         
                         {{-- RESA --}}
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
-                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
+                        <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Prod.</th>
+                        <th class="col-resa_inserito font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Resa Ins.</th>
+                        <th class="col-resa_oraria font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2" style="min-width: 70px; width: auto;">R/H</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -842,47 +915,47 @@
                                         </td>
                                         
                                         {{-- Prodotto --}}
-                                        <td class="text-center text-sm bg-orange-50 border-r-2 border-base-300">
+                                        <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">
                                             {{ number_format($datiGiorno['prodotto_pda']) }}
                                         </td>
                                         
                                         {{-- Inserito --}}
-                                        <td class="text-center text-sm bg-green-50 border-r-2 border-base-300">
+                                        <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">
                                             {{ number_format($datiGiorno['inserito_pda']) }}
                                         </td>
                                         
                                         {{-- KO --}}
-                                        <td class="text-center text-sm bg-red-50 border-r-2 border-base-300">
+                                        <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">
                                             {{ number_format($datiGiorno['ko_pda']) }}
                                         </td>
                                         
                                         {{-- BackLog --}}
-                                        <td class="text-center text-sm bg-yellow-50 border-r-2 border-base-300">
+                                        <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">
                                             {{ number_format($datiGiorno['backlog_pda']) }}
                                         </td>
                                         
                                         {{-- BackLog Partner --}}
-                                        <td class="text-center text-sm bg-blue-50 border-r-2 border-base-300">
+                                        <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">
                                             {{ number_format($datiGiorno['backlog_partner_pda']) }}
                                         </td>
                                         
                                         {{-- Ore --}}
-                                        <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                        <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
                                             {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
                                         </td>
                                         
                                         {{-- Resa Prodotto --}}
-                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        <td class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                             {{ $datiGiorno['resa_prodotto'] ?? '-' }}
                                         </td>
                                         
                                         {{-- Resa Inserito --}}
-                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        <td class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                             {{ $datiGiorno['resa_inserito'] ?? '-' }}
                                         </td>
                                         
                                         {{-- R/H --}}
-                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                        <td class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
                                             {{ $datiGiorno['resa_oraria'] ?? '-' }}
                                         </td>
                                     </tr>
@@ -904,19 +977,19 @@
                             
                             <tr class="bg-slate-100 font-bold border-t-4 border-slate-400">
                                 <td colspan="4" class="text-center text-base uppercase tracking-wide py-3 border-r-2 border-slate-300 sticky-giorn-totale">
-                                    TOTALE GIORNO
+                                    TOTALE PERIODO
                                 </td>
                                 
                                 {{-- Totali metriche --}}
-                                <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['prodotto_pda']) }}</td>
-                                <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['inserito_pda']) }}</td>
-                                <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ko_pda']) }}</td>
-                                <td class="text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_pda']) }}</td>
-                                <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_partner_pda']) }}</td>
-                                <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ore'], 2) }}</td>
-                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_prodotto'] }}</td>
-                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_inserito'] }}</td>
-                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
+                                <td class="col-prodotto text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['prodotto_pda']) }}</td>
+                                <td class="col-inserito text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['inserito_pda']) }}</td>
+                                <td class="col-ko text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ko_pda']) }}</td>
+                                <td class="col-backlog text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_pda']) }}</td>
+                                <td class="col-backlog_partner text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_partner_pda']) }}</td>
+                                <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ore'], 2) }}</td>
+                                <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_prodotto'] }}</td>
+                                <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_inserito'] }}</td>
+                                <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
                             </tr>
                         @endif
                     @empty
@@ -1632,7 +1705,188 @@
             
             // Inizializza drag-to-scroll per le tabelle
             initDragToScroll();
+            
+            // Inizializza gestione visibilità colonne
+            initColumnToggle();
         });
+        
+        // Funzione per gestire la visibilità delle colonne
+        function initColumnToggle() {
+            const checkboxes = document.querySelectorAll('.column-toggle');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const columnName = this.dataset.column;
+                    const isVisible = this.checked;
+                    
+                    toggleColumn(columnName, isVisible);
+                });
+            });
+        }
+        
+        // Toggle visibilità di una singola colonna
+        function toggleColumn(columnName, isVisible) {
+            const displayValue = isVisible ? '' : 'none';
+            
+            // PRIORITÀ 1: Usa le classi col-* (più affidabile per celle con rowspan/colspan)
+            const cellsWithClass = document.querySelectorAll(`.col-${columnName}`);
+            cellsWithClass.forEach(cell => {
+                cell.style.display = displayValue;
+            });
+            
+            // PRIORITÀ 2: Gestisci header con indici precisi per ogni tabella
+            const tableHeaderMap = {
+                'table-dettagliato': {
+                    // Row 1: indici delle celle nella prima riga header (con rowspan=2 le colonne singole)
+                    'prodotto': { row1: [3], row2: [] },
+                    'inserito': { row1: [4], row2: [] },
+                    'ko': { row1: [5], row2: [] },
+                    'backlog': { row1: [6], row2: [] },
+                    'backlog_partner': { row1: [7], row2: [] },
+                    'ore': { row1: [8], row2: [] },
+                    'resa_prodotto': { row1: [9], row2: [] },
+                    'resa_inserito': { row1: [10], row2: [] },
+                    'resa_oraria': { row1: [11], row2: [] },
+                    'paf': { row1: [12, 13], row2: [0, 1, 2, 3, 4, 5] }
+                },
+                'table-sintetico': {
+                    'prodotto': { row1: [2], row2: [] },
+                    'inserito': { row1: [3], row2: [] },
+                    'ko': { row1: [4], row2: [] },
+                    'backlog': { row1: [5], row2: [] },
+                    'backlog_partner': { row1: [6], row2: [] },
+                    'ore': { row1: [7], row2: [] },
+                    'resa_prodotto': { row1: [8], row2: [] },
+                    'resa_inserito': { row1: [9], row2: [] },
+                    'resa_oraria': { row1: [10], row2: [] },
+                    'paf': { row1: [11, 12], row2: [0, 1, 2, 3, 4, 5] }
+                },
+                'table-giornaliero': {
+                    'prodotto': { row1: [4], row2: [] },
+                    'inserito': { row1: [5], row2: [] },
+                    'ko': { row1: [6], row2: [] },
+                    'backlog': { row1: [7], row2: [] },
+                    'backlog_partner': { row1: [8], row2: [] },
+                    'ore': { row1: [9], row2: [] },
+                    'resa_prodotto': { row1: [10], row2: [] },
+                    'resa_inserito': { row1: [11], row2: [] },
+                    'resa_oraria': { row1: [12], row2: [] },
+                    'paf': { row1: [], row2: [] }
+                }
+            };
+            
+            // Nascondi/mostra gli header
+            Object.keys(tableHeaderMap).forEach(tableId => {
+                const table = document.getElementById(tableId);
+                if (!table) return;
+                
+                const columnConfig = tableHeaderMap[tableId][columnName];
+                if (!columnConfig) return;
+                
+                const headerRows = table.querySelectorAll('thead tr');
+                
+                // Prima riga header
+                if (headerRows[0] && columnConfig.row1.length > 0) {
+                    columnConfig.row1.forEach(colIndex => {
+                        const cell = headerRows[0].cells[colIndex];
+                        if (cell) cell.style.display = displayValue;
+                    });
+                }
+                
+                // Seconda riga header
+                if (headerRows[1] && columnConfig.row2.length > 0) {
+                    columnConfig.row2.forEach(colIndex => {
+                        const cell = headerRows[1].cells[colIndex];
+                        if (cell) cell.style.display = displayValue;
+                    });
+                }
+            });
+            
+            // PRIORITÀ 3: Per le celle del body che NON hanno classi col-*, usa un approccio per testo/bgcolor
+            // Questo è un fallback per celle che potrebbero non avere la classe
+            const bgColorMap = {
+                'prodotto': 'bg-orange-50',
+                'inserito': 'bg-green-50',
+                'ko': 'bg-red-50',
+                'backlog': 'bg-yellow-50',
+                'backlog_partner': 'bg-blue-50',
+                'ore': 'bg-cyan-50',
+                'resa_prodotto': 'bg-indigo-50',
+                'resa_inserito': 'bg-indigo-50',
+                'resa_oraria': 'bg-indigo-50',
+                'paf': ['bg-teal-50', 'bg-teal-100', 'bg-purple-50', 'bg-purple-100']
+            };
+            
+            const bgClasses = bgColorMap[columnName];
+            if (bgClasses) {
+                const classes = Array.isArray(bgClasses) ? bgClasses : [bgClasses];
+                classes.forEach(bgClass => {
+                    const cells = document.querySelectorAll(`td.${bgClass}`);
+                    cells.forEach(cell => {
+                        // Assicurati che non sia una cella sticky
+                        if (!cell.classList.contains('sticky-det-cliente') &&
+                            !cell.classList.contains('sticky-det-sede') &&
+                            !cell.classList.contains('sticky-det-campagna') &&
+                            !cell.classList.contains('sticky-det-totale') &&
+                            !cell.classList.contains('sticky-col-cliente') &&
+                            !cell.classList.contains('sticky-col-sede') &&
+                            !cell.classList.contains('sticky-sin-totale') &&
+                            !cell.classList.contains('sticky-giorn-data') &&
+                            !cell.classList.contains('sticky-giorn-cliente') &&
+                            !cell.classList.contains('sticky-giorn-sede') &&
+                            !cell.classList.contains('sticky-giorn-campagna') &&
+                            !cell.classList.contains('sticky-giorn-totale')) {
+                            
+                            // Verifica ulteriore per colonne specifiche
+                            if (columnName === 'prodotto' && bgClass === 'bg-orange-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'inserito' && bgClass === 'bg-green-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'ko' && bgClass === 'bg-red-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'backlog' && bgClass === 'bg-yellow-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'backlog_partner' && bgClass === 'bg-blue-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'ore' && bgClass === 'bg-cyan-50') {
+                                cell.style.display = displayValue;
+                            } else if (columnName === 'resa_prodotto' && bgClass === 'bg-indigo-50' && 
+                                       cell.cellIndex >= 9 && cell.cellIndex <= 11) {
+                                // Resa prodotto è la prima delle tre rese
+                                const prevCells = Array.from(cell.parentElement.cells).slice(0, cell.cellIndex);
+                                const indigo50Count = prevCells.filter(c => c.classList.contains('bg-indigo-50')).length;
+                                if (indigo50Count === 0) cell.style.display = displayValue;
+                            } else if (columnName === 'resa_inserito' && bgClass === 'bg-indigo-50' &&
+                                       cell.cellIndex >= 9 && cell.cellIndex <= 11) {
+                                // Resa inserito è la seconda delle tre rese
+                                const prevCells = Array.from(cell.parentElement.cells).slice(0, cell.cellIndex);
+                                const indigo50Count = prevCells.filter(c => c.classList.contains('bg-indigo-50')).length;
+                                if (indigo50Count === 1) cell.style.display = displayValue;
+                            } else if (columnName === 'resa_oraria' && bgClass === 'bg-indigo-50' &&
+                                       cell.cellIndex >= 9 && cell.cellIndex <= 11) {
+                                // R/H è la terza delle tre rese
+                                const prevCells = Array.from(cell.parentElement.cells).slice(0, cell.cellIndex);
+                                const indigo50Count = prevCells.filter(c => c.classList.contains('bg-indigo-50')).length;
+                                if (indigo50Count === 2) cell.style.display = displayValue;
+                            } else if (columnName === 'paf') {
+                                cell.style.display = displayValue;
+                            }
+                        }
+                    });
+                });
+            }
+        }
+        
+        // Funzione per selezionare/deselezionare tutte le colonne
+        function toggleAllColumns(selectAll) {
+            const checkboxes = document.querySelectorAll('.column-toggle');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+                const columnName = checkbox.dataset.column;
+                toggleColumn(columnName, selectAll);
+            });
+        }
         
         // Funzione per abilitare drag-to-scroll sulle tabelle (solo orizzontale)
         function initDragToScroll() {
