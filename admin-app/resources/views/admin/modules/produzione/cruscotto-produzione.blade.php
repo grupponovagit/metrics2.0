@@ -71,10 +71,16 @@
                             <x-ui.icon name="bullseye" class="h-4 w-4 inline text-success" />
                             Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
                         </span>
-                        <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-success gap-1">
-                            <x-ui.icon name="check" class="h-3 w-3" />
-                            Tutte
-                        </button>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-success gap-1">
+                                <x-ui.icon name="check" class="h-3 w-3" />
+                                Tutte
+                            </button>
+                            <button type="button" onclick="toggleAllCampagne(false)" class="btn btn-xs btn-outline btn-success gap-1">
+                                <x-ui.icon name="times" class="h-3 w-3" />
+                                Nessuna
+                            </button>
+                        </div>
                     </label>
                     <div id="campagnaContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
                         @if($commessaFilter && count($macroCampagne) > 0)
@@ -99,10 +105,16 @@
                             <x-ui.icon name="building" class="h-4 w-4 inline text-info" />
                             Sedi <span class="text-[10px] opacity-60">(Shift+Click)</span>
                         </span>
-                        <button type="button" onclick="toggleAllSedi(true)" class="btn btn-xs btn-info gap-1">
-                            <x-ui.icon name="check" class="h-3 w-3" />
-                            Tutte
-                        </button>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="toggleAllSedi(true)" class="btn btn-xs btn-info gap-1">
+                                <x-ui.icon name="check" class="h-3 w-3" />
+                                Tutte
+                            </button>
+                            <button type="button" onclick="toggleAllSedi(false)" class="btn btn-xs btn-outline btn-info gap-1">
+                                <x-ui.icon name="times" class="h-3 w-3" />
+                                Nessuna
+                            </button>
+                        </div>
                     </label>
                     <div id="sedeContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
                         @if($commessaFilter && count($sedi) > 0)
@@ -166,7 +178,7 @@
                 </p>
             </div>
             
-            {{-- Pulsanti Sintetico/Dettagliato --}}
+            {{-- Pulsanti Sintetico/Dettagliato/Giornaliero --}}
             <div class="flex gap-2">
                 <button 
                     onclick="switchView('sintetico')" 
@@ -181,6 +193,13 @@
                     class="btn btn-sm btn-outline btn-primary"
                 >
                     Dettagliato
+                </button>
+                <button 
+                    onclick="switchView('giornaliero')" 
+                    id="btn-giornaliero"
+                    class="btn btn-sm btn-outline btn-primary"
+                >
+                    Giornaliero
                 </button>
             </div>
         </div>
@@ -734,6 +753,182 @@
                 </tbody>
             </table>
         </div>
+        
+        {{-- TABELLA GIORNALIERA --}}
+        <div id="table-giornaliero" class="table-scroll-container max-h-[70vh] hidden" style="overflow-x: auto !important; overflow-y: auto !important;">
+            <table class="table table-zebra w-full" style="min-width: 2400px;">
+                <thead>
+                    <tr>
+                        {{-- Data --}}
+                        <th class="sticky-giorn-data font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 120px;">Data</th>
+                        
+                        {{-- Cliente --}}
+                        <th class="sticky-giorn-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 150px;">Commessa</th>
+                        
+                        {{-- Sede --}}
+                        <th class="sticky-giorn-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 180px;">Sede</th>
+                        
+                        {{-- Macro Campagna --}}
+                        <th class="sticky-giorn-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 200px;">Macro Campagna</th>
+                        
+                        {{-- Prodotto --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2">Prodotto</th>
+                        
+                        {{-- Inserito --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-green-100 border-r-2 border-base-300" rowspan="2">Inserito</th>
+                        
+                        {{-- KO --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-red-100 border-r-2 border-base-300" rowspan="2">KO</th>
+                        
+                        {{-- BackLog --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-yellow-100 border-r-2 border-base-300" rowspan="2">BackLog</th>
+                        
+                        {{-- BackLog Partner --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-blue-100 border-r-2 border-base-300" rowspan="2">BackLog Partner</th>
+                        
+                        {{-- Ore --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-cyan-100 border-r-2 border-base-300" rowspan="2">Ore</th>
+                        
+                        {{-- RESA --}}
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Prod.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">Resa Ins.</th>
+                        <th class="font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300" rowspan="2">R/H</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totaleGiornaliero = [
+                            'prodotto_pda' => 0,
+                            'inserito_pda' => 0,
+                            'ko_pda' => 0,
+                            'backlog_pda' => 0,
+                            'backlog_partner_pda' => 0,
+                            'ore' => 0,
+                        ];
+                    @endphp
+                    
+                    @forelse($datiGiornalieri as $data => $clientiData)
+                        @foreach($clientiData as $cliente => $sediData)
+                            @foreach($sediData as $sede => $campagneData)
+                                @foreach($campagneData as $datiGiorno)
+                                    @php
+                                        $totaleGiornaliero['prodotto_pda'] += $datiGiorno['prodotto_pda'] ?? 0;
+                                        $totaleGiornaliero['inserito_pda'] += $datiGiorno['inserito_pda'] ?? 0;
+                                        $totaleGiornaliero['ko_pda'] += $datiGiorno['ko_pda'] ?? 0;
+                                        $totaleGiornaliero['backlog_pda'] += $datiGiorno['backlog_pda'] ?? 0;
+                                        $totaleGiornaliero['backlog_partner_pda'] += $datiGiorno['backlog_partner_pda'] ?? 0;
+                                        $totaleGiornaliero['ore'] += $datiGiorno['ore'] ?? 0;
+                                    @endphp
+                                    
+                                    <tr>
+                                        {{-- Data --}}
+                                        <td class="sticky-giorn-data text-sm font-semibold border-r-2 border-base-300 bg-base-100">
+                                            {{ \Carbon\Carbon::parse($datiGiorno['data'])->format('d/m/Y') }}
+                                        </td>
+                                        
+                                        {{-- Cliente --}}
+                                        <td class="sticky-giorn-cliente text-sm font-bold border-r-2 border-base-300 bg-base-50">
+                                            {{ $datiGiorno['cliente'] }}
+                                        </td>
+                                        
+                                        {{-- Sede --}}
+                                        <td class="sticky-giorn-sede text-sm font-semibold border-r-2 border-base-300 bg-base-50">
+                                            {{ $datiGiorno['sede'] }}
+                                        </td>
+                                        
+                                        {{-- Campagna --}}
+                                        <td class="sticky-giorn-campagna text-sm border-r-2 border-base-300">
+                                            {{ $datiGiorno['campagna'] }}
+                                        </td>
+                                        
+                                        {{-- Prodotto --}}
+                                        <td class="text-center text-sm bg-orange-50 border-r-2 border-base-300">
+                                            {{ number_format($datiGiorno['prodotto_pda']) }}
+                                        </td>
+                                        
+                                        {{-- Inserito --}}
+                                        <td class="text-center text-sm bg-green-50 border-r-2 border-base-300">
+                                            {{ number_format($datiGiorno['inserito_pda']) }}
+                                        </td>
+                                        
+                                        {{-- KO --}}
+                                        <td class="text-center text-sm bg-red-50 border-r-2 border-base-300">
+                                            {{ number_format($datiGiorno['ko_pda']) }}
+                                        </td>
+                                        
+                                        {{-- BackLog --}}
+                                        <td class="text-center text-sm bg-yellow-50 border-r-2 border-base-300">
+                                            {{ number_format($datiGiorno['backlog_pda']) }}
+                                        </td>
+                                        
+                                        {{-- BackLog Partner --}}
+                                        <td class="text-center text-sm bg-blue-50 border-r-2 border-base-300">
+                                            {{ number_format($datiGiorno['backlog_partner_pda']) }}
+                                        </td>
+                                        
+                                        {{-- Ore --}}
+                                        <td class="text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                            {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
+                                        </td>
+                                        
+                                        {{-- Resa Prodotto --}}
+                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                            {{ $datiGiorno['resa_prodotto'] ?? '-' }}
+                                        </td>
+                                        
+                                        {{-- Resa Inserito --}}
+                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                            {{ $datiGiorno['resa_inserito'] ?? '-' }}
+                                        </td>
+                                        
+                                        {{-- R/H --}}
+                                        <td class="text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                            {{ $datiGiorno['resa_oraria'] ?? '-' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                        @endforeach
+                        
+                        {{-- RIGA TOTALE GENERALE --}}
+                        @if(count($datiGiornalieri) > 0)
+                            @php
+                                // Calcoli resa totali
+                                $totaleGiornaliero['resa_prodotto'] = $totaleGiornaliero['ore'] > 0 
+                                    ? round($totaleGiornaliero['prodotto_pda'] / $totaleGiornaliero['ore'], 2) 
+                                    : 0;
+                                $totaleGiornaliero['resa_inserito'] = $totaleGiornaliero['ore'] > 0 
+                                    ? round($totaleGiornaliero['inserito_pda'] / $totaleGiornaliero['ore'], 2) 
+                                    : 0;
+                            @endphp
+                            
+                            <tr class="bg-slate-100 font-bold border-t-4 border-slate-400">
+                                <td colspan="4" class="text-center text-base uppercase tracking-wide py-3 border-r-2 border-slate-300 sticky-giorn-totale">
+                                    TOTALE GIORNO
+                                </td>
+                                
+                                {{-- Totali metriche --}}
+                                <td class="text-center text-base bg-orange-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['prodotto_pda']) }}</td>
+                                <td class="text-center text-base bg-green-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['inserito_pda']) }}</td>
+                                <td class="text-center text-base bg-red-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ko_pda']) }}</td>
+                                <td class="text-center text-base bg-yellow-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_pda']) }}</td>
+                                <td class="text-center text-base bg-blue-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['backlog_partner_pda']) }}</td>
+                                <td class="text-center text-base bg-cyan-100 border-r-2 border-slate-300">{{ number_format($totaleGiornaliero['ore'], 2) }}</td>
+                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_prodotto'] }}</td>
+                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">{{ $totaleGiornaliero['resa_inserito'] }}</td>
+                                <td class="text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
+                            </tr>
+                        @endif
+                    @empty
+                        <tr>
+                            <td colspan="14" class="text-center text-base-content/50 py-8">
+                                Nessun dato disponibile per il periodo selezionato
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         {{-- Hint scroll mobile --}}
         <div class="p-2 bg-base-200/30 border-t border-base-300 text-center lg:hidden">
@@ -969,6 +1164,146 @@
         .sticky-det-campagna {
             padding: 12px 16px !important;
         }
+        
+        /* ===== STICKY COLUMNS GIORNALIERO ===== */
+        
+        /* Data (prima colonna) */
+        .sticky-giorn-data {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            white-space: nowrap !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Cliente/Commessa (seconda colonna) */
+        .sticky-giorn-cliente {
+            position: sticky !important;
+            left: 120px !important;
+            z-index: 3 !important;
+            width: 150px !important;
+            min-width: 150px !important;
+            max-width: 150px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Sede (terza colonna) */
+        .sticky-giorn-sede {
+            position: sticky !important;
+            left: 270px !important;
+            z-index: 3 !important;
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Macro Campagna (quarta colonna) */
+        .sticky-giorn-campagna {
+            position: sticky !important;
+            left: 450px !important;
+            z-index: 3 !important;
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Header sticky con z-index maggiore (giornaliero) */
+        #table-giornaliero thead th.sticky-giorn-data,
+        #table-giornaliero thead th.sticky-giorn-cliente,
+        #table-giornaliero thead th.sticky-giorn-sede,
+        #table-giornaliero thead th.sticky-giorn-campagna {
+            z-index: 15 !important;
+            background-color: #f3f4f6 !important;
+        }
+        
+        /* Tutti gli header della tabella giornaliera devono rimanere fissi quando si scrolla verticalmente */
+        #table-giornaliero thead th {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 10 !important;
+            background-color: #f3f4f6 !important;
+        }
+        
+        /* Le colonne sticky orizzontali devono avere z-index più alto */
+        #table-giornaliero thead th.sticky-giorn-data {
+            z-index: 15 !important;
+        }
+        
+        #table-giornaliero thead th.sticky-giorn-cliente {
+            z-index: 15 !important;
+        }
+        
+        #table-giornaliero thead th.sticky-giorn-sede {
+            z-index: 15 !important;
+        }
+        
+        #table-giornaliero thead th.sticky-giorn-campagna {
+            z-index: 15 !important;
+        }
+
+        /* Mantieni background su righe alternate per colonne sticky (giornaliero) */
+        #table-giornaliero tbody tr:nth-child(odd) td.sticky-giorn-data,
+        #table-giornaliero tbody tr:nth-child(odd) td.sticky-giorn-cliente,
+        #table-giornaliero tbody tr:nth-child(odd) td.sticky-giorn-sede,
+        #table-giornaliero tbody tr:nth-child(odd) td.sticky-giorn-campagna {
+            background-color: white !important;
+        }
+
+        #table-giornaliero tbody tr:nth-child(even) td.sticky-giorn-data,
+        #table-giornaliero tbody tr:nth-child(even) td.sticky-giorn-cliente,
+        #table-giornaliero tbody tr:nth-child(even) td.sticky-giorn-sede,
+        #table-giornaliero tbody tr:nth-child(even) td.sticky-giorn-campagna {
+            background-color: #f9fafb !important;
+        }
+
+        /* Background per riga totale (giornaliero) */
+        #table-giornaliero tbody tr.bg-slate-100 td.sticky-giorn-data,
+        #table-giornaliero tbody tr.bg-slate-100 td.sticky-giorn-cliente,
+        #table-giornaliero tbody tr.bg-slate-100 td.sticky-giorn-sede,
+        #table-giornaliero tbody tr.bg-slate-100 td.sticky-giorn-campagna {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* Hover sulle righe (giornaliero) */
+        #table-giornaliero tbody tr:hover td.sticky-giorn-data,
+        #table-giornaliero tbody tr:hover td.sticky-giorn-cliente,
+        #table-giornaliero tbody tr:hover td.sticky-giorn-sede,
+        #table-giornaliero tbody tr:hover td.sticky-giorn-campagna {
+            background-color: #f0f9ff !important;
+        }
+
+        /* Padding consistente (giornaliero) */
+        .sticky-giorn-data,
+        .sticky-giorn-cliente,
+        .sticky-giorn-sede,
+        .sticky-giorn-campagna {
+            padding: 12px 16px !important;
+        }
+        
+        /* Totale giornaliero sticky (4 colspan) */
+        .sticky-giorn-totale {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 3 !important;
+            width: 650px !important;
+            min-width: 650px !important;
+            max-width: 650px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.15) !important;
+            background-color: #f1f5f9 !important;
+        }
 
         /* ===== MIGLIORAMENTI VISIVI PER DISTINGUERE LE RIGHE ===== */
 
@@ -1070,21 +1405,35 @@
         function switchView(view) {
             const tableDettagliato = document.getElementById('table-dettagliato');
             const tableSintetico = document.getElementById('table-sintetico');
+            const tableGiornaliero = document.getElementById('table-giornaliero');
             const btnDettagliato = document.getElementById('btn-dettagliato');
             const btnSintetico = document.getElementById('btn-sintetico');
+            const btnGiornaliero = document.getElementById('btn-giornaliero');
             
+            // Nascondi tutte le tabelle
+            tableDettagliato.classList.add('hidden');
+            tableSintetico.classList.add('hidden');
+            tableGiornaliero.classList.add('hidden');
+            
+            // Reset tutti i pulsanti
+            btnDettagliato.classList.remove('btn-primary');
+            btnDettagliato.classList.add('btn-outline');
+            btnSintetico.classList.remove('btn-primary');
+            btnSintetico.classList.add('btn-outline');
+            btnGiornaliero.classList.remove('btn-primary');
+            btnGiornaliero.classList.add('btn-outline');
+            
+            // Mostra la tabella selezionata e attiva il pulsante corrispondente
             if (view === 'sintetico') {
-                tableDettagliato.classList.add('hidden');
                 tableSintetico.classList.remove('hidden');
-                btnDettagliato.classList.remove('btn-primary');
-                btnDettagliato.classList.add('btn-outline', 'btn-primary');
                 btnSintetico.classList.remove('btn-outline');
                 btnSintetico.classList.add('btn-primary');
+            } else if (view === 'giornaliero') {
+                tableGiornaliero.classList.remove('hidden');
+                btnGiornaliero.classList.remove('btn-outline');
+                btnGiornaliero.classList.add('btn-primary');
             } else {
-                tableSintetico.classList.add('hidden');
                 tableDettagliato.classList.remove('hidden');
-                btnSintetico.classList.remove('btn-primary');
-                btnSintetico.classList.add('btn-outline', 'btn-primary');
                 btnDettagliato.classList.remove('btn-outline');
                 btnDettagliato.classList.add('btn-primary');
             }
@@ -1179,7 +1528,7 @@
             });
         }
         
-        // Funzioni per "Seleziona Tutte"
+        // Funzioni per "Seleziona Tutte" / "Deseleziona Tutte"
         function toggleAllCampagne(selectAll) {
             const checkboxes = document.querySelectorAll('.campagna-checkbox');
             checkboxes.forEach(checkbox => {

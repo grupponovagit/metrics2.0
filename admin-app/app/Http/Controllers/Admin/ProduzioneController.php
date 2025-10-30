@@ -521,6 +521,63 @@ class ProduzioneController extends Controller
                 });
             });
         
+        // === VISTA GIORNALIERA: Dati per Giorno, Sede e Campagna ===
+        $datiGiornalieri = DB::table('report_produzione_pivot_cache')
+            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
+            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
+            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
+            ->selectRaw('
+                data_vendita,
+                commessa as cliente,
+                nome_sede as sede,
+                campagna_id as campagna,
+                SUM(totale_vendite) as prodotto_pda,
+                SUM(ok_definitivo) as inserito_pda,
+                SUM(ko_definitivo) as ko_pda,
+                SUM(backlog) as backlog_pda,
+                SUM(backlog_partner) as backlog_partner_pda,
+                SUM(ore_lavorate) as ore
+            ')
+            ->groupBy('data_vendita', 'commessa', 'nome_sede', 'campagna_id')
+            ->orderBy('data_vendita', 'desc')
+            ->orderBy('commessa')
+            ->orderBy('nome_sede')
+            ->orderBy('campagna_id')
+            ->get()
+            ->groupBy('data_vendita')
+            ->map(function($giornoGroup) {
+                return $giornoGroup->groupBy('cliente')->map(function($clienteGroup) {
+                    return $clienteGroup->groupBy('sede')->map(function($sedeGroup) {
+                        return $sedeGroup->map(function($data) {
+                            $inseriti = (int)$data->inserito_pda;
+                            $prodotto = (int)$data->prodotto_pda;
+                            $ore = (float)$data->ore;
+                            
+                            // Calcoli resa
+                            $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
+                            $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
+                            
+                            return [
+                                'data' => $data->data_vendita,
+                                'campagna' => $data->campagna,
+                                'cliente' => $data->cliente,
+                                'sede' => $data->sede,
+                                'prodotto_pda' => $prodotto,
+                                'inserito_pda' => $inseriti,
+                                'ko_pda' => (int)$data->ko_pda,
+                                'backlog_pda' => (int)$data->backlog_pda,
+                                'backlog_partner_pda' => (int)$data->backlog_partner_pda,
+                                'ore' => $ore,
+                                'resa_prodotto' => $resa_prodotto,
+                                'resa_inserito' => $resa_inserito,
+                                'resa_oraria' => 0, // R/H - Da implementare
+                            ];
+                        });
+                    });
+                });
+            });
+        
         // === DATI PER FILTRI ===
         // Lista tutte le commesse disponibili
         $commesse = DB::table('report_produzione_pivot_cache')
@@ -558,6 +615,7 @@ class ProduzioneController extends Controller
             'datiRaggruppati' => $datiDettagliati, // Default
             'datiDettagliati' => $datiDettagliati,
             'datiSintetici' => $datiSintetici,
+            'datiGiornalieri' => $datiGiornalieri,
             'oreRaggruppate' => [], // Già incluse nella cache!
             'commesse' => $commesse,
             'sedi' => $sedi,
