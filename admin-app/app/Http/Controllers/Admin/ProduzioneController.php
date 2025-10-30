@@ -183,7 +183,10 @@ class ProduzioneController extends Controller
                 });
         }
         
-        // === MAPPING SEDI: kpi_target_mensile.sede_crm -> report_produzione_pivot_cache.nome_sede ===
+        // === MAPPING SEDI: RIMOSSO - ORA NELLA CACHE ===
+        // Il campo nome_sede in report_produzione_pivot_cache contiene già il nome corretto
+        // Non serve più il mapping manuale
+        /*
         $mappingSedi = [
             'FRC_FONT' => 'FRANCAVILLA FONTANA',
             'LMZ' => 'LAMEZIA TERME',
@@ -194,57 +197,38 @@ class ProduzioneController extends Controller
             'RND' => 'RND',
             'MARSALA' => 'MARSALA',
         ];
+        */
         
         // === RECUPERA OBIETTIVI DA kpi_target_mensile ===
         // IMPORTANTE: Prendiamo SOLO i record con tipologia_obiettivo = 'OBIETTIVO'
+        // Ora usa direttamente sede_crm senza mapping
         $obiettiviKpi = DB::table('kpi_target_mensile')
             ->where('anno', $annoCorrente)
             ->where('mese', $meseCorrente)
-            ->where('tipologia_obiettivo', 'OBIETTIVO') // SOLO quelli con "OBIETTIVO"
+            ->where('tipologia_obiettivo', 'OBIETTIVO')
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->get()
-            ->groupBy(function($item) use ($mappingSedi) {
-                // Usa il mapping per convertire la sede
-                $sedeConvertita = $mappingSedi[$item->sede_crm] ?? $item->sede_crm;
-                return strtoupper($item->commessa) . '|' . strtoupper($sedeConvertita);
+            ->keyBy(function($item) {
+                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_crm);
             })
-            ->map(function($group) {
-                // Somma tutti i KPI per questa commessa+sede (se ci sono più record)
-                return $group->sum(function($kpi) {
-                    $kpiTemp = new KpiTargetMensile();
-                    foreach((array)$kpi as $key => $value) {
-                        $kpiTemp->{$key} = $value;
-                    }
-                    return $kpiTemp->getMediaPonderata();
-                });
+            ->map(function($item) {
+                $kpiTemp = new KpiTargetMensile();
+                foreach((array)$item as $key => $value) {
+                    $kpiTemp->{$key} = $value;
+                }
+                return $kpiTemp->getMediaPonderata();
             });
         
-        // === QUERY PRINCIPALE SU TABELLA PIVOT PRE-AGGREGATA ===
-        $query = DB::table('report_produzione_pivot_cache');
-        
-        // Applica filtri
-        if ($dataInizio && $dataFine) {
-            $query->whereBetween('data_vendita', [$dataInizio, $dataFine]);
-        }
-        
-        if ($commessaFilter) {
-            $query->where('commessa', $commessaFilter);
-        }
-        
-        if (!empty($sedeFilters)) {
-            $query->whereIn('nome_sede', $sedeFilters);
-        }
-        
-        if (!empty($macroCampagnaFilters)) {
-            $query->whereIn('campagna_id', $macroCampagnaFilters);
-        }
-        
-        // === KPI TOTALI (aggregazione SQL diretta) ===
-        $kpiTotali = DB::table('report_produzione_pivot_cache')
+        // === QUERY UNIFICATA OTTIMIZZATA ===
+        // Recupera TUTTI i dati necessari in una sola query, poi li elabora in memoria
+        $queryBase = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
-            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters));
+        
+        // === KPI TOTALI (aggregazione SQL diretta) ===
+        $kpiTotali = (clone $queryBase)
             ->selectRaw('
                 SUM(totale_vendite) as prodotto_pda,
                 SUM(ok_definitivo) as inserito_pda,
@@ -305,11 +289,7 @@ class ProduzioneController extends Controller
         ];
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
-        $datiDettagliati = DB::table('report_produzione_pivot_cache')
-            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
-            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
+        $datiDettagliati = (clone $queryBase)
             ->selectRaw('
                 commessa as cliente,
                 campagna_id as campagna,
@@ -409,11 +389,7 @@ class ProduzioneController extends Controller
             });
         
         // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
-        $datiSintetici = DB::table('report_produzione_pivot_cache')
-            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
-            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
+        $datiSintetici = (clone $queryBase)
             ->selectRaw('
                 commessa as cliente,
                 nome_sede as sede,
@@ -522,16 +498,10 @@ class ProduzioneController extends Controller
             });
         
         // === VISTA GIORNALIERA: Dati per Giorno, Sede e Campagna ===
-        $datiGiornalieri = DB::table('report_produzione_pivot_cache')
-            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
-            ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
-            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters))
+        $datiGiornalieri = (clone $queryBase)
             ->selectRaw('
                 data_vendita,
-                commessa as cliente,
-                nome_sede as sede,
-                campagna_id as campagna,
+                commessa,
                 SUM(totale_vendite) as prodotto_pda,
                 SUM(ok_definitivo) as inserito_pda,
                 SUM(ko_definitivo) as ko_pda,
@@ -539,43 +509,32 @@ class ProduzioneController extends Controller
                 SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore
             ')
-            ->groupBy('data_vendita', 'commessa', 'nome_sede', 'campagna_id')
+            ->groupBy('data_vendita', 'commessa')
             ->orderBy('data_vendita', 'desc')
             ->orderBy('commessa')
-            ->orderBy('nome_sede')
-            ->orderBy('campagna_id')
             ->get()
-            ->groupBy('data_vendita')
-            ->map(function($giornoGroup) {
-                return $giornoGroup->groupBy('cliente')->map(function($clienteGroup) {
-                    return $clienteGroup->groupBy('sede')->map(function($sedeGroup) {
-                        return $sedeGroup->map(function($data) {
-                            $inseriti = (int)$data->inserito_pda;
-                            $prodotto = (int)$data->prodotto_pda;
-                            $ore = (float)$data->ore;
-                            
-                            // Calcoli resa
-                            $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
-                            $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
-                            
-                            return [
-                                'data' => $data->data_vendita,
-                                'campagna' => $data->campagna,
-                                'cliente' => $data->cliente,
-                                'sede' => $data->sede,
-                                'prodotto_pda' => $prodotto,
-                                'inserito_pda' => $inseriti,
-                                'ko_pda' => (int)$data->ko_pda,
-                                'backlog_pda' => (int)$data->backlog_pda,
-                                'backlog_partner_pda' => (int)$data->backlog_partner_pda,
-                                'ore' => $ore,
-                                'resa_prodotto' => $resa_prodotto,
-                                'resa_inserito' => $resa_inserito,
-                                'resa_oraria' => 0, // R/H - Da implementare
-                            ];
-                        });
-                    });
-                });
+            ->map(function($data) {
+                $inseriti = (int)$data->inserito_pda;
+                $prodotto = (int)$data->prodotto_pda;
+                $ore = (float)$data->ore;
+                
+                // Calcoli resa
+                $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
+                $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
+                
+                return [
+                    'data' => $data->data_vendita,
+                    'commessa' => $data->commessa,
+                    'prodotto_pda' => $prodotto,
+                    'inserito_pda' => $inseriti,
+                    'ko_pda' => (int)$data->ko_pda,
+                    'backlog_pda' => (int)$data->backlog_pda,
+                    'backlog_partner_pda' => (int)$data->backlog_partner_pda,
+                    'ore' => $ore,
+                    'resa_prodotto' => $resa_prodotto,
+                    'resa_inserito' => $resa_inserito,
+                    'resa_oraria' => 0, // R/H - Da implementare
+                ];
             });
         
         // === DATI PER FILTRI ===

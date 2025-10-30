@@ -811,16 +811,10 @@
                 <thead>
                     <tr>
                         {{-- Data --}}
-                        <th class="sticky-giorn-data font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 100px; width: auto;">Data</th>
+                        <th class="sticky-giorn-data font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 120px; width: auto;">Data</th>
                         
-                        {{-- Cliente --}}
-                        <th class="sticky-giorn-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 140px; width: auto;">Commessa</th>
-                        
-                        {{-- Sede --}}
-                        <th class="sticky-giorn-sede font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 140px; width: auto;">Sede</th>
-                        
-                        {{-- Macro Campagna --}}
-                        <th class="sticky-giorn-campagna font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 160px; width: auto;">Macro Campagna</th>
+                        {{-- Commessa --}}
+                        <th class="sticky-giorn-cliente font-bold text-sm uppercase tracking-wider border-r-2 border-base-300 bg-base-200" rowspan="2" style="min-width: 160px; width: auto;">Commessa</th>
                         
                         {{-- Prodotto --}}
                         <th class="col-prodotto font-bold text-sm uppercase tracking-wider text-center bg-orange-100 border-r-2 border-base-300" rowspan="2" style="min-width: 90px; width: auto;">Prodotto</th>
@@ -858,88 +852,79 @@
                         ];
                     @endphp
                     
-                    @forelse($datiGiornalieri as $data => $clientiData)
-                        @foreach($clientiData as $cliente => $sediData)
-                            @foreach($sediData as $sede => $campagneData)
-                                @foreach($campagneData as $datiGiorno)
-                                    @php
-                                        $totaleGiornaliero['prodotto_pda'] += $datiGiorno['prodotto_pda'] ?? 0;
-                                        $totaleGiornaliero['inserito_pda'] += $datiGiorno['inserito_pda'] ?? 0;
-                                        $totaleGiornaliero['ko_pda'] += $datiGiorno['ko_pda'] ?? 0;
-                                        $totaleGiornaliero['backlog_pda'] += $datiGiorno['backlog_pda'] ?? 0;
-                                        $totaleGiornaliero['backlog_partner_pda'] += $datiGiorno['backlog_partner_pda'] ?? 0;
-                                        $totaleGiornaliero['ore'] += $datiGiorno['ore'] ?? 0;
-                                    @endphp
-                                    
-                                    <tr>
-                                        {{-- Data --}}
-                                        <td class="sticky-giorn-data text-sm font-semibold border-r-2 border-base-300 bg-base-100">
-                                            {{ \Carbon\Carbon::parse($datiGiorno['data'])->format('d/m/Y') }}
-                                        </td>
-                                        
-                                        {{-- Cliente --}}
-                                        <td class="sticky-giorn-cliente text-sm font-bold border-r-2 border-base-300 bg-base-50">
-                                            {{ $datiGiorno['cliente'] }}
-                                        </td>
-                                        
-                                        {{-- Sede --}}
-                                        <td class="sticky-giorn-sede text-sm font-semibold border-r-2 border-base-300 bg-base-50">
-                                            {{ $datiGiorno['sede'] }}
-                                        </td>
-                                        
-                                        {{-- Campagna --}}
-                                        <td class="sticky-giorn-campagna text-sm border-r-2 border-base-300">
-                                            {{ $datiGiorno['campagna'] }}
-                                        </td>
-                                        
-                                        {{-- Prodotto --}}
-                                        <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">
-                                            {{ number_format($datiGiorno['prodotto_pda']) }}
-                                        </td>
-                                        
-                                        {{-- Inserito --}}
-                                        <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">
-                                            {{ number_format($datiGiorno['inserito_pda']) }}
-                                        </td>
-                                        
-                                        {{-- KO --}}
-                                        <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">
-                                            {{ number_format($datiGiorno['ko_pda']) }}
-                                        </td>
-                                        
-                                        {{-- BackLog --}}
-                                        <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">
-                                            {{ number_format($datiGiorno['backlog_pda']) }}
-                                        </td>
-                                        
-                                        {{-- BackLog Partner --}}
-                                        <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">
-                                            {{ number_format($datiGiorno['backlog_partner_pda']) }}
-                                        </td>
-                                        
-                                        {{-- Ore --}}
-                                        <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
-                                            {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
-                                        </td>
-                                        
-                                        {{-- Resa Prodotto --}}
-                                        <td class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
-                                            {{ $datiGiorno['resa_prodotto'] ?? '-' }}
-                                        </td>
-                                        
-                                        {{-- Resa Inserito --}}
-                                        <td class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
-                                            {{ $datiGiorno['resa_inserito'] ?? '-' }}
-                                        </td>
-                                        
-                                        {{-- R/H --}}
-                                        <td class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
-                                            {{ $datiGiorno['resa_oraria'] ?? '-' }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @endforeach
-                        @endforeach
+                    @forelse($datiGiornalieri as $datiGiorno)
+                        @php
+                            $totaleGiornaliero['prodotto_pda'] += $datiGiorno['prodotto_pda'] ?? 0;
+                            $totaleGiornaliero['inserito_pda'] += $datiGiorno['inserito_pda'] ?? 0;
+                            $totaleGiornaliero['ko_pda'] += $datiGiorno['ko_pda'] ?? 0;
+                            $totaleGiornaliero['backlog_pda'] += $datiGiorno['backlog_pda'] ?? 0;
+                            $totaleGiornaliero['backlog_partner_pda'] += $datiGiorno['backlog_partner_pda'] ?? 0;
+                            $totaleGiornaliero['ore'] += $datiGiorno['ore'] ?? 0;
+                        @endphp
+                        
+                        <tr>
+                            {{-- Data --}}
+                            <td class="sticky-giorn-data text-sm font-semibold border-r-2 border-base-300 bg-base-100">
+                                {{ \Carbon\Carbon::parse($datiGiorno['data'])->format('d/m/Y') }}
+                            </td>
+                            
+                            {{-- Commessa --}}
+                            <td class="sticky-giorn-cliente text-sm font-bold border-r-2 border-base-300 bg-base-50">
+                                {{ $datiGiorno['commessa'] }}
+                            </td>
+                            
+                            {{-- Prodotto --}}
+                            <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">
+                                {{ number_format($datiGiorno['prodotto_pda']) }}
+                            </td>
+                            
+                            {{-- Inserito --}}
+                            <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">
+                                {{ number_format($datiGiorno['inserito_pda']) }}
+                            </td>
+                            
+                            {{-- KO --}}
+                            <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">
+                                {{ number_format($datiGiorno['ko_pda']) }}
+                            </td>
+                            
+                            {{-- BackLog --}}
+                            <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">
+                                {{ number_format($datiGiorno['backlog_pda']) }}
+                            </td>
+                            
+                            {{-- BackLog Partner --}}
+                            <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">
+                                {{ number_format($datiGiorno['backlog_partner_pda']) }}
+                            </td>
+                            
+                            {{-- Ore --}}
+                            <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                                {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
+                            </td>
+                            
+                            {{-- Resa Prodotto --}}
+                            <td class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                {{ $datiGiorno['resa_prodotto'] ?? '-' }}
+                            </td>
+                            
+                            {{-- Resa Inserito --}}
+                            <td class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                {{ $datiGiorno['resa_inserito'] ?? '-' }}
+                            </td>
+                            
+                            {{-- R/H --}}
+                            <td class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                                {{ $datiGiorno['resa_oraria'] ?? '-' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="11" class="text-center py-8 text-base-content/60">
+                                Nessun dato disponibile per il periodo selezionato
+                            </td>
+                        </tr>
+                    @endforelse
                         
                         {{-- RIGA TOTALE GENERALE --}}
                         @if(count($datiGiornalieri) > 0)
@@ -954,7 +939,7 @@
                             @endphp
                             
                             <tr class="bg-slate-100 font-bold border-t-4 border-slate-400">
-                                <td colspan="4" class="text-center text-base uppercase tracking-wide py-3 border-r-2 border-slate-300 sticky-giorn-totale">
+                                <td colspan="2" class="text-center text-base uppercase tracking-wide py-3 border-r-2 border-slate-300 sticky-giorn-totale">
                                     TOTALE PERIODO
                                 </td>
                                 
@@ -970,13 +955,6 @@
                                 <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
                             </tr>
                         @endif
-                    @empty
-                        <tr>
-                            <td colspan="14" class="text-center text-base-content/50 py-8">
-                                Nessun dato disponibile per il periodo selezionato
-                            </td>
-                        </tr>
-                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -1725,22 +1703,74 @@
             attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
             attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
             
-            // Se ci sono già campagne selezionate al caricamento, carica le sedi
+            // Se ci sono filtri già applicati (dopo submit), ricarica campagne e sedi via AJAX
             const commessaSelect = document.getElementById('commessaSelect');
-            if (commessaSelect.value) {
-                // Aggiungi listener per cambiamento campagne
-                const campagneCheckboxes = document.querySelectorAll('.campagna-checkbox');
-                if (campagneCheckboxes.length > 0) {
-                    campagneCheckboxes.forEach(checkbox => {
-                        checkbox.addEventListener('change', loadSedi);
-                    });
-                    
-                    // Carica sedi iniziali se ci sono campagne già selezionate
-                    const selectedCampagne = Array.from(document.querySelectorAll('.campagna-checkbox:checked'));
-                    if (selectedCampagne.length > 0) {
-                        loadSedi();
-                    }
-                }
+            const commessaSelezionata = commessaSelect.value;
+            
+            if (commessaSelezionata) {
+                console.log('Commessa già selezionata, carico campagne e sedi...');
+                
+                // Valori filtrati dal server (dopo submit form)
+                const campagneFiltrate = @json($macroCampagnaFilters ?? []);
+                const sediFiltrate = @json($sedeFilters ?? []);
+                
+                // Carica campagne per la commessa
+                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessaSelezionata)}`)
+                    .then(response => response.json())
+                    .then(campagneDisponibili => {
+                        const campagnaContainer = document.getElementById('campagnaContainer');
+                        campagnaContainer.innerHTML = '';
+                        
+                        if (campagneDisponibili.length > 0) {
+                            campagneDisponibili.forEach(campagna => {
+                                const isChecked = campagneFiltrate.includes(campagna);
+                                const label = document.createElement('label');
+                                label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-campagna';
+                                label.setAttribute('data-checkbox-label', '');
+                                label.innerHTML = `
+                                    <input type="checkbox" name="macro_campagna[]" value="${campagna}" 
+                                           class="checkbox checkbox-success checkbox-sm campagna-checkbox" ${isChecked ? 'checked' : ''}>
+                                    <span class="text-sm leading-tight">${campagna}</span>
+                                `;
+                                campagnaContainer.appendChild(label);
+                            });
+                            
+                            attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
+                            
+                            // Se ci sono campagne selezionate, carica le sedi
+                            if (campagneFiltrate.length > 0) {
+                                const params = new URLSearchParams();
+                                params.append('commessa', commessaSelezionata);
+                                campagneFiltrate.forEach(c => params.append('campagne[]', c));
+                                
+                                fetch(`/admin/produzione/get-sedi?${params.toString()}`)
+                                    .then(response => response.json())
+                                    .then(sediDisponibili => {
+                                        const sedeContainer = document.getElementById('sedeContainer');
+                                        sedeContainer.innerHTML = '';
+                                        
+                                        if (sediDisponibili.length > 0) {
+                                            sediDisponibili.forEach(sede => {
+                                                const isChecked = sediFiltrate.includes(sede);
+                                                const label = document.createElement('label');
+                                                label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede';
+                                                label.setAttribute('data-checkbox-label', '');
+                                                label.innerHTML = `
+                                                    <input type="checkbox" name="sede[]" value="${sede}" 
+                                                           class="checkbox checkbox-info checkbox-sm sede-checkbox" ${isChecked ? 'checked' : ''}>
+                                                    <span class="text-sm leading-tight">${sede}</span>
+                                                `;
+                                                sedeContainer.appendChild(label);
+                                            });
+                                            
+                                            attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+                                        }
+                                    })
+                                    .catch(error => console.error('Errore caricamento sedi:', error));
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Errore caricamento campagne:', error));
             }
             
             // Inizializza drag-to-scroll per le tabelle
@@ -1802,15 +1832,15 @@
                     'paf': { row1: [11, 12], row2: [0, 1, 2, 3, 4, 5] }
                 },
                 'table-giornaliero': {
-                    'prodotto': { row1: [4], row2: [] },
-                    'inserito': { row1: [5], row2: [] },
-                    'ko': { row1: [6], row2: [] },
-                    'backlog': { row1: [7], row2: [] },
-                    'backlog_partner': { row1: [8], row2: [] },
-                    'ore': { row1: [9], row2: [] },
-                    'resa_prodotto': { row1: [10], row2: [] },
-                    'resa_inserito': { row1: [11], row2: [] },
-                    'resa_oraria': { row1: [12], row2: [] },
+                    'prodotto': { row1: [2], row2: [] },
+                    'inserito': { row1: [3], row2: [] },
+                    'ko': { row1: [4], row2: [] },
+                    'backlog': { row1: [5], row2: [] },
+                    'backlog_partner': { row1: [6], row2: [] },
+                    'ore': { row1: [7], row2: [] },
+                    'resa_prodotto': { row1: [8], row2: [] },
+                    'resa_inserito': { row1: [9], row2: [] },
+                    'resa_oraria': { row1: [10], row2: [] },
                     'paf': { row1: [], row2: [] }
                 }
             };
