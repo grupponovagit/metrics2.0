@@ -636,17 +636,24 @@ class ProduzioneController extends Controller
         $this->authorize('produzione.view');
         
         $commessa = $request->input('commessa');
+        $campagne = $request->input('campagne', []);
         
         if (!$commessa) {
             return response()->json([]);
         }
         
-        $sedi = DB::table('report_produzione_pivot_cache')
+        $query = DB::table('report_produzione_pivot_cache')
             ->where('commessa', $commessa)
             ->distinct()
             ->whereNotNull('nome_sede')
-            ->where('nome_sede', '!=', '')
-            ->orderBy('nome_sede')
+            ->where('nome_sede', '!=', '');
+        
+        // Filtra per campagne se fornite
+        if (!empty($campagne)) {
+            $query->whereIn('campagna_id', $campagne);
+        }
+        
+        $sedi = $query->orderBy('nome_sede')
             ->pluck('nome_sede');
         
         return response()->json($sedi);

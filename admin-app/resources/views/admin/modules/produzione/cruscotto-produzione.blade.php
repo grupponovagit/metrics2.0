@@ -82,19 +82,8 @@
                             </button>
                         </div>
                     </label>
-                    <div id="campagnaContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
-                        @if($commessaFilter && count($macroCampagne) > 0)
-                            @foreach($macroCampagne as $campagna)
-                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-campagna" data-checkbox-label>
-                                    <input type="checkbox" name="macro_campagna[]" value="{{ $campagna }}" 
-                                           class="checkbox checkbox-success checkbox-sm campagna-checkbox" 
-                                           {{ is_array(request('macro_campagna')) && in_array($campagna, request('macro_campagna')) ? 'checked' : '' }}>
-                                    <span class="text-sm leading-tight">{{ $campagna }}</span>
-                                </label>
-                            @endforeach
-                        @else
-                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona commessa</p>
-                        @endif
+                    <div id="campagnaContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100">
+                        <p class="text-xs text-base-content/50 text-center py-4">Seleziona una commessa</p>
                     </div>
                 </div>
                 
@@ -116,19 +105,8 @@
                             </button>
                         </div>
                     </label>
-                    <div id="sedeContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100 {{ !$commessaFilter ? 'opacity-50 pointer-events-none' : '' }}">
-                        @if($commessaFilter && count($sedi) > 0)
-                            @foreach($sedi as $sede)
-                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede" data-checkbox-label>
-                                    <input type="checkbox" name="sede[]" value="{{ $sede }}" 
-                                           class="checkbox checkbox-info checkbox-sm sede-checkbox" 
-                                           {{ is_array(request('sede')) && in_array($sede, request('sede')) ? 'checked' : '' }}>
-                                    <span class="text-sm leading-tight">{{ $sede }}</span>
-                                </label>
-                            @endforeach
-                        @else
-                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona commessa</p>
-                        @endif
+                    <div id="sedeContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100">
+                        <p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>
                     </div>
                 </div>
                 
@@ -1607,6 +1585,8 @@
             checkboxes.forEach(checkbox => {
                 checkbox.checked = selectAll;
             });
+            // Ricarica sedi dopo aver cambiato le campagne
+            loadSedi();
         }
         
         function toggleAllSedi(selectAll) {
@@ -1616,7 +1596,64 @@
             });
         }
 
-        // Gestione select Commessa - aggiorna checkbox campagne e sedi
+        // Funzione per caricare sedi in base a commessa e campagne selezionate
+        function loadSedi() {
+            const commessa = document.getElementById('commessaSelect').value;
+            const selectedCampagne = Array.from(document.querySelectorAll('.campagna-checkbox:checked')).map(cb => cb.value);
+            const sedeContainer = document.getElementById('sedeContainer');
+            
+            console.log('loadSedi chiamato:', { commessa, selectedCampagne });
+            
+            // Reset dell'ultima checkbox sede selezionata
+            lastCheckedSede = null;
+            
+            if (!commessa || selectedCampagne.length === 0) {
+                sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
+                return;
+            }
+            
+            // Costruisci URL con parametri
+            const params = new URLSearchParams();
+            params.append('commessa', commessa);
+            selectedCampagne.forEach(c => params.append('campagne[]', c));
+            
+            console.log('Fetching sedi con URL:', `/admin/produzione/get-sedi?${params.toString()}`);
+            
+            fetch(`/admin/produzione/get-sedi?${params.toString()}`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Sedi ricevute:', data);
+                    sedeContainer.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        data.forEach(sede => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede';
+                            label.setAttribute('data-checkbox-label', '');
+                            label.innerHTML = `
+                                <input type="checkbox" name="sede[]" value="${sede}" 
+                                       class="checkbox checkbox-info checkbox-sm sede-checkbox">
+                                <span class="text-sm leading-tight">${sede}</span>
+                            `;
+                            sedeContainer.appendChild(label);
+                        });
+                        
+                        // Aggiungi event listener per shift-click e label click
+                        attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+                    } else {
+                        sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna sede disponibile</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore caricamento sedi:', error);
+                    sedeContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
+                });
+        }
+        
+        // Gestione select Commessa - aggiorna checkbox campagne
         document.getElementById('commessaSelect').addEventListener('change', function() {
             const commessa = this.value;
             const campagnaContainer = document.getElementById('campagnaContainer');
@@ -1632,7 +1669,6 @@
                     .then(response => response.json())
                     .then(data => {
                         campagnaContainer.innerHTML = '';
-                        campagnaContainer.classList.remove('opacity-50', 'pointer-events-none');
                         
                         if (data.length > 0) {
                             data.forEach(campagna => {
@@ -1649,52 +1685,38 @@
                             
                             // Aggiungi event listener per shift-click e label click
                             attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
+                            
+                            // Reset sedi (nessuna campagna selezionata inizialmente)
+                            sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
                         } else {
                             campagnaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna campagna disponibile</p>';
+                            sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
                         }
                     })
                     .catch(error => {
                         console.error('Errore caricamento campagne:', error);
-                        campagnaContainer.innerHTML = '<p class="text-[10px] text-error text-center py-3">Errore caricamento</p>';
-                    });
-                
-                // Carica sedi per la commessa selezionata via AJAX
-                fetch(`/admin/produzione/get-sedi?commessa=${encodeURIComponent(commessa)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        sedeContainer.innerHTML = '';
-                        sedeContainer.classList.remove('opacity-50', 'pointer-events-none');
-                        
-                        if (data.length > 0) {
-                            data.forEach(sede => {
-                                const label = document.createElement('label');
-                                label.className = 'flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede';
-                                label.setAttribute('data-checkbox-label', '');
-                                label.innerHTML = `
-                                    <input type="checkbox" name="sede[]" value="${sede}" 
-                                           class="checkbox checkbox-info checkbox-sm sede-checkbox">
-                                    <span class="text-sm leading-tight">${sede}</span>
-                                `;
-                                sedeContainer.appendChild(label);
-                            });
-                            
-                            // Aggiungi event listener per shift-click e label click
-                            attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
-                        } else {
-                            sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna sede disponibile</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Errore caricamento sedi:', error);
-                        sedeContainer.innerHTML = '<p class="text-[10px] text-error text-center py-3">Errore caricamento</p>';
+                        campagnaContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
                     });
             } else {
                 // Reset containers
-                campagnaContainer.classList.add('opacity-50', 'pointer-events-none');
-                campagnaContainer.innerHTML = '<p class="text-[10px] text-base-content/50 text-center py-3">Seleziona una commessa</p>';
-                
-                sedeContainer.classList.add('opacity-50', 'pointer-events-none');
-                sedeContainer.innerHTML = '<p class="text-[10px] text-base-content/50 text-center py-3">Seleziona una commessa</p>';
+                campagnaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona una commessa</p>';
+                sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
+            }
+        });
+        
+        // Delega eventi per campagne: quando cambia una checkbox campagna, ricarica le sedi
+        document.getElementById('campagnaContainer').addEventListener('click', function(e) {
+            // Controlla se è una checkbox o il suo parent label
+            const checkbox = e.target.classList.contains('campagna-checkbox') 
+                ? e.target 
+                : e.target.querySelector('.campagna-checkbox');
+            
+            if (checkbox || e.target.classList.contains('campagna-checkbox')) {
+                console.log('Campagna checkbox cliccata');
+                // Usa setTimeout per aspettare che lo stato della checkbox si aggiorni
+                setTimeout(() => {
+                    loadSedi();
+                }, 50);
             }
         });
 
@@ -1702,6 +1724,24 @@
         document.addEventListener('DOMContentLoaded', function() {
             attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
             attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+            
+            // Se ci sono già campagne selezionate al caricamento, carica le sedi
+            const commessaSelect = document.getElementById('commessaSelect');
+            if (commessaSelect.value) {
+                // Aggiungi listener per cambiamento campagne
+                const campagneCheckboxes = document.querySelectorAll('.campagna-checkbox');
+                if (campagneCheckboxes.length > 0) {
+                    campagneCheckboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', loadSedi);
+                    });
+                    
+                    // Carica sedi iniziali se ci sono campagne già selezionate
+                    const selectedCampagne = Array.from(document.querySelectorAll('.campagna-checkbox:checked'));
+                    if (selectedCampagne.length > 0) {
+                        loadSedi();
+                    }
+                }
+            }
             
             // Inizializza drag-to-scroll per le tabelle
             initDragToScroll();
