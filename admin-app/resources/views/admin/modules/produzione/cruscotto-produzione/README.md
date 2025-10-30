@@ -12,9 +12,12 @@ cruscotto-produzione/
 ├── _table-dettagliato.blade.php # Tabella vista Dettagliato
 ├── _table-sintetico.blade.php   # Tabella vista Sintetico
 ├── _table-giornaliero.blade.php # Tabella vista Giornaliero
+├── _table-grafico.blade.php     # Vista Grafico (Chart.js)
 ├── _styles.blade.php            # CSS per sticky rows e drag-to-scroll
 └── _scripts.blade.php           # JavaScript per switch view e column toggle
 ```
+
+**Nota**: Gli stili per il **Dark Mode** sono integrati direttamente nel componente riutilizzabile `<x-ui.table-advanced>` per garantire compatibilità con tutte le tabelle del progetto.
 
 ---
 

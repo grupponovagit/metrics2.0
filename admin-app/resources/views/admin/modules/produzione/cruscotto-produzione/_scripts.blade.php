@@ -57,14 +57,17 @@
         const tableDettagliato = document.getElementById('table-dettagliato');
         const tableSintetico = document.getElementById('table-sintetico');
         const tableGiornaliero = document.getElementById('table-giornaliero');
+        const tableGrafico = document.getElementById('table-grafico');
         const btnDettagliato = document.getElementById('btn-dettagliato');
         const btnSintetico = document.getElementById('btn-sintetico');
         const btnGiornaliero = document.getElementById('btn-giornaliero');
+        const btnGrafico = document.getElementById('btn-grafico');
         
-        // Nascondi tutte le tabelle
+        // Nascondi tutte le tabelle e viste
         tableDettagliato.classList.add('hidden');
         tableSintetico.classList.add('hidden');
         tableGiornaliero.classList.add('hidden');
+        tableGrafico.classList.add('hidden');
         
         // Reset tutti i pulsanti
         btnDettagliato.classList.remove('btn-primary');
@@ -73,6 +76,8 @@
         btnSintetico.classList.add('btn-outline');
         btnGiornaliero.classList.remove('btn-primary');
         btnGiornaliero.classList.add('btn-outline');
+        btnGrafico.classList.remove('btn-primary');
+        btnGrafico.classList.add('btn-outline');
         
         // Mostra la tabella selezionata e attiva il pulsante corrispondente
         if (view === 'sintetico') {
@@ -85,6 +90,16 @@
             btnGiornaliero.classList.remove('btn-outline');
             btnGiornaliero.classList.add('btn-primary');
             currentActiveView = 'giornaliero';
+        } else if (view === 'grafico') {
+            tableGrafico.classList.remove('hidden');
+            btnGrafico.classList.remove('btn-outline');
+            btnGrafico.classList.add('btn-primary');
+            currentActiveView = 'grafico';
+            
+            // Inizializza il grafico se non è già stato fatto
+            if (typeof initChart === 'function') {
+                setTimeout(() => initChart(), 100);
+            }
         } else {
             tableDettagliato.classList.remove('hidden');
             btnDettagliato.classList.remove('btn-outline');
@@ -92,8 +107,14 @@
             currentActiveView = 'dettagliato';
         }
         
-        // Aggiorna i controlli delle colonne per la nuova vista
-        populateColumnControls(view);
+        // Aggiorna i controlli delle colonne per la nuova vista (solo per tabelle, non per grafico)
+        const columnDropdown = document.querySelector('.dropdown.dropdown-end');
+        if (view !== 'grafico') {
+            if (columnDropdown) columnDropdown.classList.remove('hidden');
+            populateColumnControls(view);
+        } else {
+            if (columnDropdown) columnDropdown.classList.add('hidden');
+        }
     }
     
     // ==========================================

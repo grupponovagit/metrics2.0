@@ -200,12 +200,18 @@
     #{{ $id }} tbody tr.bg-slate-200 th.{{ $colClass }} {
         background-color: #e2e8f0 !important;
     }
-    
-    /* Hover sulle righe */
-    #{{ $id }} tbody tr:hover td.{{ $colClass }} {
-        background-color: #f0f9ff !important;
-    }
     @endforeach
+    
+    /* ===== CELLE STICKY - Testo visibile in LIGHT MODE ===== */
+    #{{ $id }} .sticky-table-dettagliato-cliente,
+    #{{ $id }} .sticky-table-dettagliato-sede,
+    #{{ $id }} .sticky-table-dettagliato-campagna,
+    #{{ $id }} .sticky-table-sintetico-cliente,
+    #{{ $id }} .sticky-table-sintetico-sede,
+    #{{ $id }} .sticky-table-giornaliero-data,
+    #{{ $id }} .sticky-table-giornaliero-cliente {
+        color: #1f2937 !important; /* gray-800 - testo scuro per light mode */
+    }
     
     @if(count($stickyColumns) > 0)
     /* Celle totale sticky (colspan = numero colonne sticky) */
@@ -288,6 +294,148 @@
     
     #{{ $id }} tbody tr.bg-slate-200:hover {
         background-color: #cbd5e1 !important;
+    }
+    
+    /* ========================================= */
+    /* DARK MODE SUPPORT */
+    /* ========================================= */
+    @media (prefers-color-scheme: dark) {
+        /* Header tabelle - Dark mode */
+        [data-theme="dark"] #{{ $id }} thead,
+        [data-theme="dark"] #{{ $id }} thead th,
+        html.dark #{{ $id }} thead,
+        html.dark #{{ $id }} thead th {
+            background-color: #1f2937 !important; /* gray-800 */
+            color: #f9fafb !important; /* gray-50 */
+            border-color: #374151 !important; /* gray-700 */
+        }
+        
+        /* IMPORTANTE: Testi nelle celle con background colorati = NERI per contrasto */
+        [data-theme="dark"] #{{ $id }} tbody td,
+        html.dark #{{ $id }} tbody td {
+            color: #000000 !important; /* Testo nero per leggibilità */
+        }
+        
+        /* Testi nelle celle sticky laterali = chiari */
+        [data-theme="dark"] #{{ $id }} .sticky-table-dettagliato-cliente,
+        [data-theme="dark"] #{{ $id }} .sticky-table-dettagliato-sede,
+        [data-theme="dark"] #{{ $id }} .sticky-table-dettagliato-campagna,
+        [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-cliente,
+        [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-sede,
+        [data-theme="dark"] #{{ $id }} .sticky-table-giornaliero-data,
+        [data-theme="dark"] #{{ $id }} .sticky-table-giornaliero-cliente,
+        html.dark #{{ $id }} .sticky-table-dettagliato-cliente,
+        html.dark #{{ $id }} .sticky-table-dettagliato-sede,
+        html.dark #{{ $id }} .sticky-table-dettagliato-campagna,
+        html.dark #{{ $id }} .sticky-table-sintetico-cliente,
+        html.dark #{{ $id }} .sticky-table-sintetico-sede,
+        html.dark #{{ $id }} .sticky-table-giornaliero-data,
+        html.dark #{{ $id }} .sticky-table-giornaliero-cliente {
+            color: #e5e7eb !important; /* gray-200 */
+            background-color: #1f2937 !important; /* gray-800 - come header */
+        }
+        
+        /* Anche per i TD sticky (non solo TH) - Con specificità maggiore per sovrascrivere righe alternate */
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-sede,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-sede,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-campagna,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-campagna,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-sede,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-sede,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-data,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-data,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-sede,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-sede,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-campagna,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-campagna,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-sede,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-sede,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-data,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-data,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-cliente {
+            background-color: #1f2937 !important; /* gray-800 */
+            color: #e5e7eb !important; /* gray-200 */
+        }
+        
+        /* Background per celle sticky con classi specifiche */
+        [data-theme="dark"] #{{ $id }} .bg-base-200\/30,
+        html.dark #{{ $id }} .bg-base-200\/30 {
+            background-color: #1f2937 !important; /* gray-800 */
+        }
+        
+        [data-theme="dark"] #{{ $id }} .bg-base-100,
+        html.dark #{{ $id }} .bg-base-100 {
+            background-color: #1f2937 !important; /* gray-800 */
+        }
+        
+        [data-theme="dark"] #{{ $id }} .bg-base-50,
+        html.dark #{{ $id }} .bg-base-50 {
+            background-color: #1f2937 !important; /* gray-800 */
+        }
+        
+        /* Righe totale - Dark mode */
+        [data-theme="dark"] #{{ $id }} .bg-slate-100,
+        html.dark #{{ $id }} .bg-slate-100 {
+            background-color: #334155 !important; /* slate-700 */
+            border-color: #475569 !important; /* slate-600 */
+            color: #f9fafb !important; /* Testo chiaro per totali */
+        }
+        
+        [data-theme="dark"] #{{ $id }} .bg-slate-200,
+        html.dark #{{ $id }} .bg-slate-200 {
+            background-color: #475569 !important; /* slate-600 */
+            border-color: #64748b !important; /* slate-500 */
+            color: #f9fafb !important; /* Testo chiaro per totali */
+        }
+        
+        /* Celle totale sticky */
+        [data-theme="dark"] #{{ $id }} .sticky-totale-table-sintetico,
+        [data-theme="dark"] #{{ $id }} .sticky-totale-table-dettagliato,
+        [data-theme="dark"] #{{ $id }} .sticky-totale-table-giornaliero,
+        html.dark #{{ $id }} .sticky-totale-table-sintetico,
+        html.dark #{{ $id }} .sticky-totale-table-dettagliato,
+        html.dark #{{ $id }} .sticky-totale-table-giornaliero {
+            color: #f9fafb !important; /* Testo chiaro per totali sticky */
+        }
+        
+        /* Bordi - Dark mode */
+        [data-theme="dark"] #{{ $id }} .border-base-300,
+        [data-theme="dark"] #{{ $id }} .border-slate-300,
+        html.dark #{{ $id }} .border-base-300,
+        html.dark #{{ $id }} .border-slate-300 {
+            border-color: #374151 !important; /* gray-700 */
+        }
+        
+        [data-theme="dark"] #{{ $id }} .border-slate-400,
+        html.dark #{{ $id }} .border-slate-400 {
+            border-color: #475569 !important; /* slate-600 */
+        }
+        
+        /* Colori differenziati per testi positivi/negativi */
+        [data-theme="dark"] #{{ $id }} .text-green-600,
+        [data-theme="dark"] #{{ $id }} .text-green-700,
+        html.dark #{{ $id }} .text-green-600,
+        html.dark #{{ $id }} .text-green-700 {
+            color: #16a34a !important; /* green-600 */
+        }
+        
+        [data-theme="dark"] #{{ $id }} .text-red-600,
+        [data-theme="dark"] #{{ $id }} .text-red-700,
+        html.dark #{{ $id }} .text-red-600,
+        html.dark #{{ $id }} .text-red-700 {
+            color: #dc2626 !important; /* red-600 */
+        }
     }
 </style>
 

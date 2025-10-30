@@ -157,7 +157,7 @@
                 </p>
             </div>
             
-            {{-- Pulsanti Sintetico/Dettagliato/Giornaliero --}}
+            {{-- Pulsanti Sintetico/Dettagliato/Giornaliero/Grafico --}}
             <div class="flex gap-2 items-center">
                 <button 
                     onclick="switchView('sintetico')" 
@@ -179,6 +179,14 @@
                     class="btn btn-sm btn-outline btn-primary"
                 >
                     Giornaliero
+                </button>
+                <button 
+                    onclick="switchView('grafico')" 
+                    id="btn-grafico"
+                    class="btn btn-sm btn-outline btn-primary"
+                >
+                    <x-ui.icon name="chart-line" class="h-4 w-4" />
+                    Grafico
                 </button>
                 
                 {{-- Separatore --}}
@@ -226,6 +234,9 @@
 
         {{-- TABELLA GIORNALIERO --}}
         @include('admin.modules.produzione.cruscotto-produzione._table-giornaliero')
+        
+        {{-- VISTA GRAFICO --}}
+        @include('admin.modules.produzione.cruscotto-produzione._table-grafico')
      
         {{-- Hint scroll mobile --}}
         <div class="p-2 bg-base-200/30 border-t border-base-300 text-center lg:hidden">

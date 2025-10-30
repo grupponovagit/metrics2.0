@@ -178,25 +178,22 @@
                                 {{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
 
                             {{-- Ore --}}
-                            <td class="col-ore text-center text-sm font-semibold bg-cyan-50 border-r-2 border-base-300">
+                            <td class="col-ore text-center text-sm bg-cyan-50 border-r-2 border-base-300">
                                 {{ ($datiCampagna['ore'] ?? 0) > 0 ? number_format($datiCampagna['ore'], 2) : '-' }}
                             </td>
 
                             {{-- Resa Prodotto --}}
-                            <td
-                                class="col-resa_prodotto text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                            <td class="col-resa_prodotto text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_prodotto'] ?? '-' }}
                             </td>
 
                             {{-- Resa Inserito --}}
-                            <td
-                                class="col-resa_inserito text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                            <td class="col-resa_inserito text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_inserito'] ?? '-' }}
                             </td>
 
                             {{-- R/H --}}
-                            <td
-                                class="col-resa_oraria text-center text-sm font-semibold bg-indigo-50 border-r-2 border-base-300">
+                            <td class="col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_oraria'] ?? '-' }}
                             </td>
 
