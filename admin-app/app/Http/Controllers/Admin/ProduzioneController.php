@@ -225,7 +225,7 @@ class ProduzioneController extends Controller
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
-            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('campagna_id', $macroCampagnaFilters));
+            ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('macro_campagna', $macroCampagnaFilters));
         
         // === KPI TOTALI (aggregazione SQL diretta) ===
         $kpiTotali = (clone $queryBase)
@@ -292,7 +292,7 @@ class ProduzioneController extends Controller
         $datiDettagliati = (clone $queryBase)
             ->selectRaw('
                 commessa as cliente,
-                campagna_id as campagna,
+                macro_campagna as campagna,
                 nome_sede as sede,
                 SUM(totale_vendite) as prodotto_pda,
                 SUM(ok_definitivo) as inserito_pda,
@@ -302,10 +302,10 @@ class ProduzioneController extends Controller
                 SUM(ore_lavorate) as ore,
                 SUM(totale_kpi) as obiettivo
             ')
-            ->groupBy('commessa', 'campagna_id', 'nome_sede')
+            ->groupBy('commessa', 'macro_campagna', 'nome_sede')
             ->orderBy('commessa')
             ->orderBy('nome_sede')
-            ->orderBy('campagna_id')
+            ->orderBy('macro_campagna')
             ->get()
             ->groupBy('cliente')
             ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
@@ -565,10 +565,10 @@ class ProduzioneController extends Controller
                 ->where('commessa', $commessaFilter)
                 ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
                 ->distinct()
-                ->whereNotNull('campagna_id')
-                ->where('campagna_id', '!=', '')
-                ->orderBy('campagna_id')
-                ->pluck('campagna_id');
+                ->whereNotNull('macro_campagna')
+                ->where('macro_campagna', '!=', '')
+                ->orderBy('macro_campagna')
+                ->pluck('macro_campagna');
         }
         
         return view('admin.modules.produzione.cruscotto-produzione.index', [
@@ -619,7 +619,7 @@ class ProduzioneController extends Controller
         
         // Filtra per campagne se fornite
         if (!empty($campagne)) {
-            $query->whereIn('campagna_id', $campagne);
+            $query->whereIn('macro_campagna', $campagne);
         }
         
         // Filtra per date se fornite
@@ -653,10 +653,10 @@ class ProduzioneController extends Controller
             ->where('commessa', $commessa)
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->distinct()
-            ->whereNotNull('campagna_id')
-            ->where('campagna_id', '!=', '')
-            ->orderBy('campagna_id')
-            ->pluck('campagna_id');
+            ->whereNotNull('macro_campagna')
+            ->where('macro_campagna', '!=', '')
+            ->orderBy('macro_campagna')
+            ->pluck('macro_campagna');
         
         return response()->json($campagne);
     }
