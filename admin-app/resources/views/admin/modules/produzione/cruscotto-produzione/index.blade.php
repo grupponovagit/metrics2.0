@@ -69,7 +69,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="bullseye" class="h-4 w-4 inline text-success" />
-                            Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Macro Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-success gap-1">
@@ -442,8 +442,19 @@
             lastCheckedSede = null;
             
             if (commessa) {
+                // Ottieni date dai filtri
+                const dataInizio = document.querySelector('input[name="data_inizio"]').value;
+                const dataFine = document.querySelector('input[name="data_fine"]').value;
+                
+                // Costruisci URL con parametri date
+                const params = new URLSearchParams({
+                    commessa: commessa
+                });
+                if (dataInizio) params.append('data_inizio', dataInizio);
+                if (dataFine) params.append('data_fine', dataFine);
+                
                 // Carica campagne per la commessa selezionata via AJAX
-                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessa)}`)
+                fetch(`/admin/produzione/get-campagne?${params.toString()}`)
                     .then(response => response.json())
                     .then(data => {
                         campagnaContainer.innerHTML = '';
@@ -467,7 +478,7 @@
                             // Reset sedi (nessuna campagna selezionata inizialmente)
                             sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
                         } else {
-                            campagnaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna campagna disponibile</p>';
+                            campagnaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna campagna con lavorazione in questo periodo</p>';
                             sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>';
                         }
                     })
@@ -502,6 +513,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             attachLabelClickListeners('#campagnaContainer', 'campagna-checkbox');
             attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
+            
+            // Listener per ricarica campagne quando cambiano le date
+            const dateInputs = document.querySelectorAll('input[name="data_inizio"], input[name="data_fine"]');
+            dateInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const commessaSelect = document.getElementById('commessaSelect');
+                    if (commessaSelect.value) {
+                        // Ricarica le campagne quando cambiano le date
+                        commessaSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
             
             // Se ci sono filtri già applicati (dopo submit), ricarica campagne e sedi via AJAX
             const commessaSelect = document.getElementById('commessaSelect');

@@ -558,10 +558,12 @@ class ProduzioneController extends Controller
         }
         
         // Macro campagne filtrate per commessa (se presente)
+        // IMPORTANTE: Mostra SOLO campagne con lavorazione nel periodo selezionato
         $macroCampagne = collect();
         if ($commessaFilter) {
             $macroCampagne = DB::table('report_produzione_pivot_cache')
                 ->where('commessa', $commessaFilter)
+                ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
                 ->distinct()
                 ->whereNotNull('campagna_id')
                 ->where('campagna_id', '!=', '')
@@ -620,12 +622,15 @@ class ProduzioneController extends Controller
 
     /**
      * API: Ottieni macro campagne per una specifica commessa e sede
+     * Filtra anche per intervallo di date se fornito
      */
     public function getCampagne(Request $request)
     {
         $this->authorize('produzione.view');
         
         $commessa = $request->input('commessa');
+        $dataInizio = $request->input('data_inizio');
+        $dataFine = $request->input('data_fine');
         
         if (!$commessa) {
             return response()->json([]);
@@ -633,6 +638,7 @@ class ProduzioneController extends Controller
         
         $campagne = DB::table('report_produzione_pivot_cache')
             ->where('commessa', $commessa)
+            ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->distinct()
             ->whereNotNull('campagna_id')
             ->where('campagna_id', '!=', '')
