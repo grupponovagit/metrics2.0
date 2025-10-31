@@ -83,6 +83,8 @@ return [
     'calendar-days' => ['set' => 'heroicon-o', 'icon' => 'calendar-days'],
     'calendar-check' => ['set' => 'heroicon-o', 'icon' => 'calendar'],
     'calendar-xmark' => ['set' => 'heroicon-o', 'icon' => 'calendar'],
+    'calendar-week' => ['set' => 'heroicon-o', 'icon' => 'calendar'],
+    'calendar-alt' => ['set' => 'heroicon-o', 'icon' => 'calendar'],
     'clock' => ['set' => 'heroicon-o', 'icon' => 'clock'],
     'time' => ['set' => 'heroicon-o', 'icon' => 'clock'],
     
@@ -115,6 +117,8 @@ return [
     'money-bills' => ['set' => 'heroicon-o', 'icon' => 'banknotes'],
     'banknotes' => ['set' => 'heroicon-o', 'icon' => 'banknotes'],
     'currency-dollar' => ['set' => 'heroicon-o', 'icon' => 'currency-dollar'],
+    'currency-euro' => ['set' => 'heroicon-o', 'icon' => 'currency-euro'],
+    'euro-sign' => ['set' => 'heroicon-o', 'icon' => 'currency-euro'],
     'wallet' => ['set' => 'heroicon-o', 'icon' => 'wallet'],
     'receipt' => ['set' => 'heroicon-o', 'icon' => 'receipt-percent'],
     'calculator' => ['set' => 'heroicon-o', 'icon' => 'calculator'],
@@ -141,6 +145,7 @@ return [
     // === STATUS & FEEDBACK ===
     'check' => ['set' => 'heroicon-o', 'icon' => 'check'],
     'check-circle' => ['set' => 'heroicon-o', 'icon' => 'check-circle'],
+    'user-check' => ['set' => 'heroicon-o', 'icon' => 'user'],
     'exclamation' => ['set' => 'heroicon-o', 'icon' => 'exclamation-triangle'],
     'exclamation-circle' => ['set' => 'heroicon-o', 'icon' => 'exclamation-circle'],
     'info' => ['set' => 'heroicon-o', 'icon' => 'information-circle'],
@@ -149,6 +154,9 @@ return [
     'heart' => ['set' => 'heroicon-o', 'icon' => 'heart'],
     'heartbeat' => ['set' => 'heroicon-o', 'icon' => 'heart'],
     'trophy' => ['set' => 'heroicon-o', 'icon' => 'trophy'],
+    'percentage' => ['set' => 'heroicon-o', 'icon' => 'hashtag'],
+    'flag-checkered' => ['set' => 'heroicon-o', 'icon' => 'flag'],
+    'flag' => ['set' => 'heroicon-o', 'icon' => 'flag'],
     
     // === TAGS & LABELS ===
     'tag' => ['set' => 'heroicon-o', 'icon' => 'tag'],
@@ -176,6 +184,8 @@ return [
     'arrow-right-arrow-left' => ['set' => 'heroicon-o', 'icon' => 'arrow-path-rounded-square'],
     'info-circle' => ['set' => 'heroicon-o', 'icon' => 'information-circle'],
     'exclamation-triangle' => ['set' => 'heroicon-o', 'icon' => 'exclamation-triangle'],
+    'table' => ['set' => 'heroicon-o', 'icon' => 'table-cells'],
+    'rocket' => ['set' => 'heroicon-o', 'icon' => 'rocket-launch'],
     
     // === FALLBACK ===
     'default' => ['set' => 'heroicon-o', 'icon' => 'question-mark-circle'],
