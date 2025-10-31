@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\ModuleAccessService;
+use App\Models\ProspettoMensile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class MarketingController extends Controller
 {
@@ -169,5 +171,194 @@ class MarketingController extends Controller
     {
         $this->authorize('marketing.view');
         return view('admin.modules.marketing.controllo-sms');
+    }
+
+    // ===== PROSPETTO MENSILE =====
+
+    /**
+     * Lista Prospetti Mensili
+     */
+    public function prospettoMensile()
+    {
+        $this->authorize('marketing.view');
+        
+        $prospetti = ProspettoMensile::orderBy('anno', 'desc')
+            ->orderBy('mese', 'desc')
+            ->get();
+        
+        return view('admin.modules.marketing.prospetto-mensile.index', compact('prospetti'));
+    }
+
+    /**
+     * Crea nuovo prospetto mensile
+     */
+    public function prospettoMensileCreate()
+    {
+        $this->authorize('marketing.create');
+        
+        // Ottieni mesi e anni disponibili
+        $mesi = [
+            1 => 'Gennaio', 2 => 'Febbraio', 3 => 'Marzo', 4 => 'Aprile',
+            5 => 'Maggio', 6 => 'Giugno', 7 => 'Luglio', 8 => 'Agosto',
+            9 => 'Settembre', 10 => 'Ottobre', 11 => 'Novembre', 12 => 'Dicembre'
+        ];
+        
+        $anni = range(date('Y') - 1, date('Y') + 2);
+        
+        return view('admin.modules.marketing.prospetto-mensile.create', compact('mesi', 'anni'));
+    }
+
+    /**
+     * Salva nuovo prospetto mensile
+     */
+    public function prospettoMensileStore(Request $request)
+    {
+        $this->authorize('marketing.create');
+        
+        $validator = Validator::make($request->all(), [
+            'nome' => 'required|string|max:255|unique:prospetto_mensiles,nome',
+            'mese' => 'required|integer|min:1|max:12',
+            'anno' => 'required|integer|min:2020|max:2100',
+            'descrizione' => 'nullable|string',
+            'dati_json' => 'required|json',
+        ], [
+            'nome.required' => 'Il nome del prospetto è obbligatorio',
+            'nome.unique' => 'Esiste già un prospetto con questo nome',
+            'mese.required' => 'Il mese è obbligatorio',
+            'anno.required' => 'L\'anno è obbligatorio',
+            'dati_json.required' => 'I dati JSON sono obbligatori',
+            'dati_json.json' => 'I dati JSON non sono validi',
+        ]);
+        
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        
+        $datiAccounts = json_decode($request->dati_json, true);
+        
+        // Validazione struttura JSON
+        if (!isset($datiAccounts['accounts']) || !is_array($datiAccounts['accounts'])) {
+            return redirect()->back()
+                ->withErrors(['dati_json' => 'La struttura JSON non è valida. Deve contenere un array "accounts".'])
+                ->withInput();
+        }
+        
+        $prospetto = ProspettoMensile::create([
+            'nome' => $request->nome,
+            'mese' => $request->mese,
+            'anno' => $request->anno,
+            'descrizione' => $request->descrizione,
+            'dati_accounts' => $datiAccounts,
+            'attivo' => true,
+        ]);
+        
+        return redirect()->route('admin.marketing.prospetto_mensile.view', $prospetto->id)
+            ->with('success', 'Prospetto mensile creato con successo!');
+    }
+
+    /**
+     * Visualizza prospetto mensile
+     */
+    public function prospettoMensileView($id)
+    {
+        $this->authorize('marketing.view');
+        
+        $prospetto = ProspettoMensile::findOrFail($id);
+        
+        return view('admin.modules.marketing.prospetto-mensile.view', compact('prospetto'));
+    }
+
+    /**
+     * Modifica prospetto mensile
+     */
+    public function prospettoMensileEdit($id)
+    {
+        $this->authorize('marketing.edit');
+        
+        $prospetto = ProspettoMensile::findOrFail($id);
+        
+        $mesi = [
+            1 => 'Gennaio', 2 => 'Febbraio', 3 => 'Marzo', 4 => 'Aprile',
+            5 => 'Maggio', 6 => 'Giugno', 7 => 'Luglio', 8 => 'Agosto',
+            9 => 'Settembre', 10 => 'Ottobre', 11 => 'Novembre', 12 => 'Dicembre'
+        ];
+        
+        $anni = range(date('Y') - 1, date('Y') + 2);
+        
+        return view('admin.modules.marketing.prospetto-mensile.edit', compact('prospetto', 'mesi', 'anni'));
+    }
+
+    /**
+     * Aggiorna prospetto mensile
+     */
+    public function prospettoMensileUpdate(Request $request, $id)
+    {
+        $this->authorize('marketing.edit');
+        
+        $prospetto = ProspettoMensile::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'nome' => 'required|string|max:255|unique:prospetto_mensiles,nome,' . $id,
+            'mese' => 'required|integer|min:1|max:12',
+            'anno' => 'required|integer|min:2020|max:2100',
+            'descrizione' => 'nullable|string',
+            'dati_json' => 'required|json',
+        ]);
+        
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        
+        $datiAccounts = json_decode($request->dati_json, true);
+        
+        if (!isset($datiAccounts['accounts']) || !is_array($datiAccounts['accounts'])) {
+            return redirect()->back()
+                ->withErrors(['dati_json' => 'La struttura JSON non è valida.'])
+                ->withInput();
+        }
+        
+        $prospetto->update([
+            'nome' => $request->nome,
+            'mese' => $request->mese,
+            'anno' => $request->anno,
+            'descrizione' => $request->descrizione,
+            'dati_accounts' => $datiAccounts,
+        ]);
+        
+        return redirect()->route('admin.marketing.prospetto_mensile.view', $prospetto->id)
+            ->with('success', 'Prospetto mensile aggiornato con successo!');
+    }
+
+    /**
+     * Elimina prospetto mensile
+     */
+    public function prospettoMensileDestroy($id)
+    {
+        $this->authorize('marketing.delete');
+        
+        $prospetto = ProspettoMensile::findOrFail($id);
+        $prospetto->delete();
+        
+        return redirect()->route('admin.marketing.prospetto_mensile.index')
+            ->with('success', 'Prospetto mensile eliminato con successo!');
+    }
+
+    /**
+     * Toggle stato attivo
+     */
+    public function prospettoMensileToggleAttivo($id)
+    {
+        $this->authorize('marketing.edit');
+        
+        $prospetto = ProspettoMensile::findOrFail($id);
+        $prospetto->attivo = !$prospetto->attivo;
+        $prospetto->save();
+        
+        return redirect()->back()
+            ->with('success', 'Stato prospetto aggiornato con successo!');
     }
 }

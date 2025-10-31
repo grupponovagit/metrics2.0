@@ -429,6 +429,29 @@ Breadcrumbs::for('admin.marketing.controllo_sms', function (BreadcrumbTrail $tra
     $trail->push('Controllo SMS', route('admin.marketing.controllo_sms'));
 });
 
+// Prospetto Mensile
+Breadcrumbs::for('admin.marketing.prospetto_mensile.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.marketing.index');
+    $trail->push('Prospetto Mensile', route('admin.marketing.prospetto_mensile.index'));
+});
+
+Breadcrumbs::for('admin.marketing.prospetto_mensile.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.marketing.prospetto_mensile.index');
+    $trail->push('Crea Prospetto', route('admin.marketing.prospetto_mensile.create'));
+});
+
+Breadcrumbs::for('admin.marketing.prospetto_mensile.view', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.marketing.prospetto_mensile.index');
+    $prospettoId = is_object($id) ? $id->id : $id;
+    $trail->push('Visualizza #' . $prospettoId);
+});
+
+Breadcrumbs::for('admin.marketing.prospetto_mensile.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.marketing.prospetto_mensile.index');
+    $prospettoId = is_object($id) ? $id->id : $id;
+    $trail->push('Modifica #' . $prospettoId);
+});
+
 // Sottomenu ICT
 Breadcrumbs::for('admin.ict.calendario', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.ict.index');

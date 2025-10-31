@@ -185,6 +185,16 @@ Route::group([
         Route::get('/cruscotto-lead', 'MarketingController@cruscottoLead')->name('cruscotto_lead');
         Route::get('/costi-invio-messaggi', 'MarketingController@costiInvioMessaggi')->name('costi_invio_messaggi');
         Route::get('/controllo-sms', 'MarketingController@controlloSms')->name('controllo_sms');
+        
+        // Prospetto Mensile
+        Route::get('/prospetto-mensile', 'MarketingController@prospettoMensile')->name('prospetto_mensile.index');
+        Route::get('/prospetto-mensile/create', 'MarketingController@prospettoMensileCreate')->name('prospetto_mensile.create');
+        Route::post('/prospetto-mensile', 'MarketingController@prospettoMensileStore')->name('prospetto_mensile.store');
+        Route::get('/prospetto-mensile/{id}', 'MarketingController@prospettoMensileView')->name('prospetto_mensile.view');
+        Route::get('/prospetto-mensile/{id}/edit', 'MarketingController@prospettoMensileEdit')->name('prospetto_mensile.edit');
+        Route::put('/prospetto-mensile/{id}', 'MarketingController@prospettoMensileUpdate')->name('prospetto_mensile.update');
+        Route::delete('/prospetto-mensile/{id}', 'MarketingController@prospettoMensileDestroy')->name('prospetto_mensile.destroy');
+        Route::post('/prospetto-mensile/{id}/toggle-attivo', 'MarketingController@prospettoMensileToggleAttivo')->name('prospetto_mensile.toggle_attivo');
     });
 
     // Modulo ICT - Solo per ruoli tecnici

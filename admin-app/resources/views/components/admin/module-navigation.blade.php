@@ -258,6 +258,7 @@
                                         ['route' => 'admin.marketing.campaigns', 'icon' => 'bullhorn', 'title' => 'Campagne'],
                                         ['route' => 'admin.marketing.leads', 'icon' => 'users', 'title' => 'Lead'],
                                         ['route' => 'admin.marketing.cruscotto_lead', 'icon' => 'chart-line', 'title' => 'Cruscotto Lead'],
+                                        ['route' => 'admin.marketing.prospetto_mensile.index', 'icon' => 'calendar-alt', 'title' => 'Prospetto Mensile'],
                                         ['route' => 'admin.marketing.costi_invio_messaggi', 'icon' => 'paper-plane', 'title' => 'Costi Invio Messaggi'],
                                         ['route' => 'admin.marketing.controllo_sms', 'icon' => 'mobile-alt', 'title' => 'Controllo SMS']
                                     ];
@@ -265,8 +266,15 @@
                                 
                                 @foreach($marketingLinks as $link)
                                     <div class="submenu-item">
+                                        @php
+                                            // Per il prospetto mensile, evidenzia anche le sotto-rotte
+                                            $isLinkActive = request()->routeIs($link['route']);
+                                            if ($link['route'] === 'admin.marketing.prospetto_mensile.index') {
+                                                $isLinkActive = request()->routeIs('admin.marketing.prospetto_mensile.*');
+                                            }
+                                        @endphp
                                         <a href="{{ route($link['route']) }}" 
-                                           class="submenu-link {{ request()->routeIs($link['route']) ? 'submenu-link-active' : '' }}">
+                                           class="submenu-link {{ $isLinkActive ? 'submenu-link-active' : '' }}">
                                             <div class="submenu-icon">
                                                 <i class="fas fa-{{ $link['icon'] }}"></i>
                                             </div>
