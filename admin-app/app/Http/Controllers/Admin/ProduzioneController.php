@@ -591,6 +591,7 @@ class ProduzioneController extends Controller
 
     /**
      * API: Ottieni sedi per una specifica commessa
+     * Filtra anche per date e campagne, mostrando solo sedi con lavorazione
      */
     public function getSedi(Request $request)
     {
@@ -598,6 +599,8 @@ class ProduzioneController extends Controller
         
         $commessa = $request->input('commessa');
         $campagne = $request->input('campagne', []);
+        $dataInizio = $request->input('data_inizio');
+        $dataFine = $request->input('data_fine');
         
         if (!$commessa) {
             return response()->json([]);
@@ -607,11 +610,21 @@ class ProduzioneController extends Controller
             ->where('commessa', $commessa)
             ->distinct()
             ->whereNotNull('nome_sede')
-            ->where('nome_sede', '!=', '');
+            ->where('nome_sede', '!=', '')
+            // Mostra solo sedi che hanno effettivamente lavorato (almeno 1 prodotto)
+            ->where(function($q) {
+                $q->where('totale_vendite', '>', 0)
+                  ->orWhere('ok_definitivo', '>', 0);
+            });
         
         // Filtra per campagne se fornite
         if (!empty($campagne)) {
             $query->whereIn('campagna_id', $campagne);
+        }
+        
+        // Filtra per date se fornite
+        if ($dataInizio && $dataFine) {
+            $query->whereBetween('data_vendita', [$dataInizio, $dataFine]);
         }
         
         $sedi = $query->orderBy('nome_sede')

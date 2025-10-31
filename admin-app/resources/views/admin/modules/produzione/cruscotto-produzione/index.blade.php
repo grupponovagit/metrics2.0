@@ -380,7 +380,11 @@
             const selectedCampagne = Array.from(document.querySelectorAll('.campagna-checkbox:checked')).map(cb => cb.value);
             const sedeContainer = document.getElementById('sedeContainer');
             
-            console.log('loadSedi chiamato:', { commessa, selectedCampagne });
+            // Ottieni date dai filtri
+            const dataInizio = document.querySelector('input[name="data_inizio"]').value;
+            const dataFine = document.querySelector('input[name="data_fine"]').value;
+            
+            console.log('loadSedi chiamato:', { commessa, selectedCampagne, dataInizio, dataFine });
             
             // Reset dell'ultima checkbox sede selezionata
             lastCheckedSede = null;
@@ -394,6 +398,8 @@
             const params = new URLSearchParams();
             params.append('commessa', commessa);
             selectedCampagne.forEach(c => params.append('campagne[]', c));
+            if (dataInizio) params.append('data_inizio', dataInizio);
+            if (dataFine) params.append('data_fine', dataFine);
             
             console.log('Fetching sedi con URL:', `/admin/produzione/get-sedi?${params.toString()}`);
             
@@ -422,7 +428,7 @@
                         // Aggiungi event listener per shift-click e label click
                         attachLabelClickListeners('#sedeContainer', 'sede-checkbox');
                     } else {
-                        sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna sede disponibile</p>';
+                        sedeContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna sede con lavorazione nel periodo selezionato</p>';
                     }
                 })
                 .catch(error => {
