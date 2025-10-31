@@ -47,6 +47,10 @@
                                 Periodo
                             </th>
                             <th class="text-left">
+                                <x-ui.icon name="calendar-day" class="h-4 w-4 inline mr-2" />
+                                Giorni Lav.
+                            </th>
+                            <th class="text-left">
                                 <x-ui.icon name="euro-sign" class="h-4 w-4 inline mr-2" />
                                 Budget Mensile
                             </th>
@@ -79,6 +83,11 @@
                                             {{ \Carbon\Carbon::createFromDate($prospetto->anno, $prospetto->mese, 1)->locale('it')->translatedFormat('F Y') }}
                                         </span>
                                     </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-neutral">
+                                        {{ $prospetto->giorni_lavorativi ?? 24 }} gg
+                                    </span>
                                 </td>
                                 <td>
                                     <span class="font-semibold text-success">

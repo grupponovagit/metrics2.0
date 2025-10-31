@@ -12,6 +12,7 @@ class ProspettoMensile extends Model
         'nome',
         'mese',
         'anno',
+        'giorni_lavorativi',
         'descrizione',
         'dati_accounts',
         'attivo',
@@ -22,6 +23,7 @@ class ProspettoMensile extends Model
         'attivo' => 'boolean',
         'mese' => 'integer',
         'anno' => 'integer',
+        'giorni_lavorativi' => 'integer',
     ];
     
     /**
@@ -52,6 +54,7 @@ class ProspettoMensile extends Model
     
     /**
      * Calcola il budget mensile totale
+     * Formula: Budget giornaliero finale × giorni lavorativi
      * Esclude la settimana 0 (partenza) e usa l'ultima settimana effettiva
      */
     public function getBudgetMensileAttribute()
@@ -80,6 +83,8 @@ class ProspettoMensile extends Model
             }
         }
         
-        return $totalDailyBudget * 30;
+        // Usa i giorni lavorativi del prospetto (default 24 se non specificato)
+        $giorniLavorativi = $this->giorni_lavorativi ?? 24;
+        return $totalDailyBudget * $giorniLavorativi;
     }
 }

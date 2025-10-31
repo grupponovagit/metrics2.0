@@ -219,6 +219,7 @@ class MarketingController extends Controller
             'nome' => 'required|string|max:255|unique:prospetto_mensiles,nome',
             'mese' => 'required|integer|min:1|max:12',
             'anno' => 'required|integer|min:2020|max:2100',
+            'giorni_lavorativi' => 'required|integer|min:1|max:31',
             'descrizione' => 'nullable|string',
             'dati_json' => 'required|json',
         ], [
@@ -226,6 +227,9 @@ class MarketingController extends Controller
             'nome.unique' => 'Esiste già un prospetto con questo nome',
             'mese.required' => 'Il mese è obbligatorio',
             'anno.required' => 'L\'anno è obbligatorio',
+            'giorni_lavorativi.required' => 'I giorni lavorativi sono obbligatori',
+            'giorni_lavorativi.min' => 'I giorni lavorativi devono essere almeno 1',
+            'giorni_lavorativi.max' => 'I giorni lavorativi non possono superare 31',
             'dati_json.required' => 'I dati JSON sono obbligatori',
             'dati_json.json' => 'I dati JSON non sono validi',
         ]);
@@ -249,6 +253,7 @@ class MarketingController extends Controller
             'nome' => $request->nome,
             'mese' => $request->mese,
             'anno' => $request->anno,
+            'giorni_lavorativi' => $request->giorni_lavorativi,
             'descrizione' => $request->descrizione,
             'dati_accounts' => $datiAccounts,
             'attivo' => true,
@@ -303,6 +308,7 @@ class MarketingController extends Controller
             'nome' => 'required|string|max:255|unique:prospetto_mensiles,nome,' . $id,
             'mese' => 'required|integer|min:1|max:12',
             'anno' => 'required|integer|min:2020|max:2100',
+            'giorni_lavorativi' => 'required|integer|min:1|max:31',
             'descrizione' => 'nullable|string',
             'dati_json' => 'required|json',
         ]);
@@ -325,6 +331,7 @@ class MarketingController extends Controller
             'nome' => $request->nome,
             'mese' => $request->mese,
             'anno' => $request->anno,
+            'giorni_lavorativi' => $request->giorni_lavorativi,
             'descrizione' => $request->descrizione,
             'dati_accounts' => $datiAccounts,
         ]);

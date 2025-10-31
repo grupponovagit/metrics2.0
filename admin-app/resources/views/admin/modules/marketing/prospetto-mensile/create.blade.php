@@ -103,6 +103,34 @@
                         @enderror
                     </div>
                     
+                    {{-- Giorni Lavorativi --}}
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text font-semibold">Giorni Lavorativi *</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            name="giorni_lavorativi" 
+                            value="{{ old('giorni_lavorativi', 24) }}" 
+                            min="1" 
+                            max="31" 
+                            placeholder="es: 24" 
+                            class="input input-bordered w-full @error('giorni_lavorativi') input-error @enderror"
+                            required
+                        />
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">
+                                <x-ui.icon name="info-circle" class="h-3.5 w-3.5 inline" />
+                                Numero di giorni lavorativi nel mese (es: 24 = 6 giorni/settimana × 4 settimane)
+                            </span>
+                        </label>
+                        @error('giorni_lavorativi')
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ $message }}</span>
+                            </label>
+                        @enderror
+                    </div>
+                    
                     {{-- Descrizione --}}
                     <div class="form-control mb-4">
                         <label class="label">
