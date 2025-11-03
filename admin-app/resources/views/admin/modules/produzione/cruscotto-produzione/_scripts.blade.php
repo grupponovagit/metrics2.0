@@ -111,7 +111,7 @@
         const columnDropdown = document.querySelector('.dropdown.dropdown-end');
         if (view !== 'grafico') {
             if (columnDropdown) columnDropdown.classList.remove('hidden');
-            populateColumnControls(view);
+        populateColumnControls(view);
         } else {
             if (columnDropdown) columnDropdown.classList.add('hidden');
         }

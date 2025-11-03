@@ -41,6 +41,7 @@ class CalendarioAziendale extends Model
     
     /**
      * Calcola i giorni lavorativi rimanenti nel mese corrente
+     * ESCLUSO oggi
      */
     public static function giorniLavorativiRimanenti($anno = null, $mese = null)
     {
@@ -50,12 +51,13 @@ class CalendarioAziendale extends Model
         
         return self::where('anno', $anno)
             ->where('mese', $mese)
-            ->where('data', '>=', $oggi)
+            ->where('data', '>', $oggi)
             ->sum('peso_giornata');
     }
     
     /**
      * Calcola i giorni lavorativi già trascorsi nel mese corrente
+     * INCLUSO oggi
      */
     public static function giorniLavorativiTrascorsi($anno = null, $mese = null)
     {
@@ -65,7 +67,7 @@ class CalendarioAziendale extends Model
         
         return self::where('anno', $anno)
             ->where('mese', $mese)
-            ->where('data', '<', $oggi)
+            ->where('data', '<=', $oggi)
             ->sum('peso_giornata');
     }
     

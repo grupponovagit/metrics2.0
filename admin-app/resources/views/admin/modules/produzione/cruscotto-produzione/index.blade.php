@@ -543,8 +543,19 @@
                 const campagneFiltrate = @json($macroCampagnaFilters ?? []);
                 const sediFiltrate = @json($sedeFilters ?? []);
                 
-                // Carica campagne per la commessa
-                fetch(`/admin/produzione/get-campagne?commessa=${encodeURIComponent(commessaSelezionata)}`)
+                // Ottieni date dai filtri
+                const dataInizio = document.querySelector('input[name="data_inizio"]').value;
+                const dataFine = document.querySelector('input[name="data_fine"]').value;
+                
+                // Costruisci URL con parametri date per campagne
+                const paramsCampagne = new URLSearchParams({
+                    commessa: commessaSelezionata
+                });
+                if (dataInizio) paramsCampagne.append('data_inizio', dataInizio);
+                if (dataFine) paramsCampagne.append('data_fine', dataFine);
+                
+                // Carica campagne per la commessa con filtro date
+                fetch(`/admin/produzione/get-campagne?${paramsCampagne.toString()}`)
                     .then(response => response.json())
                     .then(campagneDisponibili => {
                         const campagnaContainer = document.getElementById('campagnaContainer');
@@ -571,6 +582,8 @@
                                 const params = new URLSearchParams();
                                 params.append('commessa', commessaSelezionata);
                                 campagneFiltrate.forEach(c => params.append('campagne[]', c));
+                                if (dataInizio) params.append('data_inizio', dataInizio);
+                                if (dataFine) params.append('data_fine', dataFine);
                                 
                                 fetch(`/admin/produzione/get-sedi?${params.toString()}`)
                                     .then(response => response.json())
