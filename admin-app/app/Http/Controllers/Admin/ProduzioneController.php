@@ -636,6 +636,7 @@ class ProduzioneController extends Controller
     /**
      * API: Ottieni macro campagne per una specifica commessa e sede
      * Filtra anche per intervallo di date se fornito
+     * Mostra SOLO campagne con almeno una sede che ha dati
      */
     public function getCampagne(Request $request)
     {
@@ -655,6 +656,13 @@ class ProduzioneController extends Controller
             ->distinct()
             ->whereNotNull('macro_campagna')
             ->where('macro_campagna', '!=', '')
+            // Mostra solo campagne che hanno almeno una sede con dati effettivi
+            ->where(function($q) {
+                $q->where('totale_vendite', '>', 0)
+                  ->orWhere('ok_definitivo', '>', 0)
+                  ->orWhere('ko_definitivo', '>', 0)
+                  ->orWhere('backlog', '>', 0);
+            })
             ->orderBy('macro_campagna')
             ->pluck('macro_campagna');
         
