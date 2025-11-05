@@ -10,9 +10,10 @@
         ['key' => 'backlog', 'label' => 'BackLog', 'toggleable' => true],
         ['key' => 'backlog_partner', 'label' => 'BackLog Partner', 'toggleable' => true],
         ['key' => 'ore', 'label' => 'Ore', 'toggleable' => true],
+        ['key' => 'fatturato', 'label' => 'Fatturato', 'toggleable' => true],
         ['key' => 'resa_prodotto', 'label' => 'Resa Prodotto', 'toggleable' => true],
         ['key' => 'resa_inserito', 'label' => 'Resa Inserito', 'toggleable' => true],
-        ['key' => 'resa_oraria', 'label' => 'R/H', 'toggleable' => true],
+        ['key' => 'ricavo_orario', 'label' => 'Ricavo/H', 'toggleable' => true],
     ]">
     <x-slot name="table">
         <thead class="bg-base-200" style="background-color: #f3f4f6 !important;">
@@ -65,6 +66,12 @@
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Ore</th>
 
+                {{-- Fatturato --}}
+                <th class="col-fatturato font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300"
+                    rowspan="2"
+                    style="min-width: 100px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Fatturato</th>
+
                 {{-- RESA --}}
                 <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
                     rowspan="2"
@@ -78,6 +85,10 @@
                     rowspan="2"
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     R/H</th>
+                <th class="col-ricavo_orario font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
+                    rowspan="2"
+                    style="min-width: 90px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Ricavo/H</th>
             </tr>
         </thead>
         <tbody>
@@ -89,6 +100,7 @@
                     'backlog_pda' => 0,
                     'backlog_partner_pda' => 0,
                     'ore' => 0,
+                    'fatturato' => 0,
                 ];
             @endphp
 
@@ -100,6 +112,7 @@
                     $totaleGiornaliero['backlog_pda'] += $datiGiorno['backlog_pda'] ?? 0;
                     $totaleGiornaliero['backlog_partner_pda'] += $datiGiorno['backlog_partner_pda'] ?? 0;
                     $totaleGiornaliero['ore'] += $datiGiorno['ore'] ?? 0;
+                    $totaleGiornaliero['fatturato'] += $datiGiorno['fatturato'] ?? 0;
                 @endphp
 
                 <tr>
@@ -145,6 +158,11 @@
                         {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
                     </td>
 
+                    {{-- Fatturato --}}
+                    <td class="col-fatturato text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                        {{ ($datiGiorno['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['fatturato'], 2, ',', '.') : '-' }}
+                    </td>
+
                     {{-- Resa Prodotto --}}
                     <td class="col-resa_prodotto text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                         {{ $datiGiorno['resa_prodotto'] ?? '-' }}
@@ -158,6 +176,11 @@
                     {{-- R/H --}}
                     <td class="col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                         {{ $datiGiorno['resa_oraria'] ?? '-' }}
+                    </td>
+
+                    {{-- Ricavo Orario --}}
+                    <td class="col-ricavo_orario text-center text-sm bg-indigo-50 border-r-2 border-base-300">
+                        {{ ($datiGiorno['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['ricavo_orario'], 2, ',', '.') : '-' }}
                     </td>
                 </tr>
             @empty
@@ -180,6 +203,10 @@
                         $totaleGiornaliero['ore'] > 0
                             ? round($totaleGiornaliero['inserito_pda'] / $totaleGiornaliero['ore'], 2)
                             : 0;
+                    $totaleGiornaliero['ricavo_orario'] =
+                        $totaleGiornaliero['ore'] > 0
+                            ? round($totaleGiornaliero['fatturato'] / $totaleGiornaliero['ore'], 2)
+                            : 0;
                 @endphp
 
                 <tr class="bg-slate-100 font-bold border-t-4 border-slate-400">
@@ -201,11 +228,15 @@
                         {{ number_format($totaleGiornaliero['backlog_partner_pda']) }}</td>
                     <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">
                         {{ number_format($totaleGiornaliero['ore'], 2) }}</td>
+                    <td class="col-fatturato text-center text-base bg-amber-100 border-r-2 border-slate-300">
+                        {{ $totaleGiornaliero['fatturato'] > 0 ? '€ ' . number_format($totaleGiornaliero['fatturato'], 2, ',', '.') : '-' }}</td>
                     <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleGiornaliero['resa_prodotto'] }}</td>
                     <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleGiornaliero['resa_inserito'] }}</td>
                     <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
+                    <td class="col-ricavo_orario text-center text-base bg-indigo-100 border-r-2 border-slate-300">
+                        {{ $totaleGiornaliero['ricavo_orario'] > 0 ? '€ ' . number_format($totaleGiornaliero['ricavo_orario'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @endif
         </tbody>

@@ -236,7 +236,8 @@ class ProduzioneController extends Controller
                 SUM(backlog) as backlog_pda,
                 SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo_totale
+                SUM(totale_kpi) as obiettivo_totale,
+                SUM(totale_abbattuto) as fatturato
             ')
             ->first();
         
@@ -244,6 +245,7 @@ class ProduzioneController extends Controller
         $ore_paf_globale = 0;
         $pezzi_paf_globale = 0;
         $resa_paf_globale = 0;
+        $fatturato_paf_globale = 0;
         
         if ($mostraPaf && $giorniLavoratiPerCampagna->isNotEmpty()) {
             // Media pesata dei giorni lavorati di tutte le campagne coinvolte
@@ -256,6 +258,7 @@ class ProduzioneController extends Controller
                 $ore_paf_globale = round(($kpiTotali->ore ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
                 $pezzi_paf_globale = round(($kpiTotali->inserito_pda ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
                 $resa_paf_globale = $ore_paf_globale > 0 ? round($pezzi_paf_globale / $ore_paf_globale, 2) : 0;
+                $fatturato_paf_globale = round(($kpiTotali->fatturato ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
             }
         }
         
@@ -267,11 +270,13 @@ class ProduzioneController extends Controller
             'backlog_partner_pda' => $kpiTotali->backlog_partner_pda ?? 0,
             'ore' => $kpiTotali->ore ?? 0,
             'obiettivo' => $kpiTotali->obiettivo_totale ?? 0,
+            'fatturato' => $kpiTotali->fatturato ?? 0,
             
             // Resa
             'resa_prodotto' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->prodotto_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_inserito' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_oraria' => 0, // R/H - Da implementare con dati futuri
+            'ricavo_orario' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->fatturato ?? 0) / $kpiTotali->ore, 2) : 0,
             
             // Obiettivi (al momento a 0 come richiesto)
             'obiettivo_mensile' => 0,
@@ -282,6 +287,7 @@ class ProduzioneController extends Controller
             'ore_paf' => $ore_paf_globale,
             'pezzi_paf' => $pezzi_paf_globale,
             'resa_paf' => $resa_paf_globale,
+            'fatturato_paf' => $fatturato_paf_globale,
             
             // Dati calendario
             'giorni_lavorativi_rimanenti' => $giorniLavorativiRimanenti,
@@ -300,7 +306,8 @@ class ProduzioneController extends Controller
                 SUM(backlog) as backlog_pda,
                 SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo
+                SUM(totale_kpi) as obiettivo,
+                SUM(totale_abbattuto) as fatturato
             ')
             ->groupBy('commessa', 'macro_campagna', 'nome_sede')
             ->orderBy('commessa')
@@ -315,6 +322,7 @@ class ProduzioneController extends Controller
                         $inseriti = (int)$data->inserito_pda;
                         $prodotto = (int)$data->prodotto_pda;
                         $ore = (float)$data->ore;
+                        $fatturato = (float)($data->fatturato ?? 0);
                         
                         // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
                         $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
@@ -323,6 +331,7 @@ class ProduzioneController extends Controller
                         // === CALCOLI RESA ===
                         $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                         $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
+                        $ricavo_orario = $ore > 0 ? round($fatturato / $ore, 2) : 0;
                         
                         // === CALCOLI OBIETTIVI ===
                         // Differenza Obj può essere negativa (è l'unico campo dove ha senso)
@@ -338,6 +347,7 @@ class ProduzioneController extends Controller
                         $ore_paf = 0;
                         $pezzi_paf = 0;
                         $resa_paf = 0;
+                        $fatturato_paf = 0;
                         
                         if ($mostraPaf) {
                             // Cerca i giorni lavorati per questa specifica combinazione sede+campagna
@@ -352,6 +362,7 @@ class ProduzioneController extends Controller
                                 $ore_paf = max(0, round($ore / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                                 $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                                $fatturato_paf = max(0, round($fatturato / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                             }
                         }
                         
@@ -368,11 +379,13 @@ class ProduzioneController extends Controller
                             'sede' => $data->sede,
                             'ore' => $ore,
                             'obiettivo' => (int)($data->obiettivo ?? 0),
+                            'fatturato' => $fatturato,
                             
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
                             'resa_oraria' => 0, // R/H - Da implementare con dati futuri
+                            'ricavo_orario' => $ricavo_orario,
                             
                             // === OBIETTIVI ===
                             'obiettivo_mensile' => round($obiettivoMensile, 0),
@@ -383,6 +396,7 @@ class ProduzioneController extends Controller
                             'ore_paf' => $ore_paf,
                             'pezzi_paf' => $pezzi_paf,
                             'resa_paf' => $resa_paf,
+                            'fatturato_paf' => $fatturato_paf,
                         ];
                     });
                 });
@@ -399,7 +413,8 @@ class ProduzioneController extends Controller
                 SUM(backlog) as backlog_pda,
                 SUM(backlog_partner) as backlog_partner_pda,
                 SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo
+                SUM(totale_kpi) as obiettivo,
+                SUM(totale_abbattuto) as fatturato
             ')
             ->groupBy('commessa', 'nome_sede')
             ->orderBy('commessa')
@@ -412,6 +427,7 @@ class ProduzioneController extends Controller
                     $inseriti = (int)$data->inserito_pda;
                     $prodotto = (int)$data->prodotto_pda;
                     $ore = (float)$data->ore;
+                    $fatturato = (float)($data->fatturato ?? 0);
                     
                     // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
                     $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
@@ -420,6 +436,7 @@ class ProduzioneController extends Controller
                     // === CALCOLI RESA ===
                     $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                     $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
+                    $ricavo_orario = $ore > 0 ? round($fatturato / $ore, 2) : 0;
                     
                     // === CALCOLI OBIETTIVI ===
                     // Differenza Obj può essere negativa (è l'unico campo dove ha senso)
@@ -436,6 +453,7 @@ class ProduzioneController extends Controller
                     $ore_paf = 0;
                     $pezzi_paf = 0;
                     $resa_paf = 0;
+                    $fatturato_paf = 0;
                     
                     if ($mostraPaf) {
                         // Somma giorni lavorati per tutte le campagne di questa sede
@@ -459,6 +477,7 @@ class ProduzioneController extends Controller
                                 $ore_paf = max(0, round($ore / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                                 $pezzi_paf = max(0, round($inseriti / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
+                                $fatturato_paf = max(0, round($fatturato / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                             }
                         }
                     }
@@ -477,11 +496,13 @@ class ProduzioneController extends Controller
                             'sede' => $data->sede,
                             'ore' => $ore,
                             'obiettivo' => (int)($data->obiettivo ?? 0),
+                            'fatturato' => $fatturato,
                             
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
                             'resa_oraria' => 0, // R/H - Da implementare con dati futuri
+                            'ricavo_orario' => $ricavo_orario,
                             
                             // === OBIETTIVI ===
                             'obiettivo_mensile' => round($obiettivoMensile, 0),
@@ -492,6 +513,7 @@ class ProduzioneController extends Controller
                             'ore_paf' => $ore_paf,
                             'pezzi_paf' => $pezzi_paf,
                             'resa_paf' => $resa_paf,
+                            'fatturato_paf' => $fatturato_paf,
                         ]
                     ]);
                 });
@@ -507,7 +529,8 @@ class ProduzioneController extends Controller
                 SUM(ko_definitivo) as ko_pda,
                 SUM(backlog) as backlog_pda,
                 SUM(backlog_partner) as backlog_partner_pda,
-                SUM(ore_lavorate) as ore
+                SUM(ore_lavorate) as ore,
+                SUM(totale_abbattuto) as fatturato
             ')
             ->groupBy('data_vendita', 'commessa')
             ->orderBy('data_vendita', 'desc')
@@ -517,10 +540,12 @@ class ProduzioneController extends Controller
                 $inseriti = (int)$data->inserito_pda;
                 $prodotto = (int)$data->prodotto_pda;
                 $ore = (float)$data->ore;
+                $fatturato = (float)($data->fatturato ?? 0);
                 
                 // Calcoli resa
                 $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
                 $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
+                $ricavo_orario = $ore > 0 ? round($fatturato / $ore, 2) : 0;
                 
                 return [
                     'data' => $data->data_vendita,
@@ -531,9 +556,11 @@ class ProduzioneController extends Controller
                     'backlog_pda' => (int)$data->backlog_pda,
                     'backlog_partner_pda' => (int)$data->backlog_partner_pda,
                     'ore' => $ore,
+                    'fatturato' => $fatturato,
                     'resa_prodotto' => $resa_prodotto,
                     'resa_inserito' => $resa_inserito,
                     'resa_oraria' => 0, // R/H - Da implementare
+                    'ricavo_orario' => $ricavo_orario,
                 ];
             });
         
@@ -550,6 +577,7 @@ class ProduzioneController extends Controller
         if ($commessaFilter) {
             $sedi = DB::table('report_produzione_pivot_cache')
                 ->where('commessa', $commessaFilter)
+                ->where('ore_lavorate', '>', 0) // Mostra solo sedi con ore lavorate
                 ->distinct()
                 ->whereNotNull('nome_sede')
                 ->where('nome_sede', '!=', '')
@@ -611,11 +639,8 @@ class ProduzioneController extends Controller
             ->distinct()
             ->whereNotNull('nome_sede')
             ->where('nome_sede', '!=', '')
-            // Mostra solo sedi che hanno effettivamente lavorato (almeno 1 prodotto)
-            ->where(function($q) {
-                $q->where('totale_vendite', '>', 0)
-                  ->orWhere('ok_definitivo', '>', 0);
-            });
+            // Mostra solo sedi che hanno effettivamente lavorato (ore > 0)
+            ->where('ore_lavorate', '>', 0);
         
         // Filtra per campagne se fornite
         if (!empty($campagne)) {
@@ -950,6 +975,103 @@ class ProduzioneController extends Controller
                 'success' => false,
                 'message' => 'Errore durante l\'aggiornamento: ' . $e->getMessage()
             ], 500);
+        }
+    }
+    
+    /**
+     * Inizializza i target per un nuovo mese copiando la struttura del mese precedente con valori a 0
+     */
+    public function inizializzaMese(Request $request)
+    {
+        $this->authorize('produzione.create');
+        
+        $validated = $request->validate([
+            'mese_destinazione' => 'required|integer|min:1|max:12',
+            'anno_destinazione' => 'required|integer|min:2020|max:2030',
+        ], [
+            'mese_destinazione.required' => 'Il mese di destinazione è obbligatorio',
+            'anno_destinazione.required' => 'L\'anno di destinazione è obbligatorio',
+        ]);
+        
+        $meseDestinazione = $validated['mese_destinazione'];
+        $annoDestinazione = $validated['anno_destinazione'];
+        
+        // Calcola mese precedente
+        $mesePrecedente = $meseDestinazione - 1;
+        $annoPrecedente = $annoDestinazione;
+        
+        if ($mesePrecedente === 0) {
+            $mesePrecedente = 12;
+            $annoPrecedente = $annoDestinazione - 1;
+        }
+        
+        try {
+            DB::beginTransaction();
+            
+            // Recupera tutti i target del mese precedente
+            $targetPrecedenti = KpiTargetMensile::where('anno', $annoPrecedente)
+                ->where('mese', $mesePrecedente)
+                ->get();
+            
+            if ($targetPrecedenti->isEmpty()) {
+                DB::rollBack();
+                return redirect()
+                    ->route('admin.produzione.kpi_target', [
+                        'anno' => $annoDestinazione, 
+                        'mese' => sprintf('%02d', $meseDestinazione)
+                    ])
+                    ->with('error', "Nessun target trovato per il mese precedente ({$mesePrecedente}/{$annoPrecedente}). Impossibile inizializzare.");
+            }
+            
+            // Elimina eventuali target esistenti per il mese di destinazione
+            $targetEliminati = KpiTargetMensile::where('anno', $annoDestinazione)
+                ->where('mese', $meseDestinazione)
+                ->count();
+            
+            if ($targetEliminati > 0) {
+                KpiTargetMensile::where('anno', $annoDestinazione)
+                    ->where('mese', $meseDestinazione)
+                    ->delete();
+            }
+            
+            // Copia la struttura con valore_kpi = 0
+            $targetCreati = 0;
+            foreach ($targetPrecedenti as $targetPrecedente) {
+                KpiTargetMensile::create([
+                    'commessa' => $targetPrecedente->commessa,
+                    'sede_crm' => $targetPrecedente->sede_crm,
+                    'sede_estesa' => $targetPrecedente->sede_estesa,
+                    'macro_campagna' => $targetPrecedente->macro_campagna,
+                    'nome_kpi' => $targetPrecedente->nome_kpi,
+                    'tipo_kpi' => $targetPrecedente->tipo_kpi,
+                    'tipologia_obiettivo' => $targetPrecedente->tipologia_obiettivo,
+                    'tipologia_valore_obiettivo' => $targetPrecedente->tipologia_valore_obiettivo,
+                    'anno' => $annoDestinazione,
+                    'mese' => $meseDestinazione,
+                    'valore_kpi' => 0, // Inizializza a 0
+                    'kpi_variato' => null,
+                    'data_validita_inizio' => null,
+                    'data_validita_fine' => null,
+                ]);
+                $targetCreati++;
+            }
+            
+            DB::commit();
+            
+            $messaggioEliminati = $targetEliminati > 0 
+                ? " (sostituiti {$targetEliminati} target esistenti)" 
+                : "";
+            
+            return redirect()
+                ->route('admin.produzione.kpi_target', [
+                    'anno' => $annoDestinazione, 
+                    'mese' => sprintf('%02d', $meseDestinazione)
+                ])
+                ->with('success', "Inizializzazione completata! Creati {$targetCreati} target per {$meseDestinazione}/{$annoDestinazione}{$messaggioEliminati}. Ora puoi modificare manualmente i valori.");
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Errore durante l\'inizializzazione: ' . $e->getMessage());
         }
     }
 

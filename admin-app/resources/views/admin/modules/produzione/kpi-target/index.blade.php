@@ -57,10 +57,16 @@
                 />
             </div>
             
-            <div>
+            <div class="flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     <x-ui.icon name="search" class="h-4 w-4" />
                     Filtra
+                </button>
+                
+                {{-- Pulsante Inizializza Mese --}}
+                <button type="button" onclick="openInizializzaMeseModal()" class="btn btn-success btn-outline">
+                    <x-ui.icon name="plus-circle" class="h-4 w-4" />
+                    Inizializza Mese
                 </button>
             </div>
         </form>
@@ -322,6 +328,102 @@
         <input type="hidden" name="ids" id="bulk-delete-ids-target">
     </form>
     
+    {{-- MODAL INIZIALIZZA MESE --}}
+    <dialog id="inizializza-mese-modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-lg mb-4">
+                <x-ui.icon name="plus-circle" class="h-5 w-5 inline text-success" />
+                Inizializza Target per Nuovo Mese
+            </h3>
+            
+            <form id="form-inizializza-mese" action="{{ route('admin.produzione.kpi_target.inizializza_mese') }}" method="POST">
+                @csrf
+                
+                <div class="space-y-4">
+                    {{-- Alert Info --}}
+                    <div class="alert alert-info">
+                        <x-ui.icon name="info-circle" class="h-5 w-5" />
+                        <div>
+                            <p class="font-semibold">Cosa fa questa funzione?</p>
+                            <p class="text-sm">Copia tutti i target del mese precedente nel mese selezionato, inizializzando i valori a 0. Successivamente potrai modificare manualmente i valori.</p>
+                        </div>
+                    </div>
+                    
+                    {{-- Mese di Destinazione --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Mese Destinazione <span class="text-error">*</span></span>
+                            </label>
+                            <select name="mese_destinazione" id="init-mese" class="select select-bordered" required>
+                                <option value="">-- Seleziona mese --</option>
+                                <option value="01">Gennaio</option>
+                                <option value="02">Febbraio</option>
+                                <option value="03">Marzo</option>
+                                <option value="04">Aprile</option>
+                                <option value="05">Maggio</option>
+                                <option value="06">Giugno</option>
+                                <option value="07">Luglio</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Settembre</option>
+                                <option value="10">Ottobre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Dicembre</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Anno Destinazione <span class="text-error">*</span></span>
+                            </label>
+                            <input 
+                                type="number" 
+                                name="anno_destinazione" 
+                                id="init-anno"
+                                value="{{ date('Y') }}" 
+                                min="2020" 
+                                max="2030"
+                                class="input input-bordered"
+                                required
+                            />
+                        </div>
+                    </div>
+                    
+                    {{-- Anteprima Sorgente --}}
+                    <div class="bg-base-200 p-4 rounded-lg">
+                        <p class="text-sm font-semibold mb-2">
+                            <x-ui.icon name="arrow-down" class="h-4 w-4 inline" />
+                            Verrà copiata la struttura dal mese precedente:
+                        </p>
+                        <p class="text-sm text-base-content/70" id="preview-mese-sorgente">
+                            (seleziona un mese per vedere l'anteprima)
+                        </p>
+                    </div>
+                    
+                    {{-- Alert Warning --}}
+                    <div class="alert alert-warning">
+                        <x-ui.icon name="exclamation-triangle" class="h-5 w-5" />
+                        <div>
+                            <p class="font-semibold">Attenzione!</p>
+                            <p class="text-sm">Se esistono già target per il mese selezionato, questa operazione li eliminerà e li sostituirà con i nuovi.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="closeInizializzaMeseModal()">Annulla</button>
+                    <button type="submit" class="btn btn-success">
+                        <x-ui.icon name="check" class="h-4 w-4" />
+                        Conferma Inizializzazione
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    
     {{-- MODAL VARIAZIONE KPI --}}
     <dialog id="variazione-modal" class="modal">
         <div class="modal-box">
@@ -411,6 +513,67 @@
     </dialog>
     
     <script>
+        // ===== GESTIONE MODAL INIZIALIZZA MESE =====
+        function openInizializzaMeseModal() {
+            const modal = document.getElementById('inizializza-mese-modal');
+            
+            // Pre-compila con il mese corrente (quello visualizzato)
+            const meseCorrente = '{{ str_pad($mese, 2, "0", STR_PAD_LEFT) }}';
+            const annoCorrente = '{{ $anno }}';
+            
+            document.getElementById('init-mese').value = meseCorrente;
+            document.getElementById('init-anno').value = annoCorrente;
+            
+            // Aggiorna preview
+            updatePreviewMeseSorgente();
+            
+            // Apri modal
+            modal.showModal();
+        }
+        
+        function closeInizializzaMeseModal() {
+            const modal = document.getElementById('inizializza-mese-modal');
+            modal.close();
+        }
+        
+        function updatePreviewMeseSorgente() {
+            const mese = parseInt(document.getElementById('init-mese').value);
+            const anno = parseInt(document.getElementById('init-anno').value);
+            
+            if (!mese || !anno) {
+                document.getElementById('preview-mese-sorgente').textContent = '(seleziona un mese per vedere l\'anteprima)';
+                return;
+            }
+            
+            // Calcola mese precedente
+            let mesePrecedente = mese - 1;
+            let annoPrecedente = anno;
+            
+            if (mesePrecedente === 0) {
+                mesePrecedente = 12;
+                annoPrecedente = anno - 1;
+            }
+            
+            const nomiMesi = [
+                '', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+            ];
+            
+            document.getElementById('preview-mese-sorgente').innerHTML = 
+                `<strong>${nomiMesi[mesePrecedente]} ${annoPrecedente}</strong> → <strong>${nomiMesi[mese]} ${anno}</strong> (valori inizializzati a 0)`;
+        }
+        
+        // Event listener per aggiornare preview quando cambiano i valori
+        document.addEventListener('DOMContentLoaded', function() {
+            const initMese = document.getElementById('init-mese');
+            const initAnno = document.getElementById('init-anno');
+            
+            if (initMese && initAnno) {
+                initMese.addEventListener('change', updatePreviewMeseSorgente);
+                initAnno.addEventListener('input', updatePreviewMeseSorgente);
+            }
+        });
+        
         // Switch tra tab
         function switchTab(tab) {
             document.getElementById('tab-target').classList.remove('tab-active');

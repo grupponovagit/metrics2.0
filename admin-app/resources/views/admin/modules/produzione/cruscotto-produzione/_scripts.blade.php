@@ -14,9 +14,10 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
+            { key: 'fatturato', label: 'Fatturato' },
             { key: 'resa_prodotto', label: 'Resa Prod' },
             { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'resa_oraria', label: 'R/H' },
+            { key: 'ricavo_orario', label: 'Ricavo/H' },
             { key: 'obiettivi', label: 'Obiettivi (tutti)' },
             { key: 'paf-mensile', label: 'PAF Mensile (tutti)' }
         ],
@@ -27,9 +28,10 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
+            { key: 'fatturato', label: 'Fatturato' },
             { key: 'resa_prodotto', label: 'Resa Prod' },
             { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'resa_oraria', label: 'R/H' },
+            { key: 'ricavo_orario', label: 'Ricavo/H' },
             { key: 'obiettivi', label: 'Obiettivi (tutti)' },
             { key: 'paf-mensile', label: 'PAF Mensile (tutti)' }
         ],
@@ -40,11 +42,10 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
+            { key: 'fatturato', label: 'Fatturato' },
             { key: 'resa_prodotto', label: 'Resa Prod' },
             { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'resa_oraria', label: 'R/H' },
-            { key: 'obiettivi', label: 'Obiettivi (tutti)' },
-            { key: 'paf-mensile', label: 'PAF Mensile (tutti)' }
+            { key: 'ricavo_orario', label: 'Ricavo/H' }
         ]
     };
     

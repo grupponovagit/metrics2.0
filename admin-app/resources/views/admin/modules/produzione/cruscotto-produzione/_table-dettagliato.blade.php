@@ -11,9 +11,10 @@
         ['key' => 'backlog', 'label' => 'BackLog', 'toggleable' => true],
         ['key' => 'backlog_partner', 'label' => 'BackLog Partner', 'toggleable' => true],
         ['key' => 'ore', 'label' => 'Ore', 'toggleable' => true],
+        ['key' => 'fatturato', 'label' => 'Fatturato', 'toggleable' => true],
         ['key' => 'resa_prodotto', 'label' => 'Resa Prodotto', 'toggleable' => true],
         ['key' => 'resa_inserito', 'label' => 'Resa Inserito', 'toggleable' => true],
-        ['key' => 'resa_oraria', 'label' => 'R/H', 'toggleable' => true],
+        ['key' => 'ricavo_orario', 'label' => 'Ricavo/H', 'toggleable' => true],
         ['key' => 'paf', 'label' => 'PAF', 'toggleable' => true],
     ]">
     <x-slot name="table">
@@ -65,6 +66,12 @@
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Ore</th>
 
+                {{-- Fatturato --}}
+                <th class="col-fatturato font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300"
+                    rowspan="2"
+                    style="min-width: 100px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Fatturato</th>
+
                 {{-- RESA --}}
                 <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
                     rowspan="2"
@@ -78,6 +85,10 @@
                     rowspan="2"
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     R/H</th>
+                <th class="col-ricavo_orario font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
+                    rowspan="2"
+                    style="min-width: 90px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Ricavo/H</th>
 
                 {{-- OBIETTIVI (3 sottocolonne) --}}
                 <th class="col-obiettivi font-bold text-sm uppercase tracking-wider text-center bg-teal-100 border-r-2 border-base-300"
@@ -85,10 +96,10 @@
                     style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Obiettivi</th>
 
-                {{-- PAF MENSILE (3 sottocolonne) --}}
+                {{-- PAF MENSILE (4 sottocolonne) --}}
                 <th class="col-paf-mensile font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300"
-                    colspan="3"
-                    style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="4"
+                    style="min-width: 320px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Paf Mensile</th>
             </tr>
             <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
@@ -105,8 +116,10 @@
                     style="min-width: 80px; width: auto;">Ore Paf</th>
                 <th class="col-paf-mensile col-paf-pezzi font-bold text-xs text-center bg-purple-50 border-r border-base-200"
                     style="min-width: 80px; width: auto;">Pezzi Paf</th>
-                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
+                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r border-base-200"
                     style="min-width: 80px; width: auto;">Resa Paf</th>
+                <th class="col-paf-mensile col-paf-fatturato font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
+                    style="min-width: 80px; width: auto;">Fatt. Paf</th>
             </tr>
         </thead>
         <tbody>
@@ -182,6 +195,11 @@
                                 {{ ($datiCampagna['ore'] ?? 0) > 0 ? number_format($datiCampagna['ore'], 2) : '-' }}
                             </td>
 
+                            {{-- Fatturato --}}
+                            <td class="col-fatturato text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                                {{ ($datiCampagna['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato'], 2, ',', '.') : '-' }}
+                            </td>
+
                             {{-- Resa Prodotto --}}
                             <td class="col-resa_prodotto text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_prodotto'] ?? '-' }}
@@ -195,6 +213,11 @@
                             {{-- R/H --}}
                             <td class="col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_oraria'] ?? '-' }}
+                            </td>
+
+                            {{-- Ricavo Orario --}}
+                            <td class="col-ricavo_orario text-center text-sm bg-indigo-50 border-r-2 border-base-300">
+                                {{ ($datiCampagna['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['ricavo_orario'], 2, ',', '.') : '-' }}
                             </td>
 
                             {{-- OBIETTIVI --}}
@@ -217,8 +240,11 @@
                                 class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-50 border-r border-base-200">
                                 {{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}</td>
                             <td
-                                class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r-2 border-base-300">
+                                class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r border-base-200">
                                 {{ $datiCampagna['resa_paf'] ?? 0 }}</td>
+                            <td
+                                class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-50 border-r-2 border-base-300">
+                                {{ ($datiCampagna['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                         </tr>
                     @endforeach
                 @endforeach
@@ -232,8 +258,10 @@
                         'backlog_pda' => 0,
                         'backlog_partner_pda' => 0,
                         'ore' => 0,
+                        'fatturato' => 0,
                         'ore_paf' => 0,
                         'pezzi_paf' => 0,
+                        'fatturato_paf' => 0,
                         'obiettivo_mensile' => 0,
                     ];
 
@@ -245,8 +273,10 @@
                             $totaleCliente['backlog_pda'] += $dati['backlog_pda'] ?? 0;
                             $totaleCliente['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
                             $totaleCliente['ore'] += $dati['ore'] ?? 0;
+                            $totaleCliente['fatturato'] += $dati['fatturato'] ?? 0;
                             $totaleCliente['ore_paf'] += $dati['ore_paf'] ?? 0;
                             $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                            $totaleCliente['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
                             $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
                         }
                     }
@@ -259,6 +289,10 @@
                     $totaleCliente['resa_inserito'] =
                         $totaleCliente['ore'] > 0
                             ? round($totaleCliente['inserito_pda'] / $totaleCliente['ore'], 2)
+                            : 0;
+                    $totaleCliente['ricavo_orario'] =
+                        $totaleCliente['ore'] > 0
+                            ? round($totaleCliente['fatturato'] / $totaleCliente['ore'], 2)
                             : 0;
                     $totaleCliente['resa_paf'] =
                         $totaleCliente['ore_paf'] > 0
@@ -294,12 +328,16 @@
                         {{ number_format($totaleCliente['backlog_partner_pda']) }}</td>
                     <td class="col-ore text-center text-sm bg-cyan-100 border-r-2 border-slate-300">
                         {{ number_format($totaleCliente['ore'], 2) }}</td>
+                    <td class="col-fatturato text-center text-sm bg-amber-100 border-r-2 border-slate-300">
+                        {{ $totaleCliente['fatturato'] > 0 ? '€ ' . number_format($totaleCliente['fatturato'], 2, ',', '.') : '-' }}</td>
                     <td class="col-resa_prodotto text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_prodotto'] }}</td>
                     <td class="col-resa_inserito text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_inserito'] }}</td>
                     <td class="col-resa_oraria text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
+                    <td class="col-ricavo_orario text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
+                        {{ $totaleCliente['ricavo_orario'] > 0 ? '€ ' . number_format($totaleCliente['ricavo_orario'], 2, ',', '.') : '-' }}</td>
 
                     {{-- Obiettivi --}}
                     <td
@@ -320,8 +358,11 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-100 border-r border-slate-200">
                         {{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r-2 border-slate-300">
+                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r border-slate-200">
                         {{ $totaleCliente['resa_paf'] }}</td>
+                    <td
+                        class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-100 border-r-2 border-slate-300">
+                        {{ $totaleCliente['fatturato_paf'] > 0 ? '€ ' . number_format($totaleCliente['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -345,10 +386,12 @@
                         'backlog_pda' => 0,
                         'backlog_partner_pda' => 0,
                         'ore' => 0,
+                        'fatturato' => 0,
                         'resa_prodotto' => 0,
                         'resa_inserito' => 0,
                         'ore_paf' => 0,
                         'pezzi_paf' => 0,
+                        'fatturato_paf' => 0,
                         'resa_paf' => 0,
                     ];
 
@@ -361,8 +404,10 @@
                                 $totali['backlog_pda'] += $dati['backlog_pda'] ?? 0;
                                 $totali['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
                                 $totali['ore'] += $dati['ore'] ?? 0;
+                                $totali['fatturato'] += $dati['fatturato'] ?? 0;
                                 $totali['ore_paf'] += $dati['ore_paf'] ?? 0;
                                 $totali['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                                $totali['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
                             }
                         }
                     }
@@ -372,6 +417,8 @@
                         $totali['ore'] > 0 ? round($totali['prodotto_pda'] / $totali['ore'], 2) : 0;
                     $totali['resa_inserito'] =
                         $totali['ore'] > 0 ? round($totali['inserito_pda'] / $totali['ore'], 2) : 0;
+                    $totali['ricavo_orario'] =
+                        $totali['ore'] > 0 ? round($totali['fatturato'] / $totali['ore'], 2) : 0;
                     $totali['resa_paf'] =
                         $totali['ore_paf'] > 0 ? round($totali['pezzi_paf'] / $totali['ore_paf'], 2) : 0;
                 @endphp
@@ -391,12 +438,16 @@
                         {{ number_format($totali['backlog_partner_pda']) }}</td>
                     <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">
                         {{ number_format($totali['ore'], 2) }}</td>
+                    <td class="col-fatturato text-center text-base bg-amber-100 border-r-2 border-slate-300">
+                        {{ $totali['fatturato'] > 0 ? '€ ' . number_format($totali['fatturato'], 2, ',', '.') : '-' }}</td>
                     <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totali['resa_prodotto'] }}</td>
                     <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totali['resa_inserito'] }}</td>
                     <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totali['resa_oraria'] ?? 0 }}</td>
+                    <td class="col-ricavo_orario text-center text-base bg-indigo-100 border-r-2 border-slate-300">
+                        {{ $totali['ricavo_orario'] > 0 ? '€ ' . number_format($totali['ricavo_orario'], 2, ',', '.') : '-' }}</td>
 
                     {{-- Obiettivi (al momento a 0) --}}
                     <td
@@ -417,8 +468,11 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-sm bg-purple-100 border-r border-slate-200">
                         {{ number_format($totali['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r-2 border-slate-300">
+                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r border-slate-200">
                         {{ $totali['resa_paf'] }}</td>
+                    <td
+                        class="col-paf-mensile col-paf-fatturato text-center text-sm bg-purple-100 border-r-2 border-slate-300">
+                        {{ $totali['fatturato_paf'] > 0 ? '€ ' . number_format($totali['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @endif
         </tbody>

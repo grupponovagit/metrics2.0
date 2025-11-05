@@ -160,6 +160,7 @@ Route::group([
         Route::get('/kpi-target', 'ProduzioneController@kpiTarget')->name('kpi_target');
         Route::get('/kpi-target/create', 'ProduzioneController@createKpiTarget')->name('kpi_target.create');
         Route::post('/kpi-target/store', 'ProduzioneController@storeKpiTarget')->name('kpi_target.store');
+        Route::post('/kpi-target/inizializza-mese', 'ProduzioneController@inizializzaMese')->name('kpi_target.inizializza_mese');
         Route::get('/kpi-target/{id}', 'ProduzioneController@showKpiTarget')->name('kpi_target.show');
         Route::post('/kpi-target/{id}/update-field', 'ProduzioneController@updateKpiField')->name('kpi_target.update_field');
         Route::post('/kpi-target/{id}/update-variazione', 'ProduzioneController@updateKpiVariazione')->name('kpi_target.update_variazione');
