@@ -14,12 +14,10 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
-            { key: 'fatturato', label: 'Fatturato' },
-            { key: 'resa_prodotto', label: 'Resa Prod' },
-            { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'ricavo_orario', label: 'Ricavo/H' },
-            { key: 'obiettivi', label: 'Obiettivi (tutti)' },
-            { key: 'paf-mensile', label: 'PAF Mensile (tutti)' }
+            { key: 'economics', label: 'Economics (tutti)', subColumns: ['fatturato', 'ricavo_orario'] },
+            { key: 'resa', label: 'Resa (tutti)', subColumns: ['resa_prodotto', 'resa_inserito', 'resa_oraria'] },
+            { key: 'obiettivi', label: 'Obiettivi (tutti)', subColumns: ['obiettivi-mensile', 'obiettivi-passo', 'obiettivi-diff'] },
+            { key: 'paf-mensile', label: 'PAF Mensile (tutti)', subColumns: ['paf-ore', 'paf-pezzi', 'paf-resa', 'paf-fatturato'] }
         ],
         'sintetico': [
             { key: 'prodotto', label: 'Prodotto' },
@@ -28,12 +26,10 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
-            { key: 'fatturato', label: 'Fatturato' },
-            { key: 'resa_prodotto', label: 'Resa Prod' },
-            { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'ricavo_orario', label: 'Ricavo/H' },
-            { key: 'obiettivi', label: 'Obiettivi (tutti)' },
-            { key: 'paf-mensile', label: 'PAF Mensile (tutti)' }
+            { key: 'economics', label: 'Economics (tutti)', subColumns: ['fatturato', 'ricavo_orario', 'fatturato_paf'] },
+            { key: 'resa', label: 'Resa (tutti)', subColumns: ['resa_prodotto', 'resa_inserito', 'resa_oraria'] },
+            { key: 'obiettivi', label: 'Obiettivi (tutti)', subColumns: ['obiettivi-mensile', 'obiettivi-passo', 'obiettivi-diff'] },
+            { key: 'paf-mensile', label: 'PAF Mensile (tutti)', subColumns: ['paf-ore', 'paf-pezzi', 'paf-resa', 'paf-fatturato'] }
         ],
         'giornaliero': [
             { key: 'prodotto', label: 'Prodotto' },
@@ -42,10 +38,8 @@
             { key: 'backlog', label: 'BackLog' },
             { key: 'backlog_partner', label: 'BackLog Partner' },
             { key: 'ore', label: 'Ore' },
-            { key: 'fatturato', label: 'Fatturato' },
-            { key: 'resa_prodotto', label: 'Resa Prod' },
-            { key: 'resa_inserito', label: 'Resa Ins' },
-            { key: 'ricavo_orario', label: 'Ricavo/H' }
+            { key: 'economics', label: 'Economics (tutti)', subColumns: ['fatturato', 'ricavo_orario'] },
+            { key: 'resa', label: 'Resa (tutti)', subColumns: ['resa_prodotto', 'resa_inserito', 'resa_oraria'] }
         ]
     };
     
@@ -160,11 +154,30 @@
         const tableId = `table-${table}`;
         const displayValue = isVisible ? '' : 'none';
         
-        // Nascondi/mostra tutte le celle con classe .col-{columnKey}
-        const cells = document.querySelectorAll(`#${tableId} .col-${columnKey}`);
-        cells.forEach(cell => {
-            cell.style.display = displayValue;
-        });
+        // Trova la configurazione della colonna
+        const columnConfig = tableColumns[table].find(col => col.key === columnKey);
+        
+        // Se la colonna ha sottocolonne, nascondi/mostra tutte le sottocolonne
+        if (columnConfig && columnConfig.subColumns) {
+            columnConfig.subColumns.forEach(subCol => {
+                const cells = document.querySelectorAll(`#${tableId} .col-${columnKey}.col-${subCol}, #${tableId} .col-${columnKey} .col-${subCol}`);
+                cells.forEach(cell => {
+                    cell.style.display = displayValue;
+                });
+            });
+            
+            // Nascondi/mostra anche l'intestazione principale della macro colonna
+            const headers = document.querySelectorAll(`#${tableId} th.col-${columnKey}`);
+            headers.forEach(header => {
+                header.style.display = displayValue;
+            });
+        } else {
+            // Nascondi/mostra tutte le celle con classe .col-{columnKey}
+            const cells = document.querySelectorAll(`#${tableId} .col-${columnKey}`);
+            cells.forEach(cell => {
+                cell.style.display = displayValue;
+            });
+        }
     }
     
     // ==========================================

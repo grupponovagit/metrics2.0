@@ -10,10 +10,8 @@
         ['key' => 'backlog', 'label' => 'BackLog', 'toggleable' => true],
         ['key' => 'backlog_partner', 'label' => 'BackLog Partner', 'toggleable' => true],
         ['key' => 'ore', 'label' => 'Ore', 'toggleable' => true],
-        ['key' => 'fatturato', 'label' => 'Fatturato', 'toggleable' => true],
-        ['key' => 'resa_prodotto', 'label' => 'Resa Prodotto', 'toggleable' => true],
-        ['key' => 'resa_inserito', 'label' => 'Resa Inserito', 'toggleable' => true],
-        ['key' => 'ricavo_orario', 'label' => 'Ricavo/H', 'toggleable' => true],
+        ['key' => 'economics', 'label' => 'Economics (tutti)', 'toggleable' => true],
+        ['key' => 'resa', 'label' => 'Resa (tutti)', 'toggleable' => true],
     ]">
     <x-slot name="table">
         <thead class="bg-base-200" style="background-color: #f3f4f6 !important;">
@@ -66,29 +64,32 @@
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Ore</th>
 
-                {{-- Fatturato --}}
-                <th class="col-fatturato font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300"
-                    rowspan="2"
-                    style="min-width: 100px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
-                    Fatturato</th>
+                {{-- ECONOMICS (2 sottocolonne) --}}
+                <th class="col-economics font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300"
+                    colspan="2"
+                    style="min-width: 190px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Economics</th>
 
-                {{-- RESA --}}
-                <th class="col-resa_prodotto font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    rowspan="2"
-                    style="min-width: 90px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
-                    Resa Prod.</th>
-                <th class="col-resa_inserito font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    rowspan="2"
-                    style="min-width: 90px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
-                    Resa Ins.</th>
-                <th class="col-resa_oraria font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    rowspan="2"
-                    style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
-                    R/H</th>
-                <th class="col-ricavo_orario font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    rowspan="2"
-                    style="min-width: 90px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
-                    Ricavo/H</th>
+                {{-- RESA (3 sottocolonne) --}}
+                <th class="col-resa font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
+                    colspan="3"
+                    style="min-width: 250px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    Resa</th>
+            </tr>
+            <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
+                {{-- Sottocolonne Economics --}}
+                <th class="col-economics col-fatturato font-bold text-xs text-center bg-amber-50 border-r border-base-200"
+                    style="min-width: 100px; width: auto;">Fatturato</th>
+                <th class="col-economics col-ricavo_orario font-bold text-xs text-center bg-amber-50 border-r-2 border-base-300"
+                    style="min-width: 90px; width: auto;">Ricavo/H</th>
+                
+                {{-- Sottocolonne Resa --}}
+                <th class="col-resa col-resa_prodotto font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
+                    style="min-width: 90px; width: auto;">Resa Prod.</th>
+                <th class="col-resa col-resa_inserito font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
+                    style="min-width: 90px; width: auto;">Resa Ins.</th>
+                <th class="col-resa col-resa_oraria font-bold text-xs text-center bg-indigo-50 border-r-2 border-base-300"
+                    style="min-width: 70px; width: auto;">R/H</th>
             </tr>
         </thead>
         <tbody>
@@ -158,29 +159,23 @@
                         {{ ($datiGiorno['ore'] ?? 0) > 0 ? number_format($datiGiorno['ore'], 2) : '-' }}
                     </td>
 
-                    {{-- Fatturato --}}
-                    <td class="col-fatturato text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                    {{-- ECONOMICS --}}
+                    <td class="col-economics col-fatturato text-center text-sm bg-amber-50 border-r border-base-200">
                         {{ ($datiGiorno['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['fatturato'], 2, ',', '.') : '-' }}
                     </td>
+                    <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                        {{ ($datiGiorno['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['ricavo_orario'], 2, ',', '.') : '-' }}
+                    </td>
 
-                    {{-- Resa Prodotto --}}
-                    <td class="col-resa_prodotto text-center text-sm bg-indigo-50 border-r-2 border-base-300">
+                    {{-- RESA --}}
+                    <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-50 border-r border-base-200">
                         {{ $datiGiorno['resa_prodotto'] ?? '-' }}
                     </td>
-
-                    {{-- Resa Inserito --}}
-                    <td class="col-resa_inserito text-center text-sm bg-indigo-50 border-r-2 border-base-300">
+                    <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-50 border-r border-base-200">
                         {{ $datiGiorno['resa_inserito'] ?? '-' }}
                     </td>
-
-                    {{-- R/H --}}
-                    <td class="col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
+                    <td class="col-resa col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                         {{ $datiGiorno['resa_oraria'] ?? '-' }}
-                    </td>
-
-                    {{-- Ricavo Orario --}}
-                    <td class="col-ricavo_orario text-center text-sm bg-indigo-50 border-r-2 border-base-300">
-                        {{ ($datiGiorno['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['ricavo_orario'], 2, ',', '.') : '-' }}
                     </td>
                 </tr>
             @empty
@@ -228,15 +223,19 @@
                         {{ number_format($totaleGiornaliero['backlog_partner_pda']) }}</td>
                     <td class="col-ore text-center text-base bg-cyan-100 border-r-2 border-slate-300">
                         {{ number_format($totaleGiornaliero['ore'], 2) }}</td>
-                    <td class="col-fatturato text-center text-base bg-amber-100 border-r-2 border-slate-300">
+                    
+                    {{-- Economics --}}
+                    <td class="col-economics col-fatturato text-center text-base bg-amber-100 border-r border-slate-200">
                         {{ $totaleGiornaliero['fatturato'] > 0 ? '€ ' . number_format($totaleGiornaliero['fatturato'], 2, ',', '.') : '-' }}</td>
-                    <td class="col-resa_prodotto text-center text-base bg-indigo-100 border-r-2 border-slate-300">
-                        {{ $totaleGiornaliero['resa_prodotto'] }}</td>
-                    <td class="col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">
-                        {{ $totaleGiornaliero['resa_inserito'] }}</td>
-                    <td class="col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
-                    <td class="col-ricavo_orario text-center text-base bg-indigo-100 border-r-2 border-slate-300">
+                    <td class="col-economics col-ricavo_orario text-center text-base bg-amber-100 border-r-2 border-slate-300">
                         {{ $totaleGiornaliero['ricavo_orario'] > 0 ? '€ ' . number_format($totaleGiornaliero['ricavo_orario'], 2, ',', '.') : '-' }}</td>
+                    
+                    {{-- Resa --}}
+                    <td class="col-resa col-resa_prodotto text-center text-base bg-indigo-100 border-r border-slate-200">
+                        {{ $totaleGiornaliero['resa_prodotto'] }}</td>
+                    <td class="col-resa col-resa_inserito text-center text-base bg-indigo-100 border-r border-slate-200">
+                        {{ $totaleGiornaliero['resa_inserito'] }}</td>
+                    <td class="col-resa col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
                 </tr>
             @endif
         </tbody>
