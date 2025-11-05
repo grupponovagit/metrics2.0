@@ -11,7 +11,7 @@
                         {{ $prospetto->nome }}
                     </h1>
                     <p class="text-purple-100 text-sm">
-                        {{ $prospetto->descrizione ?? 'Analisi e previsioni per Google Ads' }}
+                        {{ $prospetto->descrizione ?? 'Analisi e previsioni' }}
                     </p>
                 </div>
                 <div class="text-right">
@@ -61,7 +61,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-bold text-base-content flex items-center gap-2">
                     <x-ui.icon name="filter" class="h-5 w-5" />
-                    Filtra per Account Google Ads
+                    Filtra per Account
                 </h3>
                 
             </div>
