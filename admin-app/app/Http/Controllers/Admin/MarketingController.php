@@ -7,6 +7,7 @@ use App\Services\ModuleAccessService;
 use App\Models\ProspettoMensile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class MarketingController extends Controller
@@ -149,10 +150,101 @@ class MarketingController extends Controller
     /**
      * Cruscotto Lead
      */
-    public function cruscottoLead()
+    public function cruscottoLead(Request $request)
     {
         $this->authorize('marketing.view');
-        return view('admin.modules.marketing.cruscotto-lead');
+        
+        // Parametri di filtro
+        $ragioneSociale = $request->input('ragione_sociale', []);
+        $provenienza = $request->input('provenienza', []);
+        $campagne = $request->input('utm_campaign', []);
+        $dataInizio = $request->input('data_inizio', now()->startOfMonth()->toDateString());
+        $dataFine = $request->input('data_fine', now()->endOfMonth()->toDateString());
+        
+        // Query base
+        $query = DB::table('report_digital_leads')
+            ->whereBetween('data', [$dataInizio, $dataFine]);
+        
+        // Applica filtri
+        if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
+            $query->whereIn('ragione_sociale', $ragioneSociale);
+        }
+        
+        if (!empty($provenienza) && is_array($provenienza)) {
+            $query->whereIn('provenienza', $provenienza);
+        }
+        
+        if (!empty($campagne) && is_array($campagne)) {
+            $query->whereIn('utm_campaign', $campagne);
+        }
+        
+        // Ottieni dati aggregati
+        $datiDettagliati = $query->get();
+        
+        // Calcola totali
+        $totali = [
+            'costo' => $datiDettagliati->sum('costo'),
+            'leads' => $datiDettagliati->sum('leads'),
+            'conv' => $datiDettagliati->sum('conv'),
+            'ok_lead' => $datiDettagliati->sum('ok_lead'),
+            'ko_lead' => $datiDettagliati->sum('ko_lead'),
+            'click' => $datiDettagliati->sum('click'),
+            'ore' => $datiDettagliati->sum('ore'),
+            'ricavi' => $datiDettagliati->sum('ricavi'),
+        ];
+        
+        // Calcola KPI
+        $totali['cpl'] = $totali['leads'] > 0 ? $totali['costo'] / $totali['leads'] : 0;
+        $totali['cpa'] = $totali['conv'] > 0 ? $totali['costo'] / $totali['conv'] : 0;
+        $totali['cpc'] = $totali['click'] > 0 ? $totali['costo'] / $totali['click'] : 0;
+        $totali['roas'] = $totali['costo'] > 0 ? ($totali['ricavi'] / $totali['costo']) * 100 : 0;
+        $totali['roi'] = $totali['costo'] > 0 ? (($totali['ricavi'] - $totali['costo']) / $totali['costo']) * 100 : 0;
+        
+        // Ottieni opzioni per i filtri (distinct values)
+        $opzioniRagioneSociale = DB::table('report_digital_leads')
+            ->select('ragione_sociale')
+            ->distinct()
+            ->whereNotNull('ragione_sociale')
+            ->orderBy('ragione_sociale')
+            ->pluck('ragione_sociale');
+        
+        $opzioniProvenienza = DB::table('report_digital_leads')
+            ->select('provenienza')
+            ->distinct()
+            ->whereNotNull('provenienza')
+            ->orderBy('provenienza')
+            ->pluck('provenienza');
+        
+        // Campagne filtrate dinamicamente in base a ragione sociale e provenienza
+        $queryCampagne = DB::table('report_digital_leads')
+            ->select('utm_campaign')
+            ->distinct()
+            ->whereNotNull('utm_campaign');
+        
+        if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
+            $queryCampagne->whereIn('ragione_sociale', $ragioneSociale);
+        }
+        
+        if (!empty($provenienza) && is_array($provenienza)) {
+            $queryCampagne->whereIn('provenienza', $provenienza);
+        }
+        
+        $opzioniCampagne = $queryCampagne->orderBy('utm_campaign')->pluck('utm_campaign');
+        
+        return view('admin.modules.marketing.cruscotto-lead.index', [
+            'datiDettagliati' => $datiDettagliati,
+            'totali' => $totali,
+            'opzioniRagioneSociale' => $opzioniRagioneSociale,
+            'opzioniProvenienza' => $opzioniProvenienza,
+            'opzioniCampagne' => $opzioniCampagne,
+            'filtri' => [
+                'ragione_sociale' => $ragioneSociale,
+                'provenienza' => $provenienza,
+                'utm_campaign' => $campagne,
+                'data_inizio' => $dataInizio,
+                'data_fine' => $dataFine,
+            ]
+        ]);
     }
 
     /**
