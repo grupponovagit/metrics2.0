@@ -135,9 +135,8 @@
     // DRAG-TO-SCROLL PERSONALIZZATO
     // ==========================================
     function initCustomDragScroll(containerId) {
-        const container = document.getElementById(containerId);
+        const container = document.getElementById(containerId + '-scroll-container');
         if (!container) {
-            console.log(`Container ${containerId} non trovato`);
             return;
         }
         
@@ -189,8 +188,6 @@
             
             container.scrollLeft = scrollLeft - walk;
         });
-        
-        console.log(`Drag-to-scroll inizializzato per ${containerId}`);
     }
     
     // ==========================================
@@ -203,7 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             initCustomDragScroll('table-sintetico');
             initCustomDragScroll('table-giornaliero');
-            console.log('Drag-to-scroll inizializzato per tutte le tabelle!');
         }, 100);
 });
 </script>

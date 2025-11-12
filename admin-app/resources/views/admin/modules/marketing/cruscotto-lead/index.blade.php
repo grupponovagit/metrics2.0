@@ -93,7 +93,7 @@
                 <div class="form-control">
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
-                            <x-ui.icon name="map-marker-alt" class="h-4 w-4 inline mr-1" />
+                            <x-ui.icon name="location-dot" class="h-4 w-4 inline mr-1" />
                             Provenienza <span class="text-[10px] opacity-60">(Shift+Click)</span>
                         </span>
                         <div class="flex gap-1">
@@ -341,6 +341,10 @@ function updateCampagneFilter() {
     const provenienzaChecked = Array.from(document.querySelectorAll('input[name="provenienza[]"]:checked'))
         .map(cb => cb.value);
     
+    // ✅ SALVA le campagne attualmente selezionate PRIMA di aggiornare
+    const campagneSelezionate = Array.from(document.querySelectorAll('input[name="utm_campaign[]"]:checked'))
+        .map(cb => cb.value);
+    
     // Fai una chiamata AJAX per recuperare le campagne filtrate
     const params = new URLSearchParams();
     ragioneSocialeChecked.forEach(rs => params.append('ragione_sociale[]', rs));
@@ -358,6 +362,14 @@ function updateCampagneFilter() {
         const doc = parser.parseFromString(html, 'text/html');
         const newCampagneHtml = doc.getElementById('campagneContainer').innerHTML;
         document.getElementById('campagneContainer').innerHTML = newCampagneHtml;
+        
+        // ✅ RIPRISTINA le checkbox selezionate dopo l'aggiornamento
+        campagneSelezionate.forEach(campagna => {
+            const checkbox = document.querySelector(`input[name="utm_campaign[]"][value="${campagna}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
     })
     .catch(error => console.error('Errore aggiornamento campagne:', error));
 }

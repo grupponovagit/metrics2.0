@@ -159,7 +159,7 @@ class MarketingController extends Controller
         $provenienza = $request->input('provenienza', []);
         $campagne = $request->input('utm_campaign', []);
         $dataInizio = $request->input('data_inizio', now()->startOfMonth()->toDateString());
-        $dataFine = $request->input('data_fine', now()->endOfMonth()->toDateString());
+        $dataFine = $request->input('data_fine', now()->toDateString());
         
         // Query base
         $query = DB::table('report_digital_leads')
@@ -180,6 +180,39 @@ class MarketingController extends Controller
         
         // Ottieni dati aggregati
         $datiDettagliati = $query->get();
+        
+        // === VISTA SINTETICA: Aggrega per Ragione Sociale e Provenienza ===
+        $datiSintetici = collect($datiDettagliati)
+            ->groupBy(function($item) {
+                return $item->ragione_sociale . '|' . $item->provenienza;
+            })
+            ->map(function($gruppo) {
+                $primo = $gruppo->first();
+                $costo = $gruppo->sum('costo');
+                $leads = $gruppo->sum('leads');
+                $conv = $gruppo->sum('conv');
+                $click = $gruppo->sum('click');
+                
+                return (object)[
+                    'ragione_sociale' => $primo->ragione_sociale,
+                    'provenienza' => $primo->provenienza,
+                    'costo' => $costo,
+                    'leads' => $leads,
+                    'conv' => $conv,
+                    'ok_lead' => $gruppo->sum('ok_lead'),
+                    'ko_lead' => $gruppo->sum('ko_lead'),
+                    'click' => $click,
+                    'ore' => $gruppo->sum('ore'),
+                    'ricavi' => $gruppo->sum('ricavi'),
+                    'cpl' => $leads > 0 ? $costo / $leads : 0,
+                    'cpa' => $conv > 0 ? $costo / $conv : 0,
+                    'cpc' => $click > 0 ? $costo / $click : 0,
+                    'roas' => $costo > 0 ? ($gruppo->sum('ricavi') / $costo) * 100 : 0,
+                    'roi' => $costo > 0 ? (($gruppo->sum('ricavi') - $costo) / $costo) * 100 : 0,
+                ];
+            })
+            ->sortByDesc('costo')
+            ->values();
         
         // Calcola totali
         $totali = [
@@ -233,6 +266,7 @@ class MarketingController extends Controller
         
         return view('admin.modules.marketing.cruscotto-lead.index', [
             'datiDettagliati' => $datiDettagliati,
+            'datiSintetici' => $datiSintetici,
             'totali' => $totali,
             'opzioniRagioneSociale' => $opzioniRagioneSociale,
             'opzioniProvenienza' => $opzioniProvenienza,

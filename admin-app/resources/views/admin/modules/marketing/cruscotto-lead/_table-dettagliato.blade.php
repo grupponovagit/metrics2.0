@@ -75,26 +75,26 @@
             </tr>
             <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
                 {{-- Sottocolonne Conversioni --}}
-                <th class="col-conversioni font-bold text-xs text-center bg-teal-50 border-r border-base-200"
-                    style="min-width: 80px; width: auto;">Conv.</th>
-                <th class="col-conversioni font-bold text-xs text-center bg-teal-50 border-r border-base-200"
-                    style="min-width: 80px; width: auto;">OK Lead</th>
+                <th class="col-conversioni font-bold text-xs text-center bg-teal-50"
+                    style="min-width: 80px; width: auto; border-bottom: 1px solid #e5e7eb !important;">Conv.</th>
+                <th class="col-conversioni font-bold text-xs text-center bg-teal-50"
+                    style="min-width: 80px; width: auto; border-bottom: 1px solid #e5e7eb !important;">OK Lead</th>
                 <th class="col-conversioni font-bold text-xs text-center bg-teal-50 border-r-2 border-base-300"
-                    style="min-width: 80px; width: auto;">KO Lead</th>
-                
+                    style="min-width: 80px; width: auto; border-bottom: 1px solid #e5e7eb !important;">KO Lead</th>
+
                 {{-- Sottocolonne Economics --}}
-                <th class="col-economics font-bold text-xs text-center bg-amber-50 border-r border-base-200"
-                    style="min-width: 90px; width: auto;">CPL</th>
-                <th class="col-economics font-bold text-xs text-center bg-amber-50 border-r border-base-200"
-                    style="min-width: 90px; width: auto;">CPA</th>
+                <th class="col-economics font-bold text-xs text-center bg-amber-50"
+                    style="min-width: 90px; width: auto; border-bottom: 1px solid #e5e7eb !important;">CPL</th>
+                <th class="col-economics font-bold text-xs text-center bg-amber-50"
+                    style="min-width: 90px; width: auto; border-bottom: 1px solid #e5e7eb !important;">CPA</th>
                 <th class="col-economics font-bold text-xs text-center bg-amber-50 border-r-2 border-base-300"
-                    style="min-width: 90px; width: auto;">CPC</th>
-                
+                    style="min-width: 90px; width: auto; border-bottom: 1px solid #e5e7eb !important;">CPC</th>
+
                 {{-- Sottocolonne Performance --}}
-                <th class="col-performance font-bold text-xs text-center bg-purple-50 border-r border-base-200"
-                    style="min-width: 90px; width: auto;">ROAS %</th>
+                <th class="col-performance font-bold text-xs text-center bg-purple-50"
+                    style="min-width: 90px; width: auto; border-bottom: 1px solid #e5e7eb !important;">ROAS %</th>
                 <th class="col-performance font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
-                    style="min-width: 90px; width: auto;">ROI %</th>
+                    style="min-width: 90px; width: auto; border-bottom: 1px solid #e5e7eb !important;">ROI %</th>
             </tr>
         </thead>
         <tbody>

@@ -30,7 +30,7 @@
     $stickyWidth = collect($stickyColumns)->sum('width');
 @endphp
 
-<div {{ $attributes->merge(['class' => 'w-full']) }}>
+<div id="{{ $id }}" {{ $attributes->merge(['class' => 'w-full']) }}>
     {{-- Header tabella con titolo e controlli --}}
     @if($title || $enableColumnToggle || $slot->isNotEmpty())
     <div class="p-6 border-b border-base-300 flex justify-between items-center bg-base-100">
@@ -100,9 +100,9 @@
     @endif
     
     {{-- Container tabella con scroll --}}
-    <div id="{{ $id }}" 
+    <div id="{{ $id }}-scroll-container" 
          class="table-scroll-container" 
-         style="overflow-x: auto !important; overflow-y: auto !important; max-height: {{ $maxHeight }};"
+         style="overflow-x: auto !important; overflow-y: visible !important;"
          data-drag-scroll="{{ $enableDragScroll ? 'true' : 'false' }}">
         
         <table class="table table-zebra w-full" style="min-width: 100%; table-layout: auto;">
@@ -310,10 +310,20 @@
             border-color: #374151 !important; /* gray-700 */
         }
         
-        /* IMPORTANTE: Testi nelle celle con background colorati = NERI per contrasto */
+        /* IMPORTANTE: Tutte le celle hanno background blu scuro */
         [data-theme="dark"] #{{ $id }} tbody td,
         html.dark #{{ $id }} tbody td {
-            color: #000000 !important; /* Testo nero per leggibilità */
+            background-color: #1e293b !important; /* slate-800 - blu scuro come nello screenshot */
+            color: #f1f5f9 !important; /* slate-100 - testo chiaro */
+        }
+        
+        /* Righe alternate - stesso colore */
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td {
+            background-color: #1e293b !important; /* slate-800 */
+            color: #f1f5f9 !important; /* slate-100 */
         }
         
         /* Testi nelle celle sticky laterali = chiari */
@@ -322,15 +332,21 @@
         [data-theme="dark"] #{{ $id }} .sticky-table-dettagliato-campagna,
         [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-cliente,
         [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-sede,
+        [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-ragione_sociale,
+        [data-theme="dark"] #{{ $id }} .sticky-table-sintetico-provenienza,
         [data-theme="dark"] #{{ $id }} .sticky-table-giornaliero-data,
         [data-theme="dark"] #{{ $id }} .sticky-table-giornaliero-cliente,
+        [data-theme="dark"] #{{ $id }} .sticky-table-giornaliero-campagna,
         html.dark #{{ $id }} .sticky-table-dettagliato-cliente,
         html.dark #{{ $id }} .sticky-table-dettagliato-sede,
         html.dark #{{ $id }} .sticky-table-dettagliato-campagna,
         html.dark #{{ $id }} .sticky-table-sintetico-cliente,
         html.dark #{{ $id }} .sticky-table-sintetico-sede,
+        html.dark #{{ $id }} .sticky-table-sintetico-ragione_sociale,
+        html.dark #{{ $id }} .sticky-table-sintetico-provenienza,
         html.dark #{{ $id }} .sticky-table-giornaliero-data,
-        html.dark #{{ $id }} .sticky-table-giornaliero-cliente {
+        html.dark #{{ $id }} .sticky-table-giornaliero-cliente,
+        html.dark #{{ $id }} .sticky-table-giornaliero-campagna {
             color: #e5e7eb !important; /* gray-200 */
             background-color: #1f2937 !important; /* gray-800 - come header */
         }
@@ -346,10 +362,16 @@
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-cliente,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-sede,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-sede,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-ragione_sociale,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-ragione_sociale,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-provenienza,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-provenienza,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-data,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-data,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-cliente,
         [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-cliente,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-campagna,
+        [data-theme="dark"] #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-campagna,
         html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-cliente,
         html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-dettagliato-cliente,
         html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-dettagliato-sede,
@@ -360,10 +382,16 @@
         html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-cliente,
         html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-sede,
         html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-sede,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-ragione_sociale,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-ragione_sociale,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-sintetico-provenienza,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-sintetico-provenienza,
         html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-data,
         html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-data,
         html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-cliente,
-        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-cliente {
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-cliente,
+        html.dark #{{ $id }} tbody tr:nth-child(odd) td.sticky-table-giornaliero-campagna,
+        html.dark #{{ $id }} tbody tr:nth-child(even) td.sticky-table-giornaliero-campagna {
             background-color: #1f2937 !important; /* gray-800 */
             color: #e5e7eb !important; /* gray-200 */
         }
