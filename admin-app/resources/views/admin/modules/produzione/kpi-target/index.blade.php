@@ -133,7 +133,6 @@
                             </th>
                             <th class="font-bold">Commessa</th>
                             <th class="font-bold">Sede CRM</th>
-                            <th class="font-bold">Sede Estesa</th>
                             <th class="font-bold">Macro Campagna</th>
                             <th class="font-bold">Nome KPI</th>
                             <th class="font-bold">Tipo KPI</th>
@@ -152,15 +151,76 @@
                                     <input type="checkbox" class="checkbox checkbox-sm kpi-checkbox-target" value="{{ $kpi->id }}" onchange="updateBulkActionsTarget()">
                                 </td>
                                 <td class="font-medium editable-cell" contenteditable="true" data-field="commessa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->commessa }}">{{ $kpi->commessa }}</td>
-                                <td class="editable-cell" contenteditable="true" data-field="sede_crm" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_crm }}">{{ $kpi->sede_crm }}</td>
-                                <td class="text-sm text-base-content/70 editable-cell" contenteditable="true" data-field="sede_estesa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->sede_estesa }}">{{ $kpi->sede_estesa }}</td>
-                                <td class="editable-cell" contenteditable="true" data-field="macro_campagna" data-id="{{ $kpi->id }}" data-original="{{ $kpi->macro_campagna ?? 'TUTTE' }}">{{ $kpi->macro_campagna ?? 'TUTTE' }}</td>
-                                <td class="editable-cell" contenteditable="true" data-field="nome_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->nome_kpi }}">{{ $kpi->nome_kpi }}</td>
-                                <td class="editable-cell" contenteditable="true" data-field="tipo_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->tipo_kpi }}">
-                                    <span class="{{ $kpi->tipo_kpi ? 'badge badge-primary badge-sm' : 'text-base-content/40' }}">
-                                        {{ $kpi->tipo_kpi ?? 'Non assegnato' }}
-                                    </span>
+                                
+                                {{-- SELECT SEDE CRM --}}
+                                <td>
+                                    <select 
+                                        class="select select-md select-bordered w-full max-w-xs sede-select uppercase" 
+                                        data-field="sede_crm" 
+                                        data-id="{{ $kpi->id }}" 
+                                        onchange="saveFieldChangeSelect(this)"
+                                        style="text-transform: uppercase;">
+                                        <option value="">-- Non assegnata --</option>
+                                        @foreach($sediSelect as $sede)
+                                            @php
+                                                // Determina se questa sede è selezionata
+                                                // Controlla sia per id_sede che per nome_sede (compatibilità)
+                                                $isSelected = ($kpi->sede_crm == $sede->id_sede) ||
+                                                             ($kpi->sede_crm == $sede->nome_sede);
+                                            @endphp
+                                            <option value="{{ $sede->id_sede }}" {{ $isSelected ? 'selected' : '' }}>
+                                                {{ strtoupper($sede->nome_sede) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </td>
+                                
+                                {{-- SELECT MACRO CAMPAGNA --}}
+                                <td>
+                                    <select 
+                                        class="select select-md select-bordered w-full max-w-xs uppercase" 
+                                        data-field="macro_campagna" 
+                                        data-id="{{ $kpi->id }}" 
+                                        onchange="saveFieldChangeSelect(this)"
+                                        style="text-transform: uppercase;">
+                                        <option value="TUTTE" {{ ($kpi->macro_campagna ?? 'TUTTE') == 'TUTTE' ? 'selected' : '' }}>TUTTE</option>
+                                        @foreach($macroCampagne as $macro)
+                                            <option value="{{ $macro }}" {{ ($kpi->macro_campagna ?? '') == $macro ? 'selected' : '' }}>
+                                                {{ strtoupper($macro) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                
+                                <td class="editable-cell" contenteditable="true" data-field="nome_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->nome_kpi }}">{{ $kpi->nome_kpi }}</td>
+                                
+                                {{-- TIPO KPI - Badge con Select al click --}}
+                                <td class="relative">
+                                    <div class="tipo-kpi-container" data-id="{{ $kpi->id }}">
+                                        {{-- Badge visibile --}}
+                                        <span 
+                                            class="badge badge-primary badge-sm cursor-pointer hover:badge-primary-focus transition-all tipo-kpi-badge" 
+                                            onclick="toggleTipoKpiSelect({{ $kpi->id }})"
+                                            id="badge-tipo-{{ $kpi->id }}">
+                                            {{ strtoupper($kpi->tipo_kpi ?? 'Non assegnato') }}
+                                        </span>
+                                        
+                                        {{-- Select nascosta --}}
+                                        <select 
+                                            class="select select-md select-bordered absolute top-0 left-0 w-full hidden uppercase tipo-kpi-select" 
+                                            data-field="tipo_kpi" 
+                                            data-id="{{ $kpi->id }}" 
+                                            id="select-tipo-{{ $kpi->id }}"
+                                            onchange="saveTipoKpi(this)"
+                                            onblur="hideTipoKpiSelect({{ $kpi->id }})"
+                                            style="text-transform: uppercase; z-index: 10;">
+                                            <option value="">NON ASSEGNATO</option>
+                                            <option value="RESIDENZIALI" {{ strtoupper($kpi->tipo_kpi ?? '') == 'RESIDENZIALI' ? 'selected' : '' }}>RESIDENZIALI</option>
+                                            <option value="BUSINESS" {{ strtoupper($kpi->tipo_kpi ?? '') == 'BUSINESS' ? 'selected' : '' }}>BUSINESS</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                
                                 <td class="editable-cell" contenteditable="true" data-field="tipologia_obiettivo" data-id="{{ $kpi->id }}" data-original="{{ $kpi->tipologia_obiettivo }}">{{ $kpi->tipologia_obiettivo }}</td>
                                 <td class="text-center">{{ $kpi->anno }}</td>
                                 <td class="text-center">{{ $kpi->mese }}</td>
@@ -202,7 +262,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="13" class="text-center py-12">
+                                <td colspan="12" class="text-center py-12">
                                     <div>
                                         <h3 class="text-lg font-semibold text-base-content mb-1">Nessun target trovato</h3>
                                         <p class="text-sm text-base-content/60">Seleziona un periodo diverso o crea un nuovo KPI</p>
@@ -731,6 +791,140 @@
                 cell.style.backgroundColor = '#fecaca';
                 setTimeout(() => {
                     cell.style.backgroundColor = '';
+                }, 1000);
+            });
+        }
+        
+        // ===== SALVATAGGIO SELECT =====
+        function saveFieldChangeSelect(selectElement) {
+            const id = selectElement.getAttribute('data-id');
+            const field = selectElement.getAttribute('data-field');
+            const value = selectElement.value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Mostra loading
+            const originalBg = selectElement.style.backgroundColor;
+            selectElement.style.backgroundColor = '#fef3c7';
+            selectElement.disabled = true;
+            
+            fetch(`/admin/produzione/kpi-target/${id}/update-field`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    field: field,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Flash verde
+                    selectElement.style.backgroundColor = '#d1fae5';
+                    setTimeout(() => {
+                        selectElement.style.backgroundColor = originalBg;
+                        selectElement.disabled = false;
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Errore durante il salvataggio');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante il salvataggio: ' + error.message);
+                
+                // Flash rosso
+                selectElement.style.backgroundColor = '#fecaca';
+                setTimeout(() => {
+                    selectElement.style.backgroundColor = originalBg;
+                    selectElement.disabled = false;
+                }, 1000);
+            });
+        }
+        
+        // ===== GESTIONE TIPO KPI (Badge + Select) =====
+        function toggleTipoKpiSelect(id) {
+            const badge = document.getElementById(`badge-tipo-${id}`);
+            const select = document.getElementById(`select-tipo-${id}`);
+            
+            // Nascondi badge, mostra select
+            badge.classList.add('hidden');
+            select.classList.remove('hidden');
+            
+            // Focus sulla select per aprirla immediatamente
+            setTimeout(() => {
+                select.focus();
+                select.click(); // Apre il dropdown
+            }, 50);
+        }
+        
+        function hideTipoKpiSelect(id) {
+            const badge = document.getElementById(`badge-tipo-${id}`);
+            const select = document.getElementById(`select-tipo-${id}`);
+            
+            // Mostra badge, nascondi select
+            setTimeout(() => {
+                select.classList.add('hidden');
+                badge.classList.remove('hidden');
+            }, 200); // Delay per permettere l'onChange di eseguirsi
+        }
+        
+        function saveTipoKpi(selectElement) {
+            const id = selectElement.getAttribute('data-id');
+            const field = selectElement.getAttribute('data-field');
+            const value = selectElement.value;
+            const badge = document.getElementById(`badge-tipo-${id}`);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Aggiorna subito il badge con il nuovo valore
+            const displayValue = value ? value.toUpperCase() : 'NON ASSEGNATO';
+            badge.textContent = displayValue;
+            
+            // Cambia colore badge in base al tipo
+            badge.className = 'badge badge-sm cursor-pointer hover:badge-primary-focus transition-all tipo-kpi-badge';
+            if (value) {
+                badge.classList.add('badge-primary');
+            } else {
+                badge.classList.add('badge-ghost');
+            }
+            
+            // Salva via AJAX
+            fetch(`/admin/produzione/kpi-target/${id}/update-field`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    field: field,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Flash verde sul badge
+                    const originalBg = badge.style.backgroundColor;
+                    badge.style.backgroundColor = '#d1fae5';
+                    setTimeout(() => {
+                        badge.style.backgroundColor = '';
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Errore durante il salvataggio');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante il salvataggio: ' + error.message);
+                
+                // Flash rosso sul badge
+                badge.style.backgroundColor = '#fecaca';
+                setTimeout(() => {
+                    badge.style.backgroundColor = '';
                 }, 1000);
             });
         }

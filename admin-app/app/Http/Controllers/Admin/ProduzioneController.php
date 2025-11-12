@@ -778,6 +778,22 @@ class ProduzioneController extends Controller
             ->sort()
             ->values();
         
+        // === RECUPERA SEDI E MACRO CAMPAGNE PER LE SELECT ===
+        // Recupera tutte le sedi dalla tabella sedi
+        $sediSelect = DB::table('sedi')
+            ->select('id', 'nome_sede', 'id_sede')
+            ->orderBy('nome_sede')
+            ->get();
+        
+        // Recupera macro campagne dalla tabella campagne (esclusi NULL e "non usata")
+        $macroCampagne = DB::table('campagne')
+            ->select('macro_campagna')
+            ->whereNotNull('macro_campagna')
+            ->where('macro_campagna', '!=', 'non usata')
+            ->distinct()
+            ->orderBy('macro_campagna')
+            ->pluck('macro_campagna');
+        
         return view('admin.modules.produzione.kpi-target.index', [
             'targetMensili' => $targetMensili,
             'rendicontoProduzione' => $rendicontoProduzione,
@@ -787,6 +803,8 @@ class ProduzioneController extends Controller
             'mese' => $mese,
             'commesse' => $commesse,
             'sedi' => $sedi,
+            'sediSelect' => $sediSelect,
+            'macroCampagne' => $macroCampagne,
         ]);
     }
     
