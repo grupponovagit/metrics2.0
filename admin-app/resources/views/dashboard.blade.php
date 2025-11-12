@@ -82,12 +82,12 @@
                                 <p class="text-sm text-base-content/70 font-medium mb-1">Notifiche</p>
                                 <p class="text-3xl font-bold text-info">5</p>
                                 <div class="flex items-center gap-1 mt-2">
-                                    <x-ui.icon name="bell" size="sm" class="text-info" />
+                                    <i class="fas fa-envelope text-sm text-info"></i>
                                     <span class="text-sm text-base-content/60">non lette</span>
                                 </div>
                             </div>
                             <div class="w-14 h-14 bg-info/10 rounded-2xl flex items-center justify-center text-info">
-                                <x-ui.icon name="envelope" size="xl" aria-hidden="true" />
+                                <i class="fas fa-envelope text-2xl"></i>
                             </div>
                         </div>
                     </div>
