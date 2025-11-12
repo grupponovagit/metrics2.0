@@ -209,5 +209,28 @@
                 </div>
             </a>
         </x-admin.card>
+        
+        {{-- Configurazione UTM --}}
+        <x-admin.card tone="light" shadow="lg" hoverable="true" class="group">
+            <a href="{{ route('admin.marketing.configurazione_utm.index') }}" class="block">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                        <x-ui.icon name="code" class="h-6 w-6" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-base-content group-hover:text-purple-600 transition-colors">
+                            UTM Campagne
+                        </h3>
+                        <p class="text-sm text-base-content/70 mt-1">
+                            Configurazione parametri UTM tracking
+                        </p>
+                        <div class="flex items-center gap-2 mt-3 text-purple-600">
+                            <span class="text-sm font-medium">Accedi</span>
+                            <x-ui.icon name="arrow-right" class="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </x-admin.card>
     </div>
 </x-admin.wrapper>

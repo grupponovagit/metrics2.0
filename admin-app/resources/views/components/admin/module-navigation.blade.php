@@ -55,7 +55,7 @@
                                             $submoduleCount = 9 + (in_array('reports', $module['permissions']) ? 1 : 0);
                                             break;
                                         case 'marketing':
-                                            $submoduleCount = 5 + (in_array('reports', $module['permissions']) ? 1 : 0);
+                                            $submoduleCount = 6 + (in_array('reports', $module['permissions']) ? 1 : 0);
                                             break;
                                         case 'ict':
                                             $viewLinks = 8; // Sistema, Ticket, Calendario, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati
@@ -259,6 +259,7 @@
                                         ['route' => 'admin.marketing.leads', 'icon' => 'users', 'title' => 'Lead'],
                                         ['route' => 'admin.marketing.cruscotto_lead', 'icon' => 'chart-line', 'title' => 'Cruscotto Lead'],
                                         ['route' => 'admin.marketing.prospetto_mensile.index', 'icon' => 'calendar-alt', 'title' => 'Prospetto Mensile'],
+                                        ['route' => 'admin.marketing.configurazione_utm.index', 'icon' => 'code', 'title' => 'UTM Campagne'],
                                         ['route' => 'admin.marketing.costi_invio_messaggi', 'icon' => 'paper-plane', 'title' => 'Costi Invio Messaggi'],
                                         ['route' => 'admin.marketing.controllo_sms', 'icon' => 'mobile-alt', 'title' => 'Controllo SMS']
                                     ];
@@ -267,10 +268,13 @@
                                 @foreach($marketingLinks as $link)
                                     <div class="submenu-item">
                                         @php
-                                            // Per il prospetto mensile, evidenzia anche le sotto-rotte
+                                            // Per il prospetto mensile e configurazione UTM, evidenzia anche le sotto-rotte
                                             $isLinkActive = request()->routeIs($link['route']);
                                             if ($link['route'] === 'admin.marketing.prospetto_mensile.index') {
                                                 $isLinkActive = request()->routeIs('admin.marketing.prospetto_mensile.*');
+                                            }
+                                            if ($link['route'] === 'admin.marketing.configurazione_utm.index') {
+                                                $isLinkActive = request()->routeIs('admin.marketing.configurazione_utm.*');
                                             }
                                         @endphp
                                         <a href="{{ route($link['route']) }}" 

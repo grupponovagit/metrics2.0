@@ -452,6 +452,23 @@ Breadcrumbs::for('admin.marketing.prospetto_mensile.edit', function (BreadcrumbT
     $trail->push('Modifica #' . $prospettoId);
 });
 
+// Configurazione UTM Campagne
+Breadcrumbs::for('admin.marketing.configurazione_utm.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.marketing.index');
+    $trail->push('Configurazione UTM', route('admin.marketing.configurazione_utm.index'));
+});
+
+Breadcrumbs::for('admin.marketing.configurazione_utm.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.marketing.configurazione_utm.index');
+    $trail->push('Nuova Configurazione', route('admin.marketing.configurazione_utm.create'));
+});
+
+Breadcrumbs::for('admin.marketing.configurazione_utm.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.marketing.configurazione_utm.index');
+    $configId = is_object($id) ? $id->id : $id;
+    $trail->push('Modifica #' . $configId);
+});
+
 // Sottomenu ICT
 Breadcrumbs::for('admin.ict.calendario', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.ict.index');

@@ -196,6 +196,14 @@ Route::group([
         Route::put('/prospetto-mensile/{id}', 'MarketingController@prospettoMensileUpdate')->name('prospetto_mensile.update');
         Route::delete('/prospetto-mensile/{id}', 'MarketingController@prospettoMensileDestroy')->name('prospetto_mensile.destroy');
         Route::post('/prospetto-mensile/{id}/toggle-attivo', 'MarketingController@prospettoMensileToggleAttivo')->name('prospetto_mensile.toggle_attivo');
+        
+        // Configurazione UTM Campagne
+        Route::get('/configurazione-utm', 'ConfigurazioneUtmController@index')->name('configurazione_utm.index');
+        Route::get('/configurazione-utm/create', 'ConfigurazioneUtmController@create')->name('configurazione_utm.create');
+        Route::post('/configurazione-utm', 'ConfigurazioneUtmController@store')->name('configurazione_utm.store');
+        Route::get('/configurazione-utm/{id}/edit', 'ConfigurazioneUtmController@edit')->name('configurazione_utm.edit');
+        Route::put('/configurazione-utm/{id}', 'ConfigurazioneUtmController@update')->name('configurazione_utm.update');
+        Route::delete('/configurazione-utm/{id}', 'ConfigurazioneUtmController@destroy')->name('configurazione_utm.destroy');
     });
 
     // Modulo ICT - Solo per ruoli tecnici
