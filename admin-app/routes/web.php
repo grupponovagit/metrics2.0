@@ -19,13 +19,13 @@ Route::get('/google-ads/auth-manager', function () {
     return view('google-ads-auth');
 })->name('google-ads.auth-manager');
 
+// Step 2: Callback OAuth - gestisce code→token (DEVE ESSERE PRIMA!)
+Route::get('/oauth/google-ads/callback', [GoogleAdsOauthController::class, 'handleCallback'])
+    ->name('google-ads.oauth.callback');
+
 // Step 1: Redirect a Google per autorizzazione (con MCC ID opzionale)
 Route::get('/oauth/google-ads/{mccId?}', [GoogleAdsOauthController::class, 'redirectToGoogle'])
     ->name('google-ads.oauth.redirect');
-
-// Step 2: Callback OAuth - gestisce code→token
-Route::get('/oauth/google-ads/callback', [GoogleAdsOauthController::class, 'handleCallback'])
-    ->name('google-ads.oauth.callback');
 
 // ===== GOOGLE ADS API - Metriche =====
 // Ottieni metriche campagne (ultimi 7 giorni)
