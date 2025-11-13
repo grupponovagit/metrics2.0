@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Google;
 
 use App\Http\Controllers\Controller;
 use Google\Ads\GoogleAds\Lib\OAuth2TokenBuilder;
-use Google\Ads\GoogleAds\Lib\V16\GoogleAdsClientBuilder;
-use Google\Ads\GoogleAds\V16\Services\GoogleAdsRow;
-use Google\Ads\GoogleAds\V16\Services\SearchGoogleAdsRequest;
-use Google\Ads\GoogleAds\V16\Services\ListAccessibleCustomersRequest;
+use Google\Ads\GoogleAds\Lib\V22\GoogleAdsClientBuilder;
+use Google\Ads\GoogleAds\V22\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V22\Services\SearchGoogleAdsRequest;
+use Google\Ads\GoogleAds\V22\Services\ListAccessibleCustomersRequest;
 use Illuminate\Http\Request;
 
 class GoogleAdsMetricsController extends Controller

@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Google;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class GoogleAdsOauthController extends Controller
 {
     /**
      * Redirect all'URL di autorizzazione Google OAuth
+     * 
+     * @param Request $request
+     * @param string|null $mccId - ID del MCC da autenticare (opzionale)
      */
-    public function redirectToGoogle()
+    public function redirectToGoogle(Request $request, $mccId = null)
     {
         try {
             $client = $this->getGoogleClient();
@@ -19,6 +23,18 @@ class GoogleAdsOauthController extends Controller
             // Force offline access e consent prompt per ottenere il refresh token
             $client->setAccessType('offline');
             $client->setPrompt('consent');
+            
+            // Salva il MCC ID in sessione per usarlo nel callback
+            if ($mccId) {
+                $request->session()->put('oauth_mcc_id', $mccId);
+            }
+            
+            // Aggiungi uno state per sicurezza
+            $state = base64_encode(json_encode([
+                'mcc_id' => $mccId,
+                'timestamp' => time()
+            ]));
+            $client->setState($state);
             
             $authUrl = $client->createAuthUrl();
             
@@ -70,24 +86,74 @@ class GoogleAdsOauthController extends Controller
             }
 
             $refreshToken = $token['refresh_token'];
-
-            // Salva il refresh_token nel file locale
-            $saved = Storage::put('google_ads_refresh_token.txt', $refreshToken);
-
-            if (!$saved) {
-                return response()->json([
-                    'errore' => 'Impossibile salvare il refresh_token',
-                    'dettaglio' => 'Verifica i permessi della cartella storage/app'
-                ], 500);
+            
+            // Recupera il MCC ID dallo state
+            $state = $request->get('state');
+            $mccId = null;
+            
+            if ($state) {
+                $stateData = json_decode(base64_decode($state), true);
+                $mccId = $stateData['mcc_id'] ?? null;
+            }
+            
+            // Se non c'è MCC ID nello state, prova dalla sessione
+            if (!$mccId) {
+                $mccId = $request->session()->get('oauth_mcc_id');
             }
 
-            // Successo! Redirect alla rotta di test
-            return redirect('/google-ads/campaigns')->with('success', 'Autenticazione completata! Refresh token salvato con successo.');
+            // Salva il refresh token nel database per tutti gli account con questo MCC
+            if ($mccId) {
+                $updated = DB::table('account_agenzia')
+                    ->where('google_ads_mcc_id', $mccId)
+                    ->where('provenienza', 'Google ADS')
+                    ->update([
+                        'google_ads_refresh_token' => $refreshToken,
+                        'google_ads_token_expires_at' => now()->addDays(180), // Token valido ~6 mesi
+                        'updated_at' => now()
+                    ]);
+                
+                // Rimuovi MCC ID dalla sessione
+                $request->session()->forget('oauth_mcc_id');
+                
+                // Mostra messaggio di successo
+                $accounts = DB::table('account_agenzia')
+                    ->where('google_ads_mcc_id', $mccId)
+                    ->where('provenienza', 'Google ADS')
+                    ->pluck('ragione_sociale')
+                    ->toArray();
+                
+                return response()->json([
+                    'successo' => true,
+                    'messaggio' => 'Autenticazione completata!',
+                    'mcc_id' => $mccId,
+                    'account_aggiornati' => $updated,
+                    'account_list' => $accounts,
+                    'refresh_token' => substr($refreshToken, 0, 20) . '...' // Mostra solo inizio per sicurezza
+                ]);
+                
+            } else {
+                // Fallback: salva nel file (vecchio metodo)
+                $saved = Storage::put('google_ads_refresh_token.txt', $refreshToken);
+
+                if (!$saved) {
+                    return response()->json([
+                        'errore' => 'Impossibile salvare il refresh_token',
+                        'dettaglio' => 'Verifica i permessi della cartella storage/app'
+                    ], 500);
+                }
+
+                return response()->json([
+                    'successo' => true,
+                    'messaggio' => 'Autenticazione completata! Refresh token salvato nel file.',
+                    'refresh_token' => substr($refreshToken, 0, 20) . '...'
+                ]);
+            }
 
         } catch (\Exception $e) {
             return response()->json([
                 'errore' => 'Errore durante il callback OAuth',
-                'dettaglio' => $e->getMessage()
+                'dettaglio' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
             ], 500);
         }
     }

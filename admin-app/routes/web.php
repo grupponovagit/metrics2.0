@@ -14,8 +14,13 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // ===== GOOGLE ADS API - OAuth Flow =====
-// Step 1: Redirect a Google per autorizzazione
-Route::get('/oauth/google-ads', [GoogleAdsOauthController::class, 'redirectToGoogle'])
+// Pagina gestione autenticazioni
+Route::get('/google-ads/auth-manager', function () {
+    return view('google-ads-auth');
+})->name('google-ads.auth-manager');
+
+// Step 1: Redirect a Google per autorizzazione (con MCC ID opzionale)
+Route::get('/oauth/google-ads/{mccId?}', [GoogleAdsOauthController::class, 'redirectToGoogle'])
     ->name('google-ads.oauth.redirect');
 
 // Step 2: Callback OAuth - gestisce code→token
