@@ -247,6 +247,9 @@ Route::group([
         Route::put('/esiti-vendita-conversione/{id}', 'ICTController@updateEsitoVenditaConversione')->name('esiti_vendita_conversione.update');
         Route::delete('/esiti-vendita-conversione/{id}', 'ICTController@destroyEsitoVenditaConversione')->name('esiti_vendita_conversione.destroy');
         Route::post('/esiti-vendita-conversione/bulk-delete', 'ICTController@bulkDeleteEsitoVenditaConversione')->name('esiti_vendita_conversione.bulk_delete');
+        
+        // Google Ads API - Gestione Autenticazioni
+        Route::get('/google-ads-api', 'GoogleAdsAuthController@index')->name('google_ads_api');
     });
 
 });

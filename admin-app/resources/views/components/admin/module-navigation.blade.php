@@ -57,12 +57,12 @@
                                         case 'marketing':
                                             $submoduleCount = 6 + (in_array('reports', $module['permissions']) ? 1 : 0);
                                             break;
-                                        case 'ict':
-                                            $viewLinks = 8; // Sistema, Ticket, Calendario, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati
-                                            $adminLinks = in_array('admin', $module['permissions']) ? 2 : 0; // Utenti, Sicurezza
-                                            $reportLinks = in_array('reports', $module['permissions']) ? 1 : 0;
-                                            $submoduleCount = $viewLinks + $adminLinks + $reportLinks;
-                                            break;
+                        case 'ict':
+                            $viewLinks = 9; // Sistema, Ticket, Calendario, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati, Google Ads API
+                            $adminLinks = in_array('admin', $module['permissions']) ? 2 : 0; // Utenti, Sicurezza
+                            $reportLinks = in_array('reports', $module['permissions']) ? 1 : 0;
+                            $submoduleCount = $viewLinks + $adminLinks + $reportLinks;
+                            break;
                                         default:
                                             $submoduleCount = count($module['permissions']);
                                     }
@@ -311,7 +311,8 @@
                                         ['route' => 'admin.ict.esiti_vendita_conversione.index', 'icon' => 'shopping-cart', 'title' => 'Esiti Vendita'],
                                         ['route' => 'admin.ict.stato', 'icon' => 'signal', 'title' => 'Stato'],
                                         ['route' => 'admin.ict.categoria_utm_campagna', 'icon' => 'tag', 'title' => 'Categoria UTM'],
-                                        ['route' => 'admin.ict.aggiorna_mandati', 'icon' => 'sync', 'title' => 'Aggiorna Mandati']
+                                        ['route' => 'admin.ict.aggiorna_mandati', 'icon' => 'sync', 'title' => 'Aggiorna Mandati'],
+                                        ['route' => 'admin.ict.google_ads_api', 'icon' => 'google', 'title' => 'Google Ads API', 'fab' => true]
                                     ];
                                 @endphp
                                 
@@ -320,7 +321,7 @@
                                         <a href="{{ route($link['route']) }}" 
                                            class="submenu-link {{ request()->routeIs($link['route']) ? 'submenu-link-active' : '' }}">
                                             <div class="submenu-icon">
-                                                <i class="fas fa-{{ $link['icon'] }}"></i>
+                                                <i class="{{ isset($link['fab']) && $link['fab'] ? 'fab' : 'fas' }} fa-{{ $link['icon'] }}"></i>
                                             </div>
                                             <span class="submenu-text">{{ $link['title'] }}</span>
                                         </a>

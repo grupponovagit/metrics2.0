@@ -14,11 +14,6 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // ===== GOOGLE ADS API - OAuth Flow =====
-// Pagina gestione autenticazioni
-Route::get('/google-ads/auth-manager', function () {
-    return view('google-ads-auth');
-})->name('google-ads.auth-manager');
-
 // Step 2: Callback OAuth - gestisce code→token (DEVE ESSERE PRIMA!)
 Route::get('/oauth/google-ads/callback', [GoogleAdsOauthController::class, 'handleCallback'])
     ->name('google-ads.oauth.callback');

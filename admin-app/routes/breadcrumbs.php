@@ -489,3 +489,8 @@ Breadcrumbs::for('admin.ict.aggiorna_mandati', function (BreadcrumbTrail $trail)
     $trail->parent('admin.ict.index');
     $trail->push('Aggiorna Mandati', route('admin.ict.aggiorna_mandati'));
 });
+
+Breadcrumbs::for('admin.ict.google_ads_api', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.index');
+    $trail->push('Google Ads API', route('admin.ict.google_ads_api'));
+});
