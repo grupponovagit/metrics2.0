@@ -31,33 +31,38 @@ class OptimizeProject extends Command
         $this->info('════════════════════════════════════════════════════════════════');
         $this->newLine();
         
-        // Step 1: Pulisce tutte le cache esistenti
-        $this->info('🧹 Step 1/5: Pulizia cache esistente...');
+        // Step 1: Pulisce TUTTO con optimize:clear
+        $this->info('🧹 Step 1/6: Pulizia completa cache (optimize:clear)...');
         $this->call('optimize:clear');
-        $this->info('✅ Cache pulita');
+        $this->info('✅ Cache globale pulita');
         $this->newLine();
         
-        // Step 2: Ricarica configurazione da .env (IMPORTANTE!)
-        $this->info('🔧 Step 2/5: Ricaricamento configurazione da .env...');
+        // Step 2: Pulizia config cache (doppia sicurezza!)
+        $this->info('🔧 Step 2/6: Pulizia configurazione (config:clear)...');
         $this->call('config:clear');
+        $this->info('✅ Config cache pulita');
+        $this->newLine();
+        
+        // Step 3: Ricarica configurazione da .env
+        $this->info('📝 Step 3/6: Ricaricamento configurazione da .env...');
         $this->call('config:cache');
         $this->info('✅ Configurazione ricaricata (include credenziali Google Ads)');
         $this->newLine();
         
-        // Step 3: Cache routes
-        $this->info('⚡ Step 3/5: Ottimizzazione route...');
+        // Step 4: Cache routes
+        $this->info('⚡ Step 4/6: Ottimizzazione route...');
         $this->call('route:cache');
         $this->info('✅ Route ottimizzate');
         $this->newLine();
         
-        // Step 4: Cache views
-        $this->info('🎨 Step 4/5: Compilazione views...');
+        // Step 5: Cache views
+        $this->info('🎨 Step 5/6: Compilazione views...');
         $this->call('view:cache');
         $this->info('✅ Views compilate');
         $this->newLine();
         
-        // Step 5: Cache blade icons (se disponibile)
-        $this->info('🎯 Step 5/5: Ottimizzazioni finali...');
+        // Step 6: Cache blade icons (se disponibile)
+        $this->info('🎯 Step 6/6: Ottimizzazioni finali...');
         if ($this->laravel->has('blade-icons')) {
             $this->call('blade-icons:cache');
         }
@@ -75,7 +80,8 @@ class OptimizeProject extends Command
         $this->line('   ✅ View cache');
         $this->line('   ✅ Blade icons cache');
         $this->newLine();
-        $this->comment('💡 Se modifichi il .env, riesegui: php artisan project:optimize');
+        $this->comment('💡 Ora puoi usare le Google Ads API senza problemi!');
+        $this->comment('   Prova: php artisan googleads:import-yesterday');
         $this->newLine();
         
         return Command::SUCCESS;
