@@ -201,7 +201,6 @@
     function initCustomDragScroll(containerId) {
         const container = document.getElementById(containerId);
         if (!container) {
-            console.log(`Container ${containerId} non trovato`);
             return;
         }
         
@@ -253,8 +252,6 @@
             
             container.scrollLeft = scrollLeft - walk;
         });
-        
-        console.log(`Drag-to-scroll inizializzato per ${containerId}`);
     }
     
     // ==========================================
@@ -268,7 +265,6 @@
             initCustomDragScroll('table-dettagliato');
             initCustomDragScroll('table-sintetico');
             initCustomDragScroll('table-giornaliero');
-            console.log('Drag-to-scroll inizializzato per tutte le tabelle!');
         }, 100);
     });
 </script>

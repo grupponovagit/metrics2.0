@@ -191,6 +191,11 @@ Route::group([
         
         // Sottomenu Marketing
         Route::get('/cruscotto-lead', 'MarketingController@cruscottoLead')->name('cruscotto_lead');
+        
+        // API per filtri dinamici cruscotto lead
+        Route::get('/cruscotto-lead/get-provenienze', 'MarketingController@getProvenienze')->name('cruscotto_lead.get_provenienze');
+        Route::get('/cruscotto-lead/get-campagne', 'MarketingController@getCampagne')->name('cruscotto_lead.get_campagne');
+        
         Route::get('/costi-invio-messaggi', 'MarketingController@costiInvioMessaggi')->name('costi_invio_messaggi');
         Route::get('/controllo-sms', 'MarketingController@controlloSms')->name('controllo_sms');
         

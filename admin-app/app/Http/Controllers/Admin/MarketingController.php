@@ -241,28 +241,43 @@ class MarketingController extends Controller
             ->orderBy('ragione_sociale')
             ->pluck('ragione_sociale');
         
-        $opzioniProvenienza = DB::table('report_digital_leads')
-            ->select('provenienza')
-            ->distinct()
-            ->whereNotNull('provenienza')
-            ->orderBy('provenienza')
-            ->pluck('provenienza');
+        // === PRE-CARICA FILTRI CONCATENATI ===
+        $opzioniProvenienzaFiltered = collect();
+        $opzioniCampagneFiltered = collect();
         
-        // Campagne filtrate dinamicamente in base a ragione sociale e provenienza
-        $queryCampagne = DB::table('report_digital_leads')
-            ->select('utm_campaign')
-            ->distinct()
-            ->whereNotNull('utm_campaign');
-        
+        // ✅ Provenienza: carica SOLO se ragione sociale è selezionata
         if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
-            $queryCampagne->whereIn('ragione_sociale', $ragioneSociale);
+            $opzioniProvenienzaFiltered = DB::table('report_digital_leads')
+                ->select('provenienza')
+                ->distinct()
+                ->whereNotNull('provenienza')
+                ->whereIn('ragione_sociale', $ragioneSociale)
+                ->orderBy('provenienza')
+                ->pluck('provenienza');
+        }
+        // Altrimenti rimane vuoto (collect())
+        
+        // Se ragione sociale O provenienza selezionate, pre-carica campagne disponibili
+        if ((!empty($ragioneSociale) && is_array($ragioneSociale)) || (!empty($provenienza) && is_array($provenienza))) {
+            $queryCampagne = DB::table('report_digital_leads')
+                ->select('utm_campaign')
+                ->distinct()
+                ->whereNotNull('utm_campaign');
+            
+            if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
+                $queryCampagne->whereIn('ragione_sociale', $ragioneSociale);
+            }
+            
+            if (!empty($provenienza) && is_array($provenienza)) {
+                $queryCampagne->whereIn('provenienza', $provenienza);
+            }
+            
+            $opzioniCampagneFiltered = $queryCampagne->orderBy('utm_campaign')->pluck('utm_campaign');
         }
         
-        if (!empty($provenienza) && is_array($provenienza)) {
-            $queryCampagne->whereIn('provenienza', $provenienza);
-        }
-        
-        $opzioniCampagne = $queryCampagne->orderBy('utm_campaign')->pluck('utm_campaign');
+        // Mantieni vecchie variabili per retrocompatibilità
+        $opzioniProvenienza = $opzioniProvenienzaFiltered;
+        $opzioniCampagne = $opzioniCampagneFiltered;
         
         return view('admin.modules.marketing.cruscotto-lead.index', [
             'datiDettagliati' => $datiDettagliati,
@@ -271,6 +286,9 @@ class MarketingController extends Controller
             'opzioniRagioneSociale' => $opzioniRagioneSociale,
             'opzioniProvenienza' => $opzioniProvenienza,
             'opzioniCampagne' => $opzioniCampagne,
+            // Filtri pre-popolati per caricamento veloce
+            'opzioniProvenienzaFiltered' => $opzioniProvenienzaFiltered,
+            'opzioniCampagneFiltered' => $opzioniCampagneFiltered,
             'filtri' => [
                 'ragione_sociale' => $ragioneSociale,
                 'provenienza' => $provenienza,
@@ -279,6 +297,57 @@ class MarketingController extends Controller
                 'data_fine' => $dataFine,
             ]
         ]);
+    }
+
+    /**
+     * API: Ottieni provenienze per ragioni sociali selezionate
+     */
+    public function getProvenienze(Request $request)
+    {
+        $this->authorize('marketing.view');
+        
+        $ragioneSociale = $request->input('ragione_sociale', []);
+        
+        $query = DB::table('report_digital_leads')
+            ->select('provenienza')
+            ->distinct()
+            ->whereNotNull('provenienza');
+        
+        if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
+            $query->whereIn('ragione_sociale', $ragioneSociale);
+        }
+        
+        $provenienze = $query->orderBy('provenienza')->pluck('provenienza');
+        
+        return response()->json($provenienze);
+    }
+
+    /**
+     * API: Ottieni campagne per ragioni sociali e provenienze selezionate
+     */
+    public function getCampagne(Request $request)
+    {
+        $this->authorize('marketing.view');
+        
+        $ragioneSociale = $request->input('ragione_sociale', []);
+        $provenienza = $request->input('provenienza', []);
+        
+        $query = DB::table('report_digital_leads')
+            ->select('utm_campaign')
+            ->distinct()
+            ->whereNotNull('utm_campaign');
+        
+        if (!empty($ragioneSociale) && is_array($ragioneSociale)) {
+            $query->whereIn('ragione_sociale', $ragioneSociale);
+        }
+        
+        if (!empty($provenienza) && is_array($provenienza)) {
+            $query->whereIn('provenienza', $provenienza);
+        }
+        
+        $campagne = $query->orderBy('utm_campaign')->pluck('utm_campaign');
+        
+        return response()->json($campagne);
     }
 
     /**

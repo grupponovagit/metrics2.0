@@ -59,7 +59,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="building" class="h-4 w-4 inline mr-1" />
-                            Ragione Sociale <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Ragione Sociale
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllRagioneSociale(true)" class="btn btn-xs btn-info gap-1">
@@ -76,9 +76,9 @@
                         @foreach($opzioniRagioneSociale as $rs)
                         <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
                             <input type="checkbox" name="ragione_sociale[]" value="{{ $rs }}" 
-                                   class="checkbox checkbox-info checkbox-sm" 
+                                   class="checkbox checkbox-info checkbox-sm ragione-checkbox" 
                                    {{ in_array($rs, $filtri['ragione_sociale'] ?? []) ? 'checked' : '' }}
-                                   onchange="updateCampagneFilter()">
+                                   onchange="debounce(loadProvenienze, 'provenienza', 200)">
                             <span class="text-sm">{{ $rs }}</span>
                         </label>
                         @endforeach
@@ -94,7 +94,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="location-dot" class="h-4 w-4 inline mr-1" />
-                            Provenienza <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Provenienza
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllProvenienza(true)" class="btn btn-xs btn-success gap-1">
@@ -107,16 +107,20 @@
                             </button>
                         </div>
                     </label>
-                    <div class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
-                        @foreach($opzioniProvenienza as $prov)
-                        <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
-                            <input type="checkbox" name="provenienza[]" value="{{ $prov }}" 
-                                   class="checkbox checkbox-success checkbox-sm" 
-                                   {{ in_array($prov, $filtri['provenienza'] ?? []) ? 'checked' : '' }}
-                                   onchange="updateCampagneFilter()">
-                            <span class="text-sm">{{ $prov }}</span>
-                        </label>
-                        @endforeach
+                    <div id="provenienzaContainer" class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
+                        @if($opzioniProvenienzaFiltered->isNotEmpty())
+                            @foreach($opzioniProvenienzaFiltered as $prov)
+                            <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
+                                <input type="checkbox" name="provenienza[]" value="{{ $prov }}" 
+                                       class="checkbox checkbox-success checkbox-sm provenienza-checkbox" 
+                                       {{ in_array($prov, $filtri['provenienza'] ?? []) ? 'checked' : '' }}
+                                       onchange="debounce(loadCampagne, 'campagne', 200)">
+                                <span class="text-sm">{{ $prov }}</span>
+                            </label>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona Ragione Sociale</p>
+                        @endif
                     </div>
                 </div>
 
@@ -125,7 +129,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="tags" class="h-4 w-4 inline mr-1" />
-                            Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Campagne
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-warning gap-1">
@@ -139,17 +143,17 @@
                         </div>
                     </label>
                     <div id="campagneContainer" class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
-                        @if($opzioniCampagne->isEmpty())
-                        <p class="text-xs text-base-content/50 text-center py-4">Seleziona Ragione Sociale o Provenienza</p>
+                        @if($opzioniCampagneFiltered->isNotEmpty())
+                            @foreach($opzioniCampagneFiltered as $camp)
+                            <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
+                                <input type="checkbox" name="utm_campaign[]" value="{{ $camp }}" 
+                                       class="checkbox checkbox-warning checkbox-sm campagna-checkbox" 
+                                       {{ in_array($camp, $filtri['utm_campaign'] ?? []) ? 'checked' : '' }}>
+                                <span class="text-sm">{{ $camp }}</span>
+                            </label>
+                            @endforeach
                         @else
-                        @foreach($opzioniCampagne as $camp)
-                        <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
-                            <input type="checkbox" name="utm_campaign[]" value="{{ $camp }}" 
-                                   class="checkbox checkbox-warning checkbox-sm" 
-                                   {{ in_array($camp, $filtri['utm_campaign'] ?? []) ? 'checked' : '' }}>
-                            <span class="text-sm">{{ $camp }}</span>
-                        </label>
-                        @endforeach
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona Ragione Sociale o Provenienza</p>
                         @endif
                     </div>
                 </div>
@@ -310,68 +314,149 @@
 
 <script>
 // =====================================================
-// TOGGLE CHECKBOX (Ragione Sociale, Provenienza, Campagne)
+// DEBOUNCE FUNCTION
+// =====================================================
+let debounceTimers = {};
+function debounce(func, key, delay) {
+    if (debounceTimers[key]) {
+        clearTimeout(debounceTimers[key]);
+    }
+    debounceTimers[key] = setTimeout(() => {
+        func();
+        delete debounceTimers[key];
+    }, delay);
+}
+
+// =====================================================
+// TOGGLE ALL CHECKBOXES
 // =====================================================
 function toggleAllRagioneSociale(select) {
-    document.querySelectorAll('input[name="ragione_sociale[]"]').forEach(checkbox => {
+    document.querySelectorAll('.ragione-checkbox').forEach(checkbox => {
         checkbox.checked = select;
     });
-    updateCampagneFilter();
+    if (select) toggleAllProvenienza(true);
+    debounce(loadProvenienze, 'provenienza', 200);
 }
 
 function toggleAllProvenienza(select) {
-    document.querySelectorAll('input[name="provenienza[]"]').forEach(checkbox => {
+    document.querySelectorAll('.provenienza-checkbox').forEach(checkbox => {
         checkbox.checked = select;
     });
-    updateCampagneFilter();
+    if (select) toggleAllCampagne(true);
+    debounce(loadCampagne, 'campagne', 200);
 }
 
 function toggleAllCampagne(select) {
-    document.querySelectorAll('input[name="utm_campaign[]"]').forEach(checkbox => {
+    document.querySelectorAll('.campagna-checkbox').forEach(checkbox => {
         checkbox.checked = select;
     });
 }
 
 // =====================================================
-// AGGIORNA FILTRO CAMPAGNE DINAMICO
+// LOAD PROVENIENZE DINAMICAMENTE
 // =====================================================
-function updateCampagneFilter() {
-    const ragioneSocialeChecked = Array.from(document.querySelectorAll('input[name="ragione_sociale[]"]:checked'))
-        .map(cb => cb.value);
-    const provenienzaChecked = Array.from(document.querySelectorAll('input[name="provenienza[]"]:checked'))
-        .map(cb => cb.value);
+function loadProvenienze() {
+    const provenienzaContainer = document.getElementById('provenienzaContainer');
+    const selectedRagioneSociale = Array.from(document.querySelectorAll('.ragione-checkbox:checked')).map(cb => cb.value);
     
-    // ✅ SALVA le campagne attualmente selezionate PRIMA di aggiornare
-    const campagneSelezionate = Array.from(document.querySelectorAll('input[name="utm_campaign[]"]:checked'))
-        .map(cb => cb.value);
+    // Mostra loading
+    provenienzaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4"><span class="loading loading-spinner loading-sm"></span> Caricamento...</p>';
     
-    // Fai una chiamata AJAX per recuperare le campagne filtrate
+    // Resetta campagne
+    document.getElementById('campagneContainer').innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona Provenienza</p>';
+    
+    if (selectedRagioneSociale.length === 0) {
+        provenienzaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona Ragione Sociale</p>';
+        return;
+    }
+    
     const params = new URLSearchParams();
-    ragioneSocialeChecked.forEach(rs => params.append('ragione_sociale[]', rs));
-    provenienzaChecked.forEach(prov => params.append('provenienza[]', prov));
+    selectedRagioneSociale.forEach(rs => params.append('ragione_sociale[]', rs));
     
-    fetch(`{{ route('admin.marketing.cruscotto_lead') }}?${params.toString()}`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.text())
-    .then(html => {
-        // Estrai solo le opzioni del container campagne dalla risposta
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newCampagneHtml = doc.getElementById('campagneContainer').innerHTML;
-        document.getElementById('campagneContainer').innerHTML = newCampagneHtml;
-        
-        // ✅ RIPRISTINA le checkbox selezionate dopo l'aggiornamento
-        campagneSelezionate.forEach(campagna => {
-            const checkbox = document.querySelector(`input[name="utm_campaign[]"][value="${campagna}"]`);
-            if (checkbox) {
-                checkbox.checked = true;
+    // Salva provenienze selezionate
+    const selectedProvenienze = Array.from(document.querySelectorAll('.provenienza-checkbox:checked')).map(cb => cb.value);
+    
+    fetch(`{{ route('admin.marketing.cruscotto_lead.get_provenienze') }}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            provenienzaContainer.innerHTML = '';
+            
+            if (data.length > 0) {
+                data.forEach(prov => {
+                    const isChecked = selectedProvenienze.includes(prov);
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
+                    label.innerHTML = `
+                        <input type="checkbox" name="provenienza[]" value="${prov}" 
+                               class="checkbox checkbox-success checkbox-sm provenienza-checkbox" 
+                               ${isChecked ? 'checked' : ''}
+                               onchange="debounce(loadCampagne, 'campagne', 200)">
+                        <span class="text-sm">${prov}</span>
+                    `;
+                    provenienzaContainer.appendChild(label);
+                });
+                
+                // Se ci sono provenienze selezionate, carica le campagne
+                if (selectedProvenienze.length > 0) {
+                    loadCampagne();
+                }
+            } else {
+                provenienzaContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna provenienza disponibile</p>';
             }
+        })
+        .catch(error => {
+            provenienzaContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
         });
-    })
-    .catch(error => console.error('Errore aggiornamento campagne:', error));
+}
+
+// =====================================================
+// LOAD CAMPAGNE DINAMICAMENTE
+// =====================================================
+function loadCampagne() {
+    const campagneContainer = document.getElementById('campagneContainer');
+    const selectedRagioneSociale = Array.from(document.querySelectorAll('.ragione-checkbox:checked')).map(cb => cb.value);
+    const selectedProvenienze = Array.from(document.querySelectorAll('.provenienza-checkbox:checked')).map(cb => cb.value);
+    
+    // Mostra loading
+    campagneContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4"><span class="loading loading-spinner loading-sm"></span> Caricamento...</p>';
+    
+    if (selectedRagioneSociale.length === 0 && selectedProvenienze.length === 0) {
+        campagneContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Seleziona Ragione Sociale o Provenienza</p>';
+        return;
+    }
+    
+    const params = new URLSearchParams();
+    selectedRagioneSociale.forEach(rs => params.append('ragione_sociale[]', rs));
+    selectedProvenienze.forEach(prov => params.append('provenienza[]', prov));
+    
+    // Salva campagne selezionate
+    const selectedCampagne = Array.from(document.querySelectorAll('.campagna-checkbox:checked')).map(cb => cb.value);
+    
+    fetch(`{{ route('admin.marketing.cruscotto_lead.get_campagne') }}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            campagneContainer.innerHTML = '';
+            
+            if (data.length > 0) {
+                data.forEach(camp => {
+                    const isChecked = selectedCampagne.includes(camp);
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
+                    label.innerHTML = `
+                        <input type="checkbox" name="utm_campaign[]" value="${camp}" 
+                               class="checkbox checkbox-warning checkbox-sm campagna-checkbox" 
+                               ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm">${camp}</span>
+                    `;
+                    campagneContainer.appendChild(label);
+                });
+            } else {
+                campagneContainer.innerHTML = '<p class="text-xs text-base-content/50 text-center py-4">Nessuna campagna disponibile</p>';
+            }
+        })
+        .catch(error => {
+            campagneContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
+        });
 }
 </script>
 

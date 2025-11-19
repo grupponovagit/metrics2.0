@@ -572,24 +572,13 @@ class ProduzioneController extends Controller
             ->orderBy('commessa')
             ->pluck('commessa');
         
-        // Sedi filtrate per commessa selezionata (se presente)
-        $sedi = collect();
-        if ($commessaFilter) {
-            $sedi = DB::table('report_produzione_pivot_cache')
-                ->where('commessa', $commessaFilter)
-                ->where('ore_lavorate', '>', 0) // Mostra solo sedi con ore lavorate
-                ->distinct()
-                ->whereNotNull('nome_sede')
-                ->where('nome_sede', '!=', '')
-                ->orderBy('nome_sede')
-                ->pluck('nome_sede');
-        }
+        // === PRE-CARICA CAMPAGNE E SEDI SE LA COMMESSA È SELEZIONATA ===
+        $campagneFiltered = collect();
+        $sediFiltered = collect();
         
-        // Macro campagne filtrate per commessa (se presente)
-        // IMPORTANTE: Mostra SOLO campagne con lavorazione nel periodo selezionato
-        $macroCampagne = collect();
         if ($commessaFilter) {
-            $macroCampagne = DB::table('report_produzione_pivot_cache')
+            // Carica campagne disponibili per la commessa selezionata
+            $campagneFiltered = DB::table('report_produzione_pivot_cache')
                 ->where('commessa', $commessaFilter)
                 ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
                 ->distinct()
@@ -597,7 +586,27 @@ class ProduzioneController extends Controller
                 ->where('macro_campagna', '!=', '')
                 ->orderBy('macro_campagna')
                 ->pluck('macro_campagna');
+            
+            // Se ci sono campagne selezionate, carica le sedi disponibili
+            if (!empty($macroCampagnaFilters)) {
+                $sediFiltered = DB::table('report_produzione_pivot_cache')
+                    ->where('commessa', $commessaFilter)
+                    ->whereIn('macro_campagna', $macroCampagnaFilters)
+                    ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
+                    ->where('ore_lavorate', '>', 0)
+                    ->distinct()
+                    ->whereNotNull('nome_sede')
+                    ->where('nome_sede', '!=', '')
+                    ->orderBy('nome_sede')
+                    ->pluck('nome_sede');
+            }
         }
+        
+        // Sedi filtrate per commessa selezionata (se presente) - mantieni per retrocompatibilità
+        $sedi = $sediFiltered;
+        
+        // Macro campagne filtrate per commessa (se presente) - mantieni per retrocompatibilità
+        $macroCampagne = $campagneFiltered;
         
         return view('admin.modules.produzione.cruscotto-produzione.index', [
             'kpiTotali' => $kpiArray,
@@ -609,6 +618,9 @@ class ProduzioneController extends Controller
             'commesse' => $commesse,
             'sedi' => $sedi,
             'macroCampagne' => $macroCampagne,
+            // Filtri pre-popolati per caricamento veloce
+            'campagneFiltered' => $campagneFiltered,
+            'sediFiltered' => $sediFiltered,
             'dataInizio' => $dataInizio ?? '',
             'dataFine' => $dataFine ?? '',
             'commessaFilter' => $commessaFilter ?? '',

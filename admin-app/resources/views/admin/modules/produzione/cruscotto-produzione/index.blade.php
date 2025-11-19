@@ -69,7 +69,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="bullseye" class="h-4 w-4 inline text-success" />
-                            Macro Campagne <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Macro Campagne
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllCampagne(true)" class="btn btn-xs btn-success gap-1">
@@ -83,7 +83,18 @@
                         </div>
                     </label>
                     <div id="campagnaContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100">
-                        <p class="text-xs text-base-content/50 text-center py-4">Seleziona una commessa</p>
+                        @if($campagneFiltered->isNotEmpty())
+                            @foreach($campagneFiltered as $campagna)
+                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-campagna" data-checkbox-label>
+                                    <input type="checkbox" name="macro_campagna[]" value="{{ $campagna }}" 
+                                           class="checkbox checkbox-success checkbox-sm campagna-checkbox"
+                                           {{ is_array($macroCampagnaFilters) && in_array($campagna, $macroCampagnaFilters) ? 'checked' : '' }}>
+                                    <span class="text-sm leading-tight">{{ $campagna }}</span>
+                                </label>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona una commessa</p>
+                        @endif
                     </div>
                 </div>
                 
@@ -92,7 +103,7 @@
                     <label class="label py-1 pb-2">
                         <span class="label-text font-semibold text-sm">
                             <x-ui.icon name="building" class="h-4 w-4 inline text-info" />
-                            Sedi <span class="text-[10px] opacity-60">(Shift+Click)</span>
+                            Sedi
                         </span>
                         <div class="flex gap-1">
                             <button type="button" onclick="toggleAllSedi(true)" class="btn btn-xs btn-info gap-1">
@@ -106,7 +117,18 @@
                         </div>
                     </label>
                     <div id="sedeContainer" class="border border-base-300 rounded-lg p-2.5 h-[180px] overflow-y-auto bg-base-100">
-                        <p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>
+                        @if($sediFiltered->isNotEmpty())
+                            @foreach($sediFiltered as $sede)
+                                <label class="flex items-center gap-2 py-1.5 px-2 cursor-pointer hover:bg-base-200 rounded-md select-sede" data-checkbox-label>
+                                    <input type="checkbox" name="sede[]" value="{{ $sede }}" 
+                                           class="checkbox checkbox-info checkbox-sm sede-checkbox"
+                                           {{ is_array($sedeFilters) && in_array($sede, $sedeFilters) ? 'checked' : '' }}>
+                                    <span class="text-sm leading-tight">{{ $sede }}</span>
+                                </label>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-base-content/50 text-center py-4">Seleziona almeno una campagna</p>
+                        @endif
                     </div>
                 </div>
                 
@@ -384,8 +406,6 @@
             const dataInizio = document.querySelector('input[name="data_inizio"]').value;
             const dataFine = document.querySelector('input[name="data_fine"]').value;
             
-            console.log('loadSedi chiamato:', { commessa, selectedCampagne, dataInizio, dataFine });
-            
             // Reset dell'ultima checkbox sede selezionata
             lastCheckedSede = null;
             
@@ -394,22 +414,16 @@
                 return;
             }
             
-            // Costruisci URL con parametri
+            // Costruisci URL con parametri            
             const params = new URLSearchParams();
             params.append('commessa', commessa);
             selectedCampagne.forEach(c => params.append('campagne[]', c));
             if (dataInizio) params.append('data_inizio', dataInizio);
             if (dataFine) params.append('data_fine', dataFine);
             
-            console.log('Fetching sedi con URL:', `/admin/produzione/get-sedi?${params.toString()}`);
-            
             fetch(`/admin/produzione/get-sedi?${params.toString()}`)
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log('Sedi ricevute:', data);
                     sedeContainer.innerHTML = '';
                     
                     if (data.length > 0) {
@@ -432,7 +446,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Errore caricamento sedi:', error);
                     sedeContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
                 });
         }
@@ -489,7 +502,6 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Errore caricamento campagne:', error);
                         campagnaContainer.innerHTML = '<p class="text-xs text-error text-center py-4">Errore caricamento</p>';
                     });
             } else {
@@ -507,7 +519,6 @@
                 : e.target.querySelector('.campagna-checkbox');
             
             if (checkbox || e.target.classList.contains('campagna-checkbox')) {
-                console.log('Campagna checkbox cliccata');
                 // Usa setTimeout per aspettare che lo stato della checkbox si aggiorni
                 setTimeout(() => {
                     loadSedi();
@@ -537,8 +548,6 @@
             const commessaSelezionata = commessaSelect.value;
             
             if (commessaSelezionata) {
-                console.log('Commessa già selezionata, carico campagne e sedi...');
-                
                 // Valori filtrati dal server (dopo submit form)
                 const campagneFiltrate = @json($macroCampagnaFilters ?? []);
                 const sediFiltrate = @json($sedeFilters ?? []);
