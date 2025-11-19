@@ -751,21 +751,61 @@ class ProduzioneController extends Controller
         $anno = $request->input('anno', date('Y'));
         $mese = $request->input('mese', date('m'));
         
-        $targetMensili = KpiTargetMensile::where('anno', $anno)
-            ->where('mese', $mese)
-            ->orderBy('commessa')
-            ->orderBy('sede_crm')
-            ->orderBy('nome_kpi')
-            ->paginate(50);
+        // === FILTRI OBBLIGATORI (MULTI-SELEZIONE) ===
+        $filterCommessa = $request->input('filter_commessa', []);
+        $filterSede = $request->input('filter_sede', []);
+        $filterMacroCampagna = $request->input('filter_macro_campagna', []);
+        $filterNomeKpi = $request->input('filter_nome_kpi', []);
+        $filterTipologiaObiettivo = $request->input('filter_tipologia_obiettivo', []);
         
-        $rendicontoProduzione = KpiRendicontoProduzione::orderBy('commessa')
-            ->orderBy('servizio_mandato')
-            ->orderBy('nome_kpi')
-            ->get();
+        // Converti in array se non lo sono già
+        $filterCommessa = is_array($filterCommessa) ? $filterCommessa : [$filterCommessa];
+        $filterSede = is_array($filterSede) ? $filterSede : [$filterSede];
+        $filterMacroCampagna = is_array($filterMacroCampagna) ? $filterMacroCampagna : [$filterMacroCampagna];
+        $filterNomeKpi = is_array($filterNomeKpi) ? $filterNomeKpi : [$filterNomeKpi];
+        $filterTipologiaObiettivo = is_array($filterTipologiaObiettivo) ? $filterTipologiaObiettivo : [$filterTipologiaObiettivo];
         
-        $targetPerCommessa = $targetMensili->groupBy('commessa');
-        $rendicontoPerCommessa = $rendicontoProduzione->groupBy('commessa');
+        // Rimuovi valori vuoti
+        $filterCommessa = array_filter($filterCommessa);
+        $filterSede = array_filter($filterSede);
+        $filterMacroCampagna = array_filter($filterMacroCampagna);
+        $filterNomeKpi = array_filter($filterNomeKpi);
+        $filterTipologiaObiettivo = array_filter($filterTipologiaObiettivo);
         
+        // Flag per verificare se ci sono filtri applicati
+        $hasFiltri = !empty($filterCommessa) || !empty($filterSede) || !empty($filterMacroCampagna) || !empty($filterNomeKpi) || !empty($filterTipologiaObiettivo);
+        
+        // Inizializza variabili vuote
+        $targetMensili = collect();
+        $rendicontoProduzione = collect();
+        $targetPerCommessa = collect();
+        $rendicontoPerCommessa = collect();
+        
+        // Esegui query SOLO se ci sono filtri applicati
+        if ($hasFiltri) {
+            $targetMensili = KpiTargetMensile::where('anno', $anno)
+                ->where('mese', $mese)
+                ->when(!empty($filterCommessa), fn($q) => $q->whereIn('commessa', $filterCommessa))
+                ->when(!empty($filterSede), fn($q) => $q->whereIn('sede_crm', $filterSede))
+                ->when(!empty($filterMacroCampagna), fn($q) => $q->whereIn('macro_campagna', $filterMacroCampagna))
+                ->when(!empty($filterNomeKpi), fn($q) => $q->whereIn('nome_kpi', $filterNomeKpi))
+                ->when(!empty($filterTipologiaObiettivo), fn($q) => $q->whereIn('tipologia_obiettivo', $filterTipologiaObiettivo))
+                ->orderBy('commessa')
+                ->orderBy('sede_crm')
+                ->orderBy('nome_kpi')
+                ->paginate(50)
+                ->appends($request->all());
+            
+            $rendicontoProduzione = KpiRendicontoProduzione::orderBy('commessa')
+                ->orderBy('servizio_mandato')
+                ->orderBy('nome_kpi')
+                ->get();
+            
+            $targetPerCommessa = $targetMensili->groupBy('commessa');
+            $rendicontoPerCommessa = $rendicontoProduzione->groupBy('commessa');
+        }
+        
+        // === RECUPERA VALORI DISPONIBILI PER I FILTRI ===
         $commesse = DB::table('kpi_target_mensile')
             ->distinct()
             ->pluck('commessa')
@@ -775,10 +815,10 @@ class ProduzioneController extends Controller
         $sedi = DB::table('kpi_target_mensile')
             ->distinct()
             ->pluck('sede_crm')
+            ->filter()
             ->sort()
             ->values();
         
-        // === RECUPERA SEDI E MACRO CAMPAGNE PER LE SELECT ===
         // Recupera tutte le sedi dalla tabella sedi
         $sediSelect = DB::table('sedi')
             ->select('id', 'nome_sede', 'id_sede')
@@ -794,6 +834,86 @@ class ProduzioneController extends Controller
             ->orderBy('macro_campagna')
             ->pluck('macro_campagna');
         
+        // Recupera nomi KPI univoci (per il filtro)
+        $nomiKpi = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('nome_kpi')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // Recupera tipologie obiettivo univoche (per il filtro e la select)
+        $tipologieObiettivo = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('tipologia_obiettivo')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // === PRE-POPOLA FILTRI CONCATENATI SE CI SONO SELEZIONI ===
+        $sediFiltered = collect();
+        $macroCampagneFiltered = collect();
+        $nomiKpiFiltered = collect();
+        $tipologieObiettivoFiltered = collect();
+        
+        if (!empty($filterCommessa)) {
+            // Carica sedi disponibili per le commesse selezionate
+            $sediFiltered = DB::table('kpi_target_mensile')
+                ->whereIn('commessa', $filterCommessa)
+                ->where('anno', $anno)
+                ->where('mese', $mese)
+                ->distinct()
+                ->pluck('sede_crm')
+                ->filter()
+                ->sort()
+                ->values();
+            
+            if (!empty($filterSede)) {
+                // Carica macro campagne disponibili per commesse + sedi selezionate
+                $macroCampagneFiltered = DB::table('kpi_target_mensile')
+                    ->whereIn('commessa', $filterCommessa)
+                    ->whereIn('sede_crm', $filterSede)
+                    ->where('anno', $anno)
+                    ->where('mese', $mese)
+                    ->distinct()
+                    ->pluck('macro_campagna')
+                    ->filter()
+                    ->sort()
+                    ->values();
+                
+                if (!empty($filterMacroCampagna)) {
+                    // Carica nomi KPI disponibili
+                    $nomiKpiFiltered = DB::table('kpi_target_mensile')
+                        ->whereIn('commessa', $filterCommessa)
+                        ->whereIn('sede_crm', $filterSede)
+                        ->whereIn('macro_campagna', $filterMacroCampagna)
+                        ->where('anno', $anno)
+                        ->where('mese', $mese)
+                        ->distinct()
+                        ->pluck('nome_kpi')
+                        ->filter()
+                        ->sort()
+                        ->values();
+                    
+                    if (!empty($filterNomeKpi)) {
+                        // Carica tipologie disponibili
+                        $tipologieObiettivoFiltered = DB::table('kpi_target_mensile')
+                            ->whereIn('commessa', $filterCommessa)
+                            ->whereIn('sede_crm', $filterSede)
+                            ->whereIn('macro_campagna', $filterMacroCampagna)
+                            ->whereIn('nome_kpi', $filterNomeKpi)
+                            ->where('anno', $anno)
+                            ->where('mese', $mese)
+                            ->distinct()
+                            ->pluck('tipologia_obiettivo')
+                            ->filter()
+                            ->sort()
+                            ->values();
+                    }
+                }
+            }
+        }
+        
         return view('admin.modules.produzione.kpi-target.index', [
             'targetMensili' => $targetMensili,
             'rendicontoProduzione' => $rendicontoProduzione,
@@ -805,6 +925,20 @@ class ProduzioneController extends Controller
             'sedi' => $sedi,
             'sediSelect' => $sediSelect,
             'macroCampagne' => $macroCampagne,
+            'nomiKpi' => $nomiKpi,
+            'tipologieObiettivo' => $tipologieObiettivo,
+            // Filtri pre-popolati (per caricamento veloce)
+            'sediFiltered' => $sediFiltered,
+            'macroCampagneFiltered' => $macroCampagneFiltered,
+            'nomiKpiFiltered' => $nomiKpiFiltered,
+            'tipologieObiettivoFiltered' => $tipologieObiettivoFiltered,
+            // Filtri applicati (per mantenere i valori nel form)
+            'filterCommessa' => $filterCommessa,
+            'filterSede' => $filterSede,
+            'filterMacroCampagna' => $filterMacroCampagna,
+            'filterNomeKpi' => $filterNomeKpi,
+            'filterTipologiaObiettivo' => $filterTipologiaObiettivo,
+            'hasFiltri' => $hasFiltri,
         ]);
     }
     
@@ -862,12 +996,41 @@ class ProduzioneController extends Controller
         $sedi = DB::table('kpi_target_mensile')
             ->distinct()
             ->pluck('sede_crm')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // Recupera macro campagne dalla tabella campagne (esclusi NULL e "non usata")
+        $macroCampagne = DB::table('campagne')
+            ->select('macro_campagna')
+            ->whereNotNull('macro_campagna')
+            ->where('macro_campagna', '!=', 'non usata')
+            ->distinct()
+            ->orderBy('macro_campagna')
+            ->pluck('macro_campagna');
+        
+        // Recupera nomi KPI univoci
+        $nomiKpi = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('nome_kpi')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // Recupera tipologie obiettivo univoche
+        $tipologieObiettivo = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('tipologia_obiettivo')
+            ->filter()
             ->sort()
             ->values();
         
         return view('admin.modules.produzione.kpi-target.create', [
             'commesse' => $commesse,
             'sedi' => $sedi,
+            'macroCampagne' => $macroCampagne,
+            'nomiKpi' => $nomiKpi,
+            'tipologieObiettivo' => $tipologieObiettivo,
         ]);
     }
     
@@ -1116,5 +1279,121 @@ class ProduzioneController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Errore durante l\'aggiornamento: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Get Sedi per filtri concatenati KPI Target
+     */
+    public function getSediKpiTarget(Request $request)
+    {
+        $commesse = $request->input('commesse', []);
+        $anno = $request->input('anno', date('Y'));
+        $mese = $request->input('mese', date('m'));
+        
+        if (empty($commesse)) {
+            return response()->json([]);
+        }
+        
+        $sedi = DB::table('kpi_target_mensile')
+            ->whereIn('commessa', $commesse)
+            ->where('anno', $anno)
+            ->where('mese', $mese)
+            ->distinct()
+            ->pluck('sede_crm')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        return response()->json($sedi);
+    }
+    
+    /**
+     * Get Macro Campagne per filtri concatenati KPI Target
+     */
+    public function getMacroCampagneKpiTarget(Request $request)
+    {
+        $commesse = $request->input('commesse', []);
+        $sedi = $request->input('sedi', []);
+        $anno = $request->input('anno', date('Y'));
+        $mese = $request->input('mese', date('m'));
+        
+        if (empty($commesse) || empty($sedi)) {
+            return response()->json([]);
+        }
+        
+        $macroCampagne = DB::table('kpi_target_mensile')
+            ->whereIn('commessa', $commesse)
+            ->whereIn('sede_crm', $sedi)
+            ->where('anno', $anno)
+            ->where('mese', $mese)
+            ->distinct()
+            ->pluck('macro_campagna')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        return response()->json($macroCampagne);
+    }
+    
+    /**
+     * Get Nomi KPI per filtri concatenati KPI Target
+     */
+    public function getNomiKpiTarget(Request $request)
+    {
+        $commesse = $request->input('commesse', []);
+        $sedi = $request->input('sedi', []);
+        $macroCampagne = $request->input('macro_campagne', []);
+        $anno = $request->input('anno', date('Y'));
+        $mese = $request->input('mese', date('m'));
+        
+        if (empty($commesse) || empty($sedi) || empty($macroCampagne)) {
+            return response()->json([]);
+        }
+        
+        $nomiKpi = DB::table('kpi_target_mensile')
+            ->whereIn('commessa', $commesse)
+            ->whereIn('sede_crm', $sedi)
+            ->whereIn('macro_campagna', $macroCampagne)
+            ->where('anno', $anno)
+            ->where('mese', $mese)
+            ->distinct()
+            ->pluck('nome_kpi')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        return response()->json($nomiKpi);
+    }
+    
+    /**
+     * Get Tipologie Obiettivo per filtri concatenati KPI Target
+     */
+    public function getTipologieObiettivoKpiTarget(Request $request)
+    {
+        $commesse = $request->input('commesse', []);
+        $sedi = $request->input('sedi', []);
+        $macroCampagne = $request->input('macro_campagne', []);
+        $nomiKpi = $request->input('nomi_kpi', []);
+        $anno = $request->input('anno', date('Y'));
+        $mese = $request->input('mese', date('m'));
+        
+        if (empty($commesse) || empty($sedi) || empty($macroCampagne) || empty($nomiKpi)) {
+            return response()->json([]);
+        }
+        
+        $tipologie = DB::table('kpi_target_mensile')
+            ->whereIn('commessa', $commesse)
+            ->whereIn('sede_crm', $sedi)
+            ->whereIn('macro_campagna', $macroCampagne)
+            ->whereIn('nome_kpi', $nomiKpi)
+            ->where('anno', $anno)
+            ->where('mese', $mese)
+            ->distinct()
+            ->pluck('tipologia_obiettivo')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        return response()->json($tipologie);
     }
 }

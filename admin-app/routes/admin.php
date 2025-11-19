@@ -158,6 +158,13 @@ Route::group([
         
         // KPI Target Mensili
         Route::get('/kpi-target', 'ProduzioneController@kpiTarget')->name('kpi_target');
+        
+        // Filtri concatenati KPI Target (PRIMA delle route dinamiche)
+        Route::get('/kpi-target/get-sedi', 'ProduzioneController@getSediKpiTarget')->name('kpi_target.get_sedi');
+        Route::get('/kpi-target/get-macro-campagne', 'ProduzioneController@getMacroCampagneKpiTarget')->name('kpi_target.get_macro_campagne');
+        Route::get('/kpi-target/get-nomi-kpi', 'ProduzioneController@getNomiKpiTarget')->name('kpi_target.get_nomi_kpi');
+        Route::get('/kpi-target/get-tipologie', 'ProduzioneController@getTipologieObiettivoKpiTarget')->name('kpi_target.get_tipologie');
+        
         Route::get('/kpi-target/create', 'ProduzioneController@createKpiTarget')->name('kpi_target.create');
         Route::post('/kpi-target/store', 'ProduzioneController@storeKpiTarget')->name('kpi_target.store');
         Route::post('/kpi-target/inizializza-mese', 'ProduzioneController@inizializzaMese')->name('kpi_target.inizializza_mese');

@@ -25,20 +25,19 @@
                     <label class="label">
                         <span class="label-text font-semibold">Commessa <span class="text-error">*</span></span>
                     </label>
-                    <input 
-                        type="text" 
+                    <select 
                         name="commessa" 
-                        value="{{ old('commessa') }}"
-                        placeholder="es. TIM_CONSUMER"
-                        class="input input-bordered @error('commessa') input-error @enderror" 
-                        list="commesse-list"
+                        class="select select-bordered uppercase @error('commessa') select-error @enderror" 
+                        style="text-transform: uppercase;"
                         required
-                    />
-                    <datalist id="commesse-list">
+                    >
+                        <option value="">-- Seleziona commessa --</option>
                         @foreach($commesse as $commessa)
-                            <option value="{{ $commessa }}">
+                            <option value="{{ $commessa }}" {{ old('commessa') == $commessa ? 'selected' : '' }}>
+                                {{ strtoupper($commessa) }}
+                            </option>
                         @endforeach
-                    </datalist>
+                    </select>
                     @error('commessa')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -51,20 +50,19 @@
                     <label class="label">
                         <span class="label-text font-semibold">Sede CRM <span class="text-error">*</span></span>
                     </label>
-                    <input 
-                        type="text" 
+                    <select 
                         name="sede_crm" 
-                        value="{{ old('sede_crm') }}"
-                        placeholder="es. LAMEZIA"
-                        class="input input-bordered @error('sede_crm') input-error @enderror" 
-                        list="sedi-list"
+                        class="select select-bordered uppercase @error('sede_crm') select-error @enderror" 
+                        style="text-transform: uppercase;"
                         required
-                    />
-                    <datalist id="sedi-list">
+                    >
+                        <option value="">-- Seleziona sede --</option>
                         @foreach($sedi as $sede)
-                            <option value="{{ $sede }}">
+                            <option value="{{ $sede }}" {{ old('sede_crm') == $sede ? 'selected' : '' }}>
+                                {{ strtoupper($sede) }}
+                            </option>
                         @endforeach
-                    </datalist>
+                    </select>
                     @error('sede_crm')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -72,19 +70,50 @@
                     @enderror
                 </div>
                 
-                {{-- Sede Estesa --}}
-                <div class="form-control md:col-span-2">
+                {{-- Macro Campagna --}}
+                <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Sede Estesa</span>
+                        <span class="label-text font-semibold">Macro Campagna <span class="text-error">*</span></span>
                     </label>
-                    <input 
-                        type="text" 
-                        name="sede_estesa" 
-                        value="{{ old('sede_estesa') }}"
-                        placeholder="es. LAMEZIA TERME"
-                        class="input input-bordered @error('sede_estesa') input-error @enderror"
-                    />
-                    @error('sede_estesa')
+                    <select 
+                        name="macro_campagna" 
+                        class="select select-bordered uppercase @error('macro_campagna') select-error @enderror" 
+                        style="text-transform: uppercase;"
+                        required
+                    >
+                        <option value="">-- Seleziona macro campagna --</option>
+                        @foreach($macroCampagne as $macro)
+                            <option value="{{ $macro }}" {{ old('macro_campagna') == $macro ? 'selected' : '' }}>
+                                {{ strtoupper($macro) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('macro_campagna')
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ $message }}</span>
+                        </label>
+                    @enderror
+                </div>
+                
+                {{-- Tipologia Obiettivo --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Tipologia Obiettivo <span class="text-error">*</span></span>
+                    </label>
+                    <select 
+                        name="tipologia_obiettivo" 
+                        class="select select-bordered uppercase @error('tipologia_obiettivo') select-error @enderror" 
+                        style="text-transform: uppercase;"
+                        required
+                    >
+                        <option value="">-- Seleziona tipologia --</option>
+                        @foreach($tipologieObiettivo as $tipologia)
+                            <option value="{{ $tipologia }}" {{ old('tipologia_obiettivo') == $tipologia ? 'selected' : '' }}>
+                                {{ strtoupper($tipologia) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('tipologia_obiettivo')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
@@ -96,14 +125,18 @@
                     <label class="label">
                         <span class="label-text font-semibold">Nome KPI <span class="text-error">*</span></span>
                     </label>
-                    <input 
-                        type="text" 
+                    <select 
                         name="nome_kpi" 
-                        value="{{ old('nome_kpi') }}"
-                        placeholder="es. Vendite, Lead, Conversioni"
-                        class="input input-bordered @error('nome_kpi') input-error @enderror" 
+                        class="select select-bordered @error('nome_kpi') select-error @enderror" 
                         required
-                    />
+                    >
+                        <option value="">-- Seleziona nome KPI --</option>
+                        @foreach($nomiKpi as $nomeKpi)
+                            <option value="{{ $nomeKpi }}" {{ old('nome_kpi') == $nomeKpi ? 'selected' : '' }}>
+                                {{ $nomeKpi }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('nome_kpi')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -116,21 +149,10 @@
                     <label class="label">
                         <span class="label-text font-semibold">Tipo KPI</span>
                     </label>
-                    <select name="tipo_kpi" class="select select-bordered @error('tipo_kpi') select-error @enderror">
-                        <option value="">-- Seleziona tipo (opzionale) --</option>
-                        <option value="PRODOTTO" {{ old('tipo_kpi') == 'PRODOTTO' ? 'selected' : '' }}>Prodotto</option>
-                        <option value="INSERITO" {{ old('tipo_kpi') == 'INSERITO' ? 'selected' : '' }}>Inserito</option>
-                        <option value="KO" {{ old('tipo_kpi') == 'KO' ? 'selected' : '' }}>KO</option>
-                        <option value="BACKLOG" {{ old('tipo_kpi') == 'BACKLOG' ? 'selected' : '' }}>BackLog</option>
-                        <option value="BACKLOG_PARTNER" {{ old('tipo_kpi') == 'BACKLOG_PARTNER' ? 'selected' : '' }}>BackLog Partner</option>
-                        <option value="RESA_PRODOTTO" {{ old('tipo_kpi') == 'RESA_PRODOTTO' ? 'selected' : '' }}>Resa Prodotto</option>
-                        <option value="RESA_INSERITO" {{ old('tipo_kpi') == 'RESA_INSERITO' ? 'selected' : '' }}>Resa Inserito</option>
-                        <option value="ORE" {{ old('tipo_kpi') == 'ORE' ? 'selected' : '' }}>Ore</option>
-                        <option value="OBIETTIVO" {{ old('tipo_kpi') == 'OBIETTIVO' ? 'selected' : '' }}>Obiettivo</option>
-                        <option value="PASSO_GIORNO" {{ old('tipo_kpi') == 'PASSO_GIORNO' ? 'selected' : '' }}>Passo Giorno</option>
-                        <option value="ORE_PAF" {{ old('tipo_kpi') == 'ORE_PAF' ? 'selected' : '' }}>Ore PAF</option>
-                        <option value="PEZZI_PAF" {{ old('tipo_kpi') == 'PEZZI_PAF' ? 'selected' : '' }}>Pezzi PAF</option>
-                        <option value="RESA_PAF" {{ old('tipo_kpi') == 'RESA_PAF' ? 'selected' : '' }}>Resa PAF</option>
+                    <select name="tipo_kpi" class="select select-bordered uppercase @error('tipo_kpi') select-error @enderror" style="text-transform: uppercase;">
+                        <option value="NON ASSEGNATO">NON ASSEGNATO</option>
+                        <option value="RESIDENZIALI" {{ old('tipo_kpi') == 'RESIDENZIALI' ? 'selected' : '' }}>RESIDENZIALI</option>
+                        <option value="BUSINESS" {{ old('tipo_kpi') == 'BUSINESS' ? 'selected' : '' }}>BUSINESS</option>
                     </select>
                     @error('tipo_kpi')
                         <label class="label">
@@ -138,7 +160,7 @@
                         </label>
                     @enderror
                     <label class="label">
-                        <span class="label-text-alt">Categorizza il tipo di KPI (Prodotto, Inserito, Resa, ecc.)</span>
+                        <span class="label-text-alt">Tipologia del KPI (Residenziali, Business o Non Assegnato)</span>
                     </label>
                 </div>
                 
