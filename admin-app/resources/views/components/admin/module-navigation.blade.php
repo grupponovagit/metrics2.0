@@ -58,7 +58,7 @@
                                             $submoduleCount = 6 + (in_array('reports', $module['permissions']) ? 1 : 0);
                                             break;
                         case 'ict':
-                            $viewLinks = 9; // Sistema, Ticket, Calendario, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati, Google Ads API
+                            $viewLinks = 10; // Sistema, Ticket, Calendario, Esiti Committenti, Esiti Vendita, Stato, Categoria UTM, Aggiorna Mandati, Google Ads API, Mantenimenti Bonus Incentivi
                             $adminLinks = in_array('admin', $module['permissions']) ? 2 : 0; // Utenti, Sicurezza
                             $reportLinks = in_array('reports', $module['permissions']) ? 1 : 0;
                             $submoduleCount = $viewLinks + $adminLinks + $reportLinks;
@@ -312,7 +312,8 @@
                                         ['route' => 'admin.ict.stato', 'icon' => 'signal', 'title' => 'Stato'],
                                         ['route' => 'admin.ict.categoria_utm_campagna', 'icon' => 'tag', 'title' => 'Categoria UTM'],
                                         ['route' => 'admin.ict.aggiorna_mandati', 'icon' => 'sync', 'title' => 'Aggiorna Mandati'],
-                                        ['route' => 'admin.ict.google_ads_api', 'icon' => 'google', 'title' => 'Google Ads API', 'fab' => true]
+                                        ['route' => 'admin.ict.google_ads_api', 'icon' => 'google', 'title' => 'Google Ads API', 'fab' => true],
+                                        ['route' => 'admin.ict.mantenimenti_bonus_incentivi.index', 'icon' => 'coins', 'title' => 'Bonus & Incentivi']
                                     ];
                                 @endphp
                                 

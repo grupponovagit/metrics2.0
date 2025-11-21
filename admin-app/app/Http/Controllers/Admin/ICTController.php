@@ -8,6 +8,7 @@ use App\Models\EsitoConversione;
 use App\Models\EsitoVenditaConversione;
 use App\Models\KpiTargetMensile;
 use App\Models\KpiRendicontoProduzione;
+use App\Models\MantenimentoBonusIncentivo;
 use App\Services\ModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1023,6 +1024,165 @@ class ICTController extends Controller
                 ->route('admin.ict.esiti_vendita_conversione.index')
                 ->with('success', "Eliminate {$deleted} conversioni esito vendita");
 
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Errore durante l\'eliminazione: ' . $e->getMessage());
+        }
+    }
+
+    // =====================================================
+    // MANTENIMENTI BONUS INCENTIVI
+    // =====================================================
+
+    /**
+     * Lista mantenimenti bonus incentivi
+     */
+    public function mantenimentiBonusIncentivi(Request $request)
+    {
+        $this->authorize('ict.view');
+        
+        $query = MantenimentoBonusIncentivo::query();
+        
+        // Filtri
+        if ($request->filled('istanza')) {
+            $query->where('istanza', $request->istanza);
+        }
+        
+        if ($request->filled('commessa')) {
+            $query->where('commessa', $request->commessa);
+        }
+        
+        if ($request->filled('tipologia_ripartizione')) {
+            $query->where('tipologia_ripartizione', $request->tipologia_ripartizione);
+        }
+        
+        $mantenimenti = $query->orderBy('created_at', 'desc')->paginate(50);
+        
+        // Opzioni per filtri
+        $istanze = MantenimentoBonusIncentivo::select('istanza')
+            ->distinct()
+            ->whereNotNull('istanza')
+            ->orderBy('istanza')
+            ->pluck('istanza');
+        
+        $commesse = MantenimentoBonusIncentivo::select('commessa')
+            ->distinct()
+            ->whereNotNull('commessa')
+            ->orderBy('commessa')
+            ->pluck('commessa');
+        
+        return view('admin.modules.ict.mantenimenti-bonus-incentivi.index', compact(
+            'mantenimenti',
+            'istanze',
+            'commesse'
+        ));
+    }
+
+    /**
+     * Form creazione mantenimento
+     */
+    public function createMantenimentoBonusIncentivo()
+    {
+        $this->authorize('ict.create');
+        
+        return view('admin.modules.ict.mantenimenti-bonus-incentivi.create');
+    }
+
+    /**
+     * Salva nuovo mantenimento
+     */
+    public function storeMantenimentoBonusIncentivo(Request $request)
+    {
+        $this->authorize('ict.create');
+        
+        $validated = $request->validate([
+            'istanza' => 'nullable|string|max:255',
+            'commessa' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|string|max:255',
+            'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
+            'sedi_ripartizione' => 'nullable|string|max:500',
+            'liste_ripartizione' => 'nullable|string|max:500',
+            'extra_bonus' => 'nullable|numeric|min:0',
+            'valido_dal' => 'nullable|date',
+        ]);
+        
+        try {
+            MantenimentoBonusIncentivo::create($validated);
+            
+            return redirect()
+                ->route('admin.ict.mantenimenti_bonus_incentivi.index')
+                ->with('success', 'Mantenimento bonus/incentivo creato con successo');
+                
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante la creazione: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Form modifica mantenimento
+     */
+    public function editMantenimentoBonusIncentivo($id)
+    {
+        $this->authorize('ict.edit');
+        
+        $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
+        
+        return view('admin.modules.ict.mantenimenti-bonus-incentivi.edit', compact('mantenimento'));
+    }
+
+    /**
+     * Aggiorna mantenimento
+     */
+    public function updateMantenimentoBonusIncentivo(Request $request, $id)
+    {
+        $this->authorize('ict.edit');
+        
+        $validated = $request->validate([
+            'istanza' => 'nullable|string|max:255',
+            'commessa' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|string|max:255',
+            'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
+            'sedi_ripartizione' => 'nullable|string|max:500',
+            'liste_ripartizione' => 'nullable|string|max:500',
+            'extra_bonus' => 'nullable|numeric|min:0',
+            'valido_dal' => 'nullable|date',
+        ]);
+        
+        try {
+            $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
+            $mantenimento->update($validated);
+            
+            return redirect()
+                ->route('admin.ict.mantenimenti_bonus_incentivi.index')
+                ->with('success', 'Mantenimento bonus/incentivo aggiornato con successo');
+                
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante l\'aggiornamento: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Elimina mantenimento
+     */
+    public function destroyMantenimentoBonusIncentivo($id)
+    {
+        $this->authorize('ict.delete');
+        
+        try {
+            $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
+            $mantenimento->delete();
+            
+            return redirect()
+                ->route('admin.ict.mantenimenti_bonus_incentivi.index')
+                ->with('success', 'Mantenimento bonus/incentivo eliminato con successo');
+                
         } catch (\Exception $e) {
             return redirect()
                 ->back()

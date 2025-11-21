@@ -494,3 +494,19 @@ Breadcrumbs::for('admin.ict.google_ads_api', function (BreadcrumbTrail $trail) {
     $trail->parent('admin.ict.index');
     $trail->push('Google Ads API', route('admin.ict.google_ads_api'));
 });
+
+// Mantenimenti Bonus Incentivi
+Breadcrumbs::for('admin.ict.mantenimenti_bonus_incentivi.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.index');
+    $trail->push('Mantenimenti Bonus Incentivi', route('admin.ict.mantenimenti_bonus_incentivi.index'));
+});
+
+Breadcrumbs::for('admin.ict.mantenimenti_bonus_incentivi.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('admin.ict.mantenimenti_bonus_incentivi.index');
+    $trail->push('Nuovo Mantenimento', route('admin.ict.mantenimenti_bonus_incentivi.create'));
+});
+
+Breadcrumbs::for('admin.ict.mantenimenti_bonus_incentivi.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.ict.mantenimenti_bonus_incentivi.index');
+    $trail->push('Modifica Mantenimento', route('admin.ict.mantenimenti_bonus_incentivi.edit', $id));
+});

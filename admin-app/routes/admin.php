@@ -262,6 +262,14 @@ Route::group([
         
         // Google Ads API - Gestione Autenticazioni
         Route::get('/google-ads-api', 'GoogleAdsAuthController@index')->name('google_ads_api');
+        
+        // Mantenimenti Bonus Incentivi
+        Route::get('/mantenimenti-bonus-incentivi', 'ICTController@mantenimentiBonusIncentivi')->name('mantenimenti_bonus_incentivi.index');
+        Route::get('/mantenimenti-bonus-incentivi/create', 'ICTController@createMantenimentoBonusIncentivo')->name('mantenimenti_bonus_incentivi.create');
+        Route::post('/mantenimenti-bonus-incentivi', 'ICTController@storeMantenimentoBonusIncentivo')->name('mantenimenti_bonus_incentivi.store');
+        Route::get('/mantenimenti-bonus-incentivi/{id}/edit', 'ICTController@editMantenimentoBonusIncentivo')->name('mantenimenti_bonus_incentivi.edit');
+        Route::put('/mantenimenti-bonus-incentivi/{id}', 'ICTController@updateMantenimentoBonusIncentivo')->name('mantenimenti_bonus_incentivi.update');
+        Route::delete('/mantenimenti-bonus-incentivi/{id}', 'ICTController@destroyMantenimentoBonusIncentivo')->name('mantenimenti_bonus_incentivi.destroy');
     });
 
 });

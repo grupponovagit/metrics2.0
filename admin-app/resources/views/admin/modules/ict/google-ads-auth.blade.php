@@ -12,14 +12,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         @foreach($mccGroups as $group)
         <x-admin.card tone="light" shadow="lg" class="group relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-10 {{ $group['has_token'] ? 'bg-success' : 'bg-warning' }}"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-10 {{ $group['token_valid'] ? 'bg-success' : ($group['token_status'] === 'invalid' ? 'bg-error' : 'bg-warning') }}"></div>
             
             <div class="relative">
                 {{-- Header con Badge --}}
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <div class="flex-shrink-0 w-12 h-12 {{ $group['has_token'] ? 'bg-success/10' : 'bg-warning/10' }} rounded-xl flex items-center justify-center">
-                            <i class="fab fa-google text-2xl {{ $group['has_token'] ? 'text-success' : 'text-warning' }}"></i>
+                        <div class="flex-shrink-0 w-12 h-12 {{ $group['token_valid'] ? 'bg-success/10' : ($group['token_status'] === 'invalid' ? 'bg-error/10' : 'bg-warning/10') }} rounded-xl flex items-center justify-center">
+                            <i class="fab fa-google text-2xl {{ $group['token_valid'] ? 'text-success' : ($group['token_status'] === 'invalid' ? 'text-error' : 'text-warning') }}"></i>
                         </div>
                         <div>
                             <h3 class="font-bold text-base text-base-content">
@@ -30,10 +30,15 @@
                             </p>
                         </div>
                     </div>
-                    @if($group['has_token'])
+                    @if($group['token_status'] === 'valid')
                         <span class="badge badge-success badge-sm gap-1">
                             <i class="fas fa-check text-xs"></i>
                             Attivo
+                        </span>
+                    @elseif($group['token_status'] === 'invalid')
+                        <span class="badge badge-error badge-sm gap-1">
+                            <i class="fas fa-times-circle text-xs"></i>
+                            Scaduto
                         </span>
                     @else
                         <span class="badge badge-warning badge-sm gap-1">
@@ -54,15 +59,27 @@
                 </div>
                 @endif
 
-                {{-- Scadenza Token --}}
-                @if($group['has_token'] && $group['token_expires'])
+                {{-- Scadenza Token o Alert Scaduto --}}
+                @if($group['token_status'] === 'valid' && $group['token_expires'])
                 <div class="mb-4 p-3 bg-success/5 border border-success/20 rounded-lg">
                     <div class="flex items-center gap-2">
                         <i class="fas fa-clock text-success"></i>
                         <div>
-                            <p class="text-xs font-semibold text-success">Token attivo</p>
+                            <p class="text-xs font-semibold text-success">Token attivo e valido</p>
                             <p class="text-xs text-base-content/60">
                                 Scade il {{ \Carbon\Carbon::parse($group['token_expires'])->format('d/m/Y') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                @elseif($group['token_status'] === 'invalid')
+                <div class="mb-4 p-3 bg-error/5 border border-error/20 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle text-error"></i>
+                        <div>
+                            <p class="text-xs font-semibold text-error">Token scaduto o revocato</p>
+                            <p class="text-xs text-base-content/60">
+                                È necessaria una nuova autenticazione
                             </p>
                         </div>
                     </div>
@@ -78,7 +95,7 @@
                     <div class="space-y-1">
                         @foreach($group['accounts'] as $account)
                         <div class="flex items-center gap-2 text-xs">
-                            <div class="w-1.5 h-1.5 rounded-full {{ $group['has_token'] ? 'bg-success' : 'bg-base-content/20' }}"></div>
+                            <div class="w-1.5 h-1.5 rounded-full {{ $group['token_valid'] ? 'bg-success' : 'bg-base-content/20' }}"></div>
                             <span class="text-base-content/70">{{ $account->ragione_sociale }}</span>
                             <span class="text-base-content/40">({{ $account->account_id }})</span>
                         </div>
@@ -88,9 +105,9 @@
 
                 {{-- Action Button --}}
                 <a href="/oauth/google-ads/{{ $group['mcc_id'] }}" 
-                   class="btn btn-block {{ $group['has_token'] ? 'btn-primary' : 'btn-warning' }} btn-sm gap-2 group-hover:scale-[1.02] transition-transform">
-                    <i class="fas {{ $group['has_token'] ? 'fa-sync-alt' : 'fa-unlock' }}"></i>
-                    {{ $group['has_token'] ? 'Rigenera Token' : 'Autentica Ora' }}
+                   class="btn btn-block {{ $group['token_valid'] ? 'btn-primary' : 'btn-error' }} btn-sm gap-2 group-hover:scale-[1.02] transition-transform">
+                    <i class="fas {{ $group['token_valid'] ? 'fa-sync-alt' : 'fa-unlock' }}"></i>
+                    {{ $group['token_valid'] ? 'Rigenera Token' : ($group['token_status'] === 'invalid' ? 'Token Scaduto - Rigenera' : 'Autentica Ora') }}
                 </a>
             </div>
         </x-admin.card>
