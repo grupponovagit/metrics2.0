@@ -33,10 +33,11 @@ class UserGrid extends CrudBuilder
             ],
             [
                 'attribute' => 'name',
-                'label' => __('Name'),
+                'label' => __('Nome'),
                 'sortable' => true,
                 'filter' => 'like',
                 'searchable' => true,
+                'fillable' => true,
                 'list' => [
                     'class' => 'BalajiDharma\LaravelCrud\Column\LinkColumn',
                     'route' => 'admin.user.show',
@@ -45,10 +46,19 @@ class UserGrid extends CrudBuilder
                 ]
             ],
             [
+                'attribute' => 'surname',
+                'label' => __('Cognome'),
+                'sortable' => true,
+                'filter' => 'like',
+                'searchable' => true,
+                'fillable' => true,
+            ],
+            [
                 'attribute' => 'email',
                 'label' => __('Email'),
                 'sortable' => true,
                 'searchable' => true,
+                'fillable' => true,
             ],
             [
                 'attribute' => 'password',
