@@ -72,9 +72,9 @@
                             </button>
                         </div>
                     </label>
-                    <div class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
+                    <div class="border border-base-300 rounded-lg p-3 bg-base-100" style="height: 120px; max-height: 120px; overflow-y: auto;">
                         @foreach($opzioniRagioneSociale as $rs)
-                        <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
+                        <label class="flex items-center gap-3 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
                             <input type="checkbox" name="ragione_sociale[]" value="{{ $rs }}" 
                                    class="checkbox checkbox-info checkbox-sm ragione-checkbox" 
                                    {{ in_array($rs, $filtri['ragione_sociale'] ?? []) ? 'checked' : '' }}
@@ -107,10 +107,10 @@
                             </button>
                         </div>
                     </label>
-                    <div id="provenienzaContainer" class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
+                    <div id="provenienzaContainer" class="border border-base-300 rounded-lg p-3 bg-base-100" style="height: 120px; max-height: 120px; overflow-y: auto;">
                         @if($opzioniProvenienzaFiltered->isNotEmpty())
                             @foreach($opzioniProvenienzaFiltered as $prov)
-                            <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
+                            <label class="flex items-center gap-3 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
                                 <input type="checkbox" name="provenienza[]" value="{{ $prov }}" 
                                        class="checkbox checkbox-success checkbox-sm provenienza-checkbox" 
                                        {{ in_array($prov, $filtri['provenienza'] ?? []) ? 'checked' : '' }}
@@ -142,10 +142,10 @@
                             </button>
                         </div>
                     </label>
-                    <div id="campagneContainer" class="border border-base-300 rounded-lg p-2.5 h-[120px] overflow-y-auto bg-base-100">
+                    <div id="campagneContainer" class="border border-base-300 rounded-lg p-3 bg-base-100" style="height: 120px; max-height: 120px; overflow-y: auto;">
                         @if($opzioniCampagneFiltered->isNotEmpty())
                             @foreach($opzioniCampagneFiltered as $camp)
-                            <label class="flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
+                            <label class="flex items-center gap-3 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors">
                                 <input type="checkbox" name="utm_campaign[]" value="{{ $camp }}" 
                                        class="checkbox checkbox-warning checkbox-sm campagna-checkbox" 
                                        {{ in_array($camp, $filtri['utm_campaign'] ?? []) ? 'checked' : '' }}>
@@ -194,7 +194,7 @@
                 </p>
             </div>
             
-            {{-- Pulsanti Sintetico/Giornaliero --}}
+            {{-- Pulsanti Sintetico/Dettagliato/Giornaliero --}}
             <div class="flex gap-2 items-center">
                 <button 
                     onclick="switchView('sintetico')" 
@@ -203,7 +203,6 @@
                 >
                     Sintetico
                 </button>
-                {{--
                 <button 
                     onclick="switchView('dettagliato')" 
                     id="btn-dettagliato"
@@ -211,7 +210,6 @@
                 >
                     Dettagliato
                 </button>
-                --}}
                 <button 
                     onclick="switchView('giornaliero')" 
                     id="btn-giornaliero"
@@ -260,8 +258,8 @@
         {{-- TABELLA SINTETICO --}}
         @include('admin.modules.marketing.cruscotto-lead._table-sintetico')
 
-        {{-- TABELLA DETTAGLIATO (Commentato per ora) --}}
-        {{-- @include('admin.modules.marketing.cruscotto-lead._table-dettagliato') --}}
+        {{-- TABELLA DETTAGLIATO --}}
+        @include('admin.modules.marketing.cruscotto-lead._table-dettagliato')
 
         {{-- TABELLA GIORNALIERO --}}
         @include('admin.modules.marketing.cruscotto-lead._table-giornaliero')
@@ -385,7 +383,7 @@ function loadProvenienze() {
                 data.forEach(prov => {
                     const isChecked = selectedProvenienze.includes(prov);
                     const label = document.createElement('label');
-                    label.className = 'flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
+                    label.className = 'flex items-center gap-3 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
                     label.innerHTML = `
                         <input type="checkbox" name="provenienza[]" value="${prov}" 
                                class="checkbox checkbox-success checkbox-sm provenienza-checkbox" 
@@ -441,7 +439,7 @@ function loadCampagne() {
                 data.forEach(camp => {
                     const isChecked = selectedCampagne.includes(camp);
                     const label = document.createElement('label');
-                    label.className = 'flex items-center gap-2 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
+                    label.className = 'flex items-center gap-3 py-1 px-2 hover:bg-base-200 rounded cursor-pointer transition-colors';
                     label.innerHTML = `
                         <input type="checkbox" name="utm_campaign[]" value="${camp}" 
                                class="checkbox checkbox-warning checkbox-sm campagna-checkbox" 

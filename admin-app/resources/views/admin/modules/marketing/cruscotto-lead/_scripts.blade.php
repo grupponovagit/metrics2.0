@@ -17,6 +17,16 @@
             { key: 'economics', label: 'Economics (tutti)' },
             { key: 'performance', label: 'Performance (tutti)' }
         ],
+        'dettagliato': [
+            { key: 'costo', label: 'Costo' },
+            { key: 'leads', label: 'Lead' },
+            { key: 'click', label: 'Click' },
+            { key: 'ore', label: 'Ore' },
+            { key: 'ricavi', label: 'Ricavi' },
+            { key: 'conversioni', label: 'Conversioni (tutti)' },
+            { key: 'economics', label: 'Economics (tutti)' },
+            { key: 'performance', label: 'Performance (tutti)' }
+        ],
         'giornaliero': [
             { key: 'costo', label: 'Costo' },
             { key: 'leads', label: 'Lead' },
@@ -32,21 +42,26 @@
     let currentActiveView = 'sintetico';
     
     // ==========================================
-    // SWITCH TRA VISTE (SINTETICO/GIORNALIERO)
+    // SWITCH TRA VISTE (SINTETICO/DETTAGLIATO/GIORNALIERO)
     // ==========================================
     function switchView(view) {
         const tableSintetico = document.getElementById('table-sintetico');
+        const tableDettagliato = document.getElementById('table-dettagliato');
         const tableGiornaliero = document.getElementById('table-giornaliero');
         const btnSintetico = document.getElementById('btn-sintetico');
+        const btnDettagliato = document.getElementById('btn-dettagliato');
         const btnGiornaliero = document.getElementById('btn-giornaliero');
     
-    // Nascondi tutte le tabelle
+        // Nascondi tutte le tabelle
         tableSintetico.classList.add('hidden');
+        tableDettagliato.classList.add('hidden');
         tableGiornaliero.classList.add('hidden');
         
         // Reset tutti i pulsanti
         btnSintetico.classList.remove('btn-info');
         btnSintetico.classList.add('btn-outline');
+        btnDettagliato.classList.remove('btn-info');
+        btnDettagliato.classList.add('btn-outline');
         btnGiornaliero.classList.remove('btn-info');
         btnGiornaliero.classList.add('btn-outline');
         
@@ -56,6 +71,11 @@
             btnSintetico.classList.remove('btn-outline');
             btnSintetico.classList.add('btn-info');
             currentActiveView = 'sintetico';
+        } else if (view === 'dettagliato') {
+            tableDettagliato.classList.remove('hidden');
+            btnDettagliato.classList.remove('btn-outline');
+            btnDettagliato.classList.add('btn-info');
+            currentActiveView = 'dettagliato';
         } else if (view === 'giornaliero') {
             tableGiornaliero.classList.remove('hidden');
             btnGiornaliero.classList.remove('btn-outline');
@@ -199,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Inizializza drag-to-scroll per tutte le tabelle
         setTimeout(() => {
             initCustomDragScroll('table-sintetico');
+            initCustomDragScroll('table-dettagliato');
             initCustomDragScroll('table-giornaliero');
         }, 100);
 });
