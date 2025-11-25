@@ -16,7 +16,7 @@
     </x-admin.page-header>
     
     <x-admin.card tone="light" shadow="lg" padding="loose">
-        <form method="POST" action="{{ route('admin.ict.mantenimenti_bonus_incentivi.update', $mantenimento->id) }}">
+        <form method="POST" action="{{ route('admin.ict.mantenimenti_bonus_incentivi.update', $mantenimento->id) }}" id="form-bonus">
             @csrf
             @method('PUT')
             
@@ -24,13 +24,19 @@
                 {{-- Istanza --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Istanza</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-building text-info mr-1"></i>
+                            Istanza
+                        </span>
                     </label>
-                    <input type="text" 
-                           name="istanza" 
-                           value="{{ old('istanza', $mantenimento->istanza) }}"
-                           placeholder="es. NOVA, GT ENERGIE, MEGLIOQUESTO"
-                           class="input input-bordered @error('istanza') input-error @enderror">
+                    <select name="istanza" id="select-istanza" class="select select-bordered @error('istanza') select-error @enderror" onchange="filtraCommesse()">
+                        <option value="">Seleziona istanza</option>
+                        @foreach($istanze as $istanza)
+                            <option value="{{ $istanza }}" {{ old('istanza', $mantenimento->istanza) == $istanza ? 'selected' : '' }}>
+                                {{ $istanza }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('istanza')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -41,13 +47,14 @@
                 {{-- Commessa --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Commessa</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-briefcase text-warning mr-1"></i>
+                            Commessa
+                        </span>
                     </label>
-                    <input type="text" 
-                           name="commessa" 
-                           value="{{ old('commessa', $mantenimento->commessa) }}"
-                           placeholder="es. TIM_CONSUMER, ENI_CONSUMER"
-                           class="input input-bordered @error('commessa') input-error @enderror">
+                    <select name="commessa" id="select-commessa" class="select select-bordered @error('commessa') select-error @enderror" onchange="filtraMacroCampagne()">
+                        <option value="">Seleziona prima un'istanza</option>
+                    </select>
                     @error('commessa')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -58,13 +65,14 @@
                 {{-- Macro Campagna --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Macro Campagna</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-bullhorn text-success mr-1"></i>
+                            Macro Campagna
+                        </span>
                     </label>
-                    <input type="text" 
-                           name="macro_campagna" 
-                           value="{{ old('macro_campagna', $mantenimento->macro_campagna) }}"
-                           placeholder="es. TIM_FIBRA_Q4"
-                           class="input input-bordered @error('macro_campagna') input-error @enderror">
+                    <select name="macro_campagna" id="select-macro" class="select select-bordered @error('macro_campagna') select-error @enderror" onchange="filtraSedi()">
+                        <option value="">Seleziona prima una commessa</option>
+                    </select>
                     @error('macro_campagna')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -75,7 +83,10 @@
                 {{-- Tipologia Ripartizione --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Tipologia Ripartizione</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-tags text-primary mr-1"></i>
+                            Tipologia Ripartizione
+                        </span>
                     </label>
                     <select name="tipologia_ripartizione" class="select select-bordered @error('tipologia_ripartizione') select-error @enderror">
                         <option value="">Seleziona tipologia</option>
@@ -93,29 +104,42 @@
                     @enderror
                 </div>
                 
-                {{-- Sedi Ripartizione --}}
+                {{-- Sedi Ripartizione - CHECKBOX CON ICONE --}}
                 <div class="form-control md:col-span-2">
                     <label class="label">
-                        <span class="label-text font-semibold">Sedi Ripartizione</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-map-marker-alt text-error mr-1"></i>
+                            Sedi Ripartizione (Selezione Multipla)
+                        </span>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="selezionaTutteSedi()" class="btn btn-xs btn-success">
+                                <i class="fas fa-check-double mr-1"></i> Seleziona Tutte
+                            </button>
+                            <button type="button" onclick="deselezionaTutteSedi()" class="btn btn-xs btn-outline btn-success">
+                                <i class="fas fa-times mr-1"></i> Deseleziona Tutte
+                            </button>
+                        </div>
                     </label>
-                    <textarea name="sedi_ripartizione" 
-                              rows="3"
-                              placeholder="es. LAMEZIA, TARANTO, VIGEVANO (separati da virgola o JSON)"
-                              class="textarea textarea-bordered @error('sedi_ripartizione') textarea-error @enderror">{{ old('sedi_ripartizione', $mantenimento->sedi_ripartizione) }}</textarea>
+                    <div id="sedi-container" class="border border-base-300 rounded-lg p-4 bg-base-100 max-h-[300px] overflow-y-auto">
+                        <p class="text-sm text-base-content/50 text-center py-8">
+                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                            Caricamento sedi...
+                        </p>
+                    </div>
                     @error('sedi_ripartizione')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
                     @enderror
-                    <label class="label">
-                        <span class="label-text-alt">Inserisci le sedi separate da virgola oppure in formato JSON</span>
-                    </label>
                 </div>
                 
-                {{-- Liste Ripartizione --}}
+                {{-- Liste Ripartizione - INPUT TESTO --}}
                 <div class="form-control md:col-span-2">
                     <label class="label">
-                        <span class="label-text font-semibold">Liste Ripartizione</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-list-ul text-secondary mr-1"></i>
+                            Liste Ripartizione
+                        </span>
                     </label>
                     <textarea name="liste_ripartizione" 
                               rows="3"
@@ -134,7 +158,10 @@
                 {{-- Extra Bonus --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Extra Bonus (€)</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-euro-sign text-success mr-1"></i>
+                            Extra Bonus (€)
+                        </span>
                     </label>
                     <input type="number" 
                            name="extra_bonus" 
@@ -153,7 +180,10 @@
                 {{-- Valido Dal --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Valido Dal</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-calendar-plus text-info mr-1"></i>
+                            Valido Dal
+                        </span>
                     </label>
                     <input type="date" 
                            name="valido_dal" 
@@ -165,19 +195,223 @@
                         </label>
                     @enderror
                 </div>
+                
+                {{-- Valido Al --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-calendar-minus text-error mr-1"></i>
+                            Valido Al
+                        </span>
+                    </label>
+                    <input type="date" 
+                           name="valido_al" 
+                           value="{{ old('valido_al', $mantenimento->valido_al ? $mantenimento->valido_al->format('Y-m-d') : '') }}"
+                           class="input input-bordered @error('valido_al') input-error @enderror">
+                    @error('valido_al')
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ $message }}</span>
+                        </label>
+                    @enderror
+                    <label class="label">
+                        <span class="label-text-alt">Lascia vuoto se non ha scadenza</span>
+                    </label>
+                </div>
             </div>
             
             {{-- Pulsanti --}}
             <div class="flex justify-end gap-4 mt-8">
                 <a href="{{ route('admin.ict.mantenimenti_bonus_incentivi.index') }}" class="btn btn-ghost">
+                    <i class="fas fa-times mr-2"></i>
                     Annulla
                 </a>
                 <button type="submit" class="btn btn-info">
-                    <x-ui.icon name="save" class="h-4 w-4" />
+                    <i class="fas fa-save mr-2"></i>
                     Aggiorna Mantenimento
                 </button>
             </div>
         </form>
     </x-admin.card>
+    
+    <script>
+        // Dati gerarchici caricati dal controller
+        const datiGerarchici = @json(json_decode($datiGerarchici));
+        const sediSelezionate = @json($sediSelezionate);
+        const valoriOriginali = {
+            istanza: '{{ old('istanza', $mantenimento->istanza) }}',
+            commessa: '{{ old('commessa', $mantenimento->commessa) }}',
+            macroCampagna: '{{ old('macro_campagna', $mantenimento->macro_campagna) }}'
+        };
+        
+        console.log('Dati caricati:', datiGerarchici);
+        console.log('Sedi selezionate:', sediSelezionate);
+        console.log('Valori originali:', valoriOriginali);
+        
+        // Inizializza i filtri con i valori esistenti
+        document.addEventListener('DOMContentLoaded', function() {
+            if (valoriOriginali.istanza) {
+                filtraCommesse();
+                setTimeout(() => {
+                    document.getElementById('select-commessa').value = valoriOriginali.commessa;
+                    filtraMacroCampagne();
+                    setTimeout(() => {
+                        document.getElementById('select-macro').value = valoriOriginali.macroCampagna;
+                        filtraSedi();
+                    }, 100);
+                }, 100);
+            }
+        });
+        
+        // Filtra commesse in base all'istanza selezionata
+        function filtraCommesse() {
+            const istanza = document.getElementById('select-istanza').value;
+            const selectCommessa = document.getElementById('select-commessa');
+            const selectMacro = document.getElementById('select-macro');
+            
+            // Reset commessa e macro
+            selectCommessa.innerHTML = '<option value="">Seleziona commessa</option>';
+            selectMacro.innerHTML = '<option value="">Seleziona prima una commessa</option>';
+            selectMacro.disabled = true;
+            
+            // Reset sedi
+            document.getElementById('sedi-container').innerHTML = `
+                <p class="text-sm text-base-content/50 text-center py-8">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                </p>
+            `;
+            
+            if (!istanza || !datiGerarchici[istanza]) {
+                selectCommessa.disabled = true;
+                return;
+            }
+            
+            // Popola commesse
+            selectCommessa.disabled = false;
+            const commesse = Object.keys(datiGerarchici[istanza]).sort();
+            commesse.forEach(commessa => {
+                const option = document.createElement('option');
+                option.value = commessa;
+                option.textContent = commessa;
+                selectCommessa.appendChild(option);
+            });
+        }
+        
+        // Filtra macro campagne in base a istanza e commessa
+        function filtraMacroCampagne() {
+            const istanza = document.getElementById('select-istanza').value;
+            const commessa = document.getElementById('select-commessa').value;
+            const selectMacro = document.getElementById('select-macro');
+            
+            // Reset macro
+            selectMacro.innerHTML = '<option value="">Seleziona macro campagna</option>';
+            
+            // Reset sedi
+            document.getElementById('sedi-container').innerHTML = `
+                <p class="text-sm text-base-content/50 text-center py-8">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                </p>
+            `;
+            
+            if (!istanza || !commessa || !datiGerarchici[istanza]?.[commessa]) {
+                selectMacro.disabled = true;
+                return;
+            }
+            
+            // Popola macro campagne
+            selectMacro.disabled = false;
+            const macroCampagne = Object.keys(datiGerarchici[istanza][commessa]).sort();
+            macroCampagne.forEach(macro => {
+                const option = document.createElement('option');
+                option.value = macro;
+                option.textContent = macro.toUpperCase();
+                selectMacro.appendChild(option);
+            });
+        }
+        
+        // Filtra sedi in base a istanza, commessa e macro campagna
+        function filtraSedi() {
+            const istanza = document.getElementById('select-istanza').value;
+            const commessa = document.getElementById('select-commessa').value;
+            const macro = document.getElementById('select-macro').value;
+            const container = document.getElementById('sedi-container');
+            
+            if (!istanza || !commessa || !macro || !datiGerarchici[istanza]?.[commessa]?.[macro]) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-8">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                    </p>
+                `;
+                return;
+            }
+            
+            // Ottieni sedi
+            const sedi = datiGerarchici[istanza][commessa][macro];
+            
+            if (sedi.length === 0) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-8">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        Nessuna sede disponibile per questa combinazione
+                    </p>
+                `;
+                return;
+            }
+            
+            // Crea checkbox per ogni sede
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">';
+            sedi.sort().forEach(sede => {
+                const isChecked = sediSelezionate.includes(sede);
+                html += `
+                    <label class="flex items-center gap-2 p-3 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200 transition-all ${isChecked ? 'bg-success/10 border-success' : ''}">
+                        <input type="checkbox" 
+                               name="sedi_ripartizione[]" 
+                               value="${sede}" 
+                               class="checkbox checkbox-success sede-checkbox"
+                               ${isChecked ? 'checked' : ''}>
+                        <div class="flex items-center gap-2 flex-1">
+                            <i class="fas fa-map-marker-alt text-error"></i>
+                            <span class="font-medium uppercase text-sm">${sede.toUpperCase()}</span>
+                        </div>
+                        <i class="fas fa-check text-success ${isChecked ? '' : 'hidden'} checkbox-icon"></i>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+            
+            // Aggiungi event listener per mostrare/nascondere icona check
+            document.querySelectorAll('.sede-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const icon = this.closest('label').querySelector('.checkbox-icon');
+                    if (this.checked) {
+                        icon.classList.remove('hidden');
+                        this.closest('label').classList.add('bg-success/10', 'border-success');
+                    } else {
+                        icon.classList.add('hidden');
+                        this.closest('label').classList.remove('bg-success/10', 'border-success');
+                    }
+                });
+            });
+        }
+        
+        // Seleziona tutte le sedi
+        function selezionaTutteSedi() {
+            document.querySelectorAll('.sede-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        }
+        
+        // Deseleziona tutte le sedi
+        function deselezionaTutteSedi() {
+            document.querySelectorAll('.sede-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        }
+    </script>
 </x-admin.wrapper>
-

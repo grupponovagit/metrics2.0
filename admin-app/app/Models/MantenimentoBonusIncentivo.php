@@ -17,11 +17,13 @@ class MantenimentoBonusIncentivo extends Model
         'liste_ripartizione',
         'extra_bonus',
         'valido_dal',
+        'valido_al',
     ];
     
     protected $casts = [
         'extra_bonus' => 'decimal:2',
         'valido_dal' => 'date',
+        'valido_al' => 'date',
     ];
     
     /**

@@ -963,7 +963,7 @@ class ProduzioneController extends Controller
         
         $validated = $request->validate([
             'field' => 'required|in:commessa,sede_crm,sede_estesa,macro_campagna,nome_kpi,tipo_kpi,valore_kpi,tipologia_obiettivo',
-            'value' => 'required',
+            'value' => 'nullable', // Cambiato da 'required' a 'nullable' per permettere valori vuoti
         ]);
         
         try {
@@ -971,9 +971,10 @@ class ProduzioneController extends Controller
             
             // Se il campo è valore_kpi, converti a numero
             if ($validated['field'] === 'valore_kpi') {
-                $kpi->valore_kpi = floatval($validated['value']);
+                $kpi->valore_kpi = floatval($validated['value'] ?? 0);
             } else {
-                $kpi->{$validated['field']} = $validated['value'];
+                // Permetti valori null o stringhe vuote
+                $kpi->{$validated['field']} = $validated['value'] ?? null;
             }
             
             $kpi->save();

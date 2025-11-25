@@ -1086,7 +1086,36 @@ class ICTController extends Controller
     {
         $this->authorize('ict.create');
         
-        return view('admin.modules.ict.mantenimenti-bonus-incentivi.create');
+        // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
+        $tuttiDati = DB::table('report_produzione_pivot_cache')
+            ->select('istanza', 'commessa', 'macro_campagna', 'nome_sede')
+            ->whereNotNull('istanza')
+            ->whereNotNull('commessa')
+            ->whereNotNull('macro_campagna')
+            ->whereNotNull('nome_sede')
+            ->distinct()
+            ->orderBy('istanza')
+            ->orderBy('commessa')
+            ->orderBy('macro_campagna')
+            ->orderBy('nome_sede')
+            ->get();
+        
+        // Raggruppa i dati in struttura gerarchica
+        $datiGerarchici = $tuttiDati->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    return $macroGroup->pluck('nome_sede')->unique()->values();
+                });
+            });
+        });
+        
+        // Recupera istanze univoche
+        $istanze = $tuttiDati->pluck('istanza')->unique()->sort()->values();
+        
+        return view('admin.modules.ict.mantenimenti-bonus-incentivi.create', [
+            'istanze' => $istanze,
+            'datiGerarchici' => $datiGerarchici->toJson(), // Passa come JSON per JavaScript
+        ]);
     }
 
     /**
@@ -1101,13 +1130,22 @@ class ICTController extends Controller
             'commessa' => 'nullable|string|max:255',
             'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
-            'sedi_ripartizione' => 'nullable|string|max:500',
+            'sedi_ripartizione' => 'nullable|array',
+            'sedi_ripartizione.*' => 'string',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
+            'valido_al' => 'nullable|date|after_or_equal:valido_dal',
+        ], [
+            'valido_al.after_or_equal' => 'La data "Valido Al" deve essere uguale o successiva alla data "Valido Dal"'
         ]);
         
         try {
+            // Converti array in JSON per sedi
+            if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {
+                $validated['sedi_ripartizione'] = json_encode($validated['sedi_ripartizione']);
+            }
+            
             MantenimentoBonusIncentivo::create($validated);
             
             return redirect()
@@ -1131,7 +1169,41 @@ class ICTController extends Controller
         
         $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
         
-        return view('admin.modules.ict.mantenimenti-bonus-incentivi.edit', compact('mantenimento'));
+        // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
+        $tuttiDati = DB::table('report_produzione_pivot_cache')
+            ->select('istanza', 'commessa', 'macro_campagna', 'nome_sede')
+            ->whereNotNull('istanza')
+            ->whereNotNull('commessa')
+            ->whereNotNull('macro_campagna')
+            ->whereNotNull('nome_sede')
+            ->distinct()
+            ->orderBy('istanza')
+            ->orderBy('commessa')
+            ->orderBy('macro_campagna')
+            ->orderBy('nome_sede')
+            ->get();
+        
+        // Raggruppa i dati in struttura gerarchica
+        $datiGerarchici = $tuttiDati->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    return $macroGroup->pluck('nome_sede')->unique()->values();
+                });
+            });
+        });
+        
+        // Recupera istanze univoche
+        $istanze = $tuttiDati->pluck('istanza')->unique()->sort()->values();
+        
+        // Decodifica sedi salvate
+        $sediSelezionate = $mantenimento->getSediArray();
+        
+        return view('admin.modules.ict.mantenimenti-bonus-incentivi.edit', [
+            'mantenimento' => $mantenimento,
+            'istanze' => $istanze,
+            'datiGerarchici' => $datiGerarchici->toJson(),
+            'sediSelezionate' => $sediSelezionate,
+        ]);
     }
 
     /**
@@ -1146,14 +1218,24 @@ class ICTController extends Controller
             'commessa' => 'nullable|string|max:255',
             'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
-            'sedi_ripartizione' => 'nullable|string|max:500',
+            'sedi_ripartizione' => 'nullable|array',
+            'sedi_ripartizione.*' => 'string',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
+            'valido_al' => 'nullable|date|after_or_equal:valido_dal',
+        ], [
+            'valido_al.after_or_equal' => 'La data "Valido Al" deve essere uguale o successiva alla data "Valido Dal"'
         ]);
         
         try {
             $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
+            
+            // Converti array in JSON per sedi
+            if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {
+                $validated['sedi_ripartizione'] = json_encode($validated['sedi_ripartizione']);
+            }
+            
             $mantenimento->update($validated);
             
             return redirect()
