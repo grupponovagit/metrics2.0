@@ -78,6 +78,25 @@ class MantenimentoBonusIncentivo extends Model
     }
     
     /**
+     * Ottieni macro campagne come array
+     */
+    public function getMacroCampagneArray()
+    {
+        if (empty($this->macro_campagna)) {
+            return [];
+        }
+        
+        // Se è JSON
+        $decoded = json_decode($this->macro_campagna, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded;
+        }
+        
+        // Altrimenti tratta come stringa singola (per retrocompatibilità)
+        return [$this->macro_campagna];
+    }
+    
+    /**
      * Ottieni liste come array
      */
     public function getListeArray()

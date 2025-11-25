@@ -1128,7 +1128,8 @@ class ICTController extends Controller
         $validated = $request->validate([
             'istanza' => 'nullable|string|max:255',
             'commessa' => 'nullable|string|max:255',
-            'macro_campagna' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|array',
+            'macro_campagna.*' => 'string',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
             'sedi_ripartizione' => 'nullable|array',
             'sedi_ripartizione.*' => 'string',
@@ -1141,6 +1142,11 @@ class ICTController extends Controller
         ]);
         
         try {
+            // Converti array in JSON per macro campagne
+            if (isset($validated['macro_campagna']) && is_array($validated['macro_campagna'])) {
+                $validated['macro_campagna'] = json_encode($validated['macro_campagna']);
+            }
+            
             // Converti array in JSON per sedi
             if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {
                 $validated['sedi_ripartizione'] = json_encode($validated['sedi_ripartizione']);
@@ -1195,14 +1201,16 @@ class ICTController extends Controller
         // Recupera istanze univoche
         $istanze = $tuttiDati->pluck('istanza')->unique()->sort()->values();
         
-        // Decodifica sedi salvate
+        // Decodifica sedi e macro campagne salvate
         $sediSelezionate = $mantenimento->getSediArray();
+        $macroCampagneSelezionate = $mantenimento->getMacroCampagneArray();
         
         return view('admin.modules.ict.mantenimenti-bonus-incentivi.edit', [
             'mantenimento' => $mantenimento,
             'istanze' => $istanze,
             'datiGerarchici' => $datiGerarchici->toJson(),
             'sediSelezionate' => $sediSelezionate,
+            'macroCampagneSelezionate' => $macroCampagneSelezionate,
         ]);
     }
 
@@ -1216,7 +1224,8 @@ class ICTController extends Controller
         $validated = $request->validate([
             'istanza' => 'nullable|string|max:255',
             'commessa' => 'nullable|string|max:255',
-            'macro_campagna' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|array',
+            'macro_campagna.*' => 'string',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
             'sedi_ripartizione' => 'nullable|array',
             'sedi_ripartizione.*' => 'string',
@@ -1230,6 +1239,11 @@ class ICTController extends Controller
         
         try {
             $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
+            
+            // Converti array in JSON per macro campagne
+            if (isset($validated['macro_campagna']) && is_array($validated['macro_campagna'])) {
+                $validated['macro_campagna'] = json_encode($validated['macro_campagna']);
+            }
             
             // Converti array in JSON per sedi
             if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {

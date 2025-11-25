@@ -62,17 +62,28 @@
                     @enderror
                 </div>
                 
-                {{-- Macro Campagna --}}
-                <div class="form-control">
+                {{-- Macro Campagne - CHECKBOX MULTIPLI --}}
+                <div class="form-control md:col-span-2">
                     <label class="label">
                         <span class="label-text font-semibold">
                             <i class="fas fa-bullhorn text-success mr-1"></i>
-                            Macro Campagna
+                            Macro Campagne (Selezione Multipla)
                         </span>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="selezionaTutteMacro()" class="btn btn-xs btn-success">
+                                <i class="fas fa-check-double mr-1"></i> Seleziona Tutte
+                            </button>
+                            <button type="button" onclick="deselezionaTutteMacro()" class="btn btn-xs btn-outline btn-success">
+                                <i class="fas fa-times mr-1"></i> Deseleziona Tutte
+                            </button>
+                        </div>
                     </label>
-                    <select name="macro_campagna" id="select-macro" class="select select-bordered @error('macro_campagna') select-error @enderror" onchange="filtraSedi()">
-                        <option value="">Seleziona prima una commessa</option>
-                    </select>
+                    <div id="macro-container" class="border border-base-300 rounded-lg p-4 bg-base-100 max-h-[200px] overflow-y-auto">
+                        <p class="text-sm text-base-content/50 text-center py-6">
+                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                            Caricamento macro campagne...
+                        </p>
+                    </div>
                     @error('macro_campagna')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
@@ -81,7 +92,7 @@
                 </div>
                 
                 {{-- Tipologia Ripartizione --}}
-                <div class="form-control">
+                <div class="form-control md:col-span-2">
                     <label class="label">
                         <span class="label-text font-semibold">
                             <i class="fas fa-tags text-primary mr-1"></i>
@@ -237,15 +248,15 @@
         // Dati gerarchici caricati dal controller
         const datiGerarchici = @json(json_decode($datiGerarchici));
         const sediSelezionate = @json($sediSelezionate);
+        const macroCampagneSelezionate = @json($macroCampagneSelezionate);
         const valoriOriginali = {
             istanza: '{{ old('istanza', $mantenimento->istanza) }}',
-            commessa: '{{ old('commessa', $mantenimento->commessa) }}',
-            macroCampagna: '{{ old('macro_campagna', $mantenimento->macro_campagna) }}'
+            commessa: '{{ old('commessa', $mantenimento->commessa) }}'
         };
         
         console.log('Dati caricati:', datiGerarchici);
         console.log('Sedi selezionate:', sediSelezionate);
-        console.log('Valori originali:', valoriOriginali);
+        console.log('Macro campagne selezionate:', macroCampagneSelezionate);
         
         // Inizializza i filtri con i valori esistenti
         document.addEventListener('DOMContentLoaded', function() {
@@ -255,7 +266,14 @@
                     document.getElementById('select-commessa').value = valoriOriginali.commessa;
                     filtraMacroCampagne();
                     setTimeout(() => {
-                        document.getElementById('select-macro').value = valoriOriginali.macroCampagna;
+                        // Seleziona le macro campagne salvate
+                        macroCampagneSelezionate.forEach(macro => {
+                            const checkbox = document.querySelector(`.macro-checkbox[value="${macro}"]`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        });
                         filtraSedi();
                     }, 100);
                 }, 100);
@@ -266,18 +284,19 @@
         function filtraCommesse() {
             const istanza = document.getElementById('select-istanza').value;
             const selectCommessa = document.getElementById('select-commessa');
-            const selectMacro = document.getElementById('select-macro');
             
-            // Reset commessa e macro
+            // Reset commessa, macro e sedi
             selectCommessa.innerHTML = '<option value="">Seleziona commessa</option>';
-            selectMacro.innerHTML = '<option value="">Seleziona prima una commessa</option>';
-            selectMacro.disabled = true;
-            
-            // Reset sedi
+            document.getElementById('macro-container').innerHTML = `
+                <p class="text-sm text-base-content/50 text-center py-6">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleziona prima istanza e commessa per vedere le macro campagne disponibili
+                </p>
+            `;
             document.getElementById('sedi-container').innerHTML = `
                 <p class="text-sm text-base-content/50 text-center py-8">
                     <i class="fas fa-info-circle mr-1"></i>
-                    Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                    Seleziona prima istanza, commessa e macro campagne per vedere le sedi disponibili
                 </p>
             `;
             
@@ -301,54 +320,102 @@
         function filtraMacroCampagne() {
             const istanza = document.getElementById('select-istanza').value;
             const commessa = document.getElementById('select-commessa').value;
-            const selectMacro = document.getElementById('select-macro');
-            
-            // Reset macro
-            selectMacro.innerHTML = '<option value="">Seleziona macro campagna</option>';
+            const container = document.getElementById('macro-container');
             
             // Reset sedi
             document.getElementById('sedi-container').innerHTML = `
                 <p class="text-sm text-base-content/50 text-center py-8">
                     <i class="fas fa-info-circle mr-1"></i>
-                    Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                    Seleziona prima istanza, commessa e macro campagne per vedere le sedi disponibili
                 </p>
             `;
             
             if (!istanza || !commessa || !datiGerarchici[istanza]?.[commessa]) {
-                selectMacro.disabled = true;
-                return;
-            }
-            
-            // Popola macro campagne
-            selectMacro.disabled = false;
-            const macroCampagne = Object.keys(datiGerarchici[istanza][commessa]).sort();
-            macroCampagne.forEach(macro => {
-                const option = document.createElement('option');
-                option.value = macro;
-                option.textContent = macro.toUpperCase();
-                selectMacro.appendChild(option);
-            });
-        }
-        
-        // Filtra sedi in base a istanza, commessa e macro campagna
-        function filtraSedi() {
-            const istanza = document.getElementById('select-istanza').value;
-            const commessa = document.getElementById('select-commessa').value;
-            const macro = document.getElementById('select-macro').value;
-            const container = document.getElementById('sedi-container');
-            
-            if (!istanza || !commessa || !macro || !datiGerarchici[istanza]?.[commessa]?.[macro]) {
                 container.innerHTML = `
-                    <p class="text-sm text-base-content/50 text-center py-8">
+                    <p class="text-sm text-base-content/50 text-center py-6">
                         <i class="fas fa-info-circle mr-1"></i>
-                        Seleziona prima istanza, commessa e macro campagna per vedere le sedi disponibili
+                        Seleziona prima istanza e commessa per vedere le macro campagne disponibili
                     </p>
                 `;
                 return;
             }
             
-            // Ottieni sedi
-            const sedi = datiGerarchici[istanza][commessa][macro];
+            // Ottieni macro campagne
+            const macroCampagne = Object.keys(datiGerarchici[istanza][commessa]).sort();
+            
+            if (macroCampagne.length === 0) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-6">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        Nessuna macro campagna disponibile
+                    </p>
+                `;
+                return;
+            }
+            
+            // Crea checkbox per ogni macro campagna
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">';
+            macroCampagne.forEach(macro => {
+                html += `
+                    <label class="flex items-center gap-2 p-2 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200 transition-all">
+                        <input type="checkbox" 
+                               name="macro_campagna[]" 
+                               value="${macro}" 
+                               class="checkbox checkbox-success macro-checkbox"
+                               onchange="filtraSedi()">
+                        <div class="flex items-center gap-2 flex-1">
+                            <i class="fas fa-bullhorn text-success text-xs"></i>
+                            <span class="font-medium uppercase text-xs">${macro.toUpperCase()}</span>
+                        </div>
+                        <i class="fas fa-check text-success hidden checkbox-icon"></i>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+            
+            // Aggiungi event listener per mostrare/nascondere icona check
+            document.querySelectorAll('.macro-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const icon = this.closest('label').querySelector('.checkbox-icon');
+                    if (this.checked) {
+                        icon.classList.remove('hidden');
+                        this.closest('label').classList.add('bg-success/10', 'border-success');
+                    } else {
+                        icon.classList.add('hidden');
+                        this.closest('label').classList.remove('bg-success/10', 'border-success');
+                    }
+                });
+            });
+        }
+        
+        // Filtra sedi in base a istanza, commessa e macro campagne selezionate
+        function filtraSedi() {
+            const istanza = document.getElementById('select-istanza').value;
+            const commessa = document.getElementById('select-commessa').value;
+            const macroSelezionate = Array.from(document.querySelectorAll('.macro-checkbox:checked')).map(cb => cb.value);
+            const container = document.getElementById('sedi-container');
+            
+            if (!istanza || !commessa || macroSelezionate.length === 0) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-8">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Seleziona prima istanza, commessa e macro campagne per vedere le sedi disponibili
+                    </p>
+                `;
+                return;
+            }
+            
+            // Ottieni sedi per tutte le macro campagne selezionate
+            let tutteleSedi = new Set();
+            macroSelezionate.forEach(macro => {
+                if (datiGerarchici[istanza]?.[commessa]?.[macro]) {
+                    datiGerarchici[istanza][commessa][macro].forEach(sede => tutteleSedi.add(sede));
+                }
+            });
+            
+            const sedi = Array.from(tutteleSedi).sort();
             
             if (sedi.length === 0) {
                 container.innerHTML = `
@@ -362,7 +429,7 @@
             
             // Crea checkbox per ogni sede
             let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">';
-            sedi.sort().forEach(sede => {
+            sedi.forEach(sede => {
                 const isChecked = sediSelezionate.includes(sede);
                 html += `
                     <label class="flex items-center gap-2 p-3 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200 transition-all ${isChecked ? 'bg-success/10 border-success' : ''}">
@@ -396,6 +463,24 @@
                     }
                 });
             });
+        }
+        
+        // Seleziona tutte le macro campagne
+        function selezionaTutteMacro() {
+            document.querySelectorAll('.macro-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            filtraSedi(); // Aggiorna le sedi
+        }
+        
+        // Deseleziona tutte le macro campagne
+        function deselezionaTutteMacro() {
+            document.querySelectorAll('.macro-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            filtraSedi(); // Aggiorna le sedi
         }
         
         // Seleziona tutte le sedi
