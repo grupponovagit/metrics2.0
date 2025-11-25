@@ -1087,30 +1087,40 @@ class ICTController extends Controller
         $this->authorize('ict.create');
         
         // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
-        $tuttiDati = DB::table('report_produzione_pivot_cache')
-            ->select('istanza', 'commessa', 'macro_campagna', 'nome_sede')
+        // Istanza, Commessa, Macro Campagna da tabella campagne
+        // Sedi da tabella sedi (tutte le sedi disponibili per ogni combinazione istanza/commessa/macro)
+        $campagne = DB::table('campagne')
+            ->select('istanza', 'commessa', 'macro_campagna')
             ->whereNotNull('istanza')
             ->whereNotNull('commessa')
             ->whereNotNull('macro_campagna')
-            ->whereNotNull('nome_sede')
+            ->where('macro_campagna', '!=', 'non usata')
             ->distinct()
             ->orderBy('istanza')
             ->orderBy('commessa')
             ->orderBy('macro_campagna')
-            ->orderBy('nome_sede')
             ->get();
         
+        // Recupera tutte le sedi disponibili
+        $sediDisponibili = DB::table('sedi')
+            ->select('nome_sede')
+            ->whereNotNull('nome_sede')
+            ->orderBy('nome_sede')
+            ->pluck('nome_sede');
+        
         // Raggruppa i dati in struttura gerarchica
-        $datiGerarchici = $tuttiDati->groupBy('istanza')->map(function($istanzaGroup) {
-            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) {
-                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
-                    return $macroGroup->pluck('nome_sede')->unique()->values();
+        // Per ogni combinazione istanza/commessa/macro, assegna tutte le sedi disponibili
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) use ($sediDisponibili) {
+            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) use ($sediDisponibili) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) use ($sediDisponibili) {
+                    // Restituisce tutte le sedi disponibili per questa combinazione
+                    return $sediDisponibili->values();
                 });
             });
         });
         
         // Recupera istanze univoche
-        $istanze = $tuttiDati->pluck('istanza')->unique()->sort()->values();
+        $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
         return view('admin.modules.ict.mantenimenti-bonus-incentivi.create', [
             'istanze' => $istanze,
@@ -1176,30 +1186,40 @@ class ICTController extends Controller
         $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
         
         // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
-        $tuttiDati = DB::table('report_produzione_pivot_cache')
-            ->select('istanza', 'commessa', 'macro_campagna', 'nome_sede')
+        // Istanza, Commessa, Macro Campagna da tabella campagne
+        // Sedi da tabella sedi (tutte le sedi disponibili per ogni combinazione istanza/commessa/macro)
+        $campagne = DB::table('campagne')
+            ->select('istanza', 'commessa', 'macro_campagna')
             ->whereNotNull('istanza')
             ->whereNotNull('commessa')
             ->whereNotNull('macro_campagna')
-            ->whereNotNull('nome_sede')
+            ->where('macro_campagna', '!=', 'non usata')
             ->distinct()
             ->orderBy('istanza')
             ->orderBy('commessa')
             ->orderBy('macro_campagna')
-            ->orderBy('nome_sede')
             ->get();
         
+        // Recupera tutte le sedi disponibili
+        $sediDisponibili = DB::table('sedi')
+            ->select('nome_sede')
+            ->whereNotNull('nome_sede')
+            ->orderBy('nome_sede')
+            ->pluck('nome_sede');
+        
         // Raggruppa i dati in struttura gerarchica
-        $datiGerarchici = $tuttiDati->groupBy('istanza')->map(function($istanzaGroup) {
-            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) {
-                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
-                    return $macroGroup->pluck('nome_sede')->unique()->values();
+        // Per ogni combinazione istanza/commessa/macro, assegna tutte le sedi disponibili
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) use ($sediDisponibili) {
+            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) use ($sediDisponibili) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) use ($sediDisponibili) {
+                    // Restituisce tutte le sedi disponibili per questa combinazione
+                    return $sediDisponibili->values();
                 });
             });
         });
         
         // Recupera istanze univoche
-        $istanze = $tuttiDati->pluck('istanza')->unique()->sort()->values();
+        $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
         // Decodifica sedi e macro campagne salvate
         $sediSelezionate = $mantenimento->getSediArray();

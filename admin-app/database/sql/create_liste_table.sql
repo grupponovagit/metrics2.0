@@ -31,3 +31,4 @@ CREATE TABLE IF NOT EXISTS `liste` (
 -- Verifica tabella creata
 DESCRIBE liste;
 
+

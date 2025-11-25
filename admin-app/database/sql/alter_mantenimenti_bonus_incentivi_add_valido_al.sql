@@ -13,3 +13,4 @@ ADD INDEX `idx_valido_al` (`valido_al`);
 -- Verifica modifica
 DESCRIBE mantenimenti_bonus_incentivi;
 
+
