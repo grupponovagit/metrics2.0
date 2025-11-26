@@ -14,8 +14,10 @@ class KpiTargetMensile extends Model
     protected $table = 'kpi_target_mensile';
     
     protected $fillable = [
+        'istanza',
         'commessa',
         'sede_crm',
+        'sede_id',
         'sede_estesa',
         'macro_campagna',
         'nome_kpi',

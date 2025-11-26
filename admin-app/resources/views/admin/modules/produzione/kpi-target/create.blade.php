@@ -16,54 +16,60 @@
     </x-admin.page-header>
     
     <x-admin.card tone="light" shadow="lg" padding="normal">
-        <form method="POST" action="{{ route('admin.produzione.kpi_target.store') }}">
+        <form method="POST" action="{{ route('admin.produzione.kpi_target.store') }}" id="form-kpi">
             @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{-- Commessa --}}
+                {{-- Istanza --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Commessa <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-building text-info mr-1"></i>
+                            Istanza <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select 
-                        name="commessa" 
-                        class="select select-bordered uppercase @error('commessa') select-error @enderror" 
+                        name="istanza" 
+                        id="select-istanza"
+                        class="select select-bordered uppercase @error('istanza') select-error @enderror" 
                         style="text-transform: uppercase;"
+                        onchange="filtraCommesse()"
                         required
                     >
-                        <option value="">-- Seleziona commessa --</option>
-                        @foreach($commesse as $commessa)
-                            <option value="{{ $commessa }}" {{ old('commessa') == $commessa ? 'selected' : '' }}>
-                                {{ strtoupper($commessa) }}
+                        <option value="">-- Seleziona istanza --</option>
+                        @foreach($istanze as $istanza)
+                            <option value="{{ $istanza }}" {{ old('istanza') == $istanza ? 'selected' : '' }}>
+                                {{ strtoupper($istanza) }}
                             </option>
                         @endforeach
                     </select>
-                    @error('commessa')
+                    @error('istanza')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
                     @enderror
                 </div>
                 
-                {{-- Sede CRM --}}
+                {{-- Commessa --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Sede CRM <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-briefcase text-warning mr-1"></i>
+                            Commessa <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select 
-                        name="sede_crm" 
-                        class="select select-bordered uppercase @error('sede_crm') select-error @enderror" 
+                        name="commessa" 
+                        id="select-commessa"
+                        class="select select-bordered uppercase @error('commessa') select-error @enderror" 
                         style="text-transform: uppercase;"
+                        onchange="filtraMacroCampagne()"
                         required
+                        disabled
                     >
-                        <option value="">-- Seleziona sede --</option>
-                        @foreach($sedi as $sede)
-                            <option value="{{ $sede }}" {{ old('sede_crm') == $sede ? 'selected' : '' }}>
-                                {{ strtoupper($sede) }}
-                            </option>
-                        @endforeach
+                        <option value="">-- Seleziona prima un'istanza --</option>
                     </select>
-                    @error('sede_crm')
+                    @error('commessa')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
@@ -73,22 +79,44 @@
                 {{-- Macro Campagna --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Macro Campagna <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-bullhorn text-success mr-1"></i>
+                            Macro Campagna <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select 
                         name="macro_campagna" 
+                        id="select-macro"
                         class="select select-bordered uppercase @error('macro_campagna') select-error @enderror" 
                         style="text-transform: uppercase;"
+                        onchange="filtraSedi()"
                         required
+                        disabled
                     >
-                        <option value="">-- Seleziona macro campagna --</option>
-                        @foreach($macroCampagne as $macro)
-                            <option value="{{ $macro }}" {{ old('macro_campagna') == $macro ? 'selected' : '' }}>
-                                {{ strtoupper($macro) }}
-                            </option>
-                        @endforeach
+                        <option value="">-- Seleziona prima una commessa --</option>
                     </select>
                     @error('macro_campagna')
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ $message }}</span>
+                        </label>
+                    @enderror
+                </div>
+                
+                {{-- Sede CRM --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-map-marker-alt text-error mr-1"></i>
+                            Sede CRM <span class="text-error">*</span>
+                        </span>
+                    </label>
+                    <div id="sede-container" class="border border-base-300 rounded-lg p-3 bg-base-100 max-h-[180px] overflow-y-auto">
+                        <p class="text-sm text-base-content/50 text-center py-4">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Seleziona istanza, commessa e macro campagna
+                        </p>
+                    </div>
+                    @error('sede_crm')
                         <label class="label">
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
@@ -98,7 +126,10 @@
                 {{-- Tipologia Obiettivo --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Tipologia Obiettivo <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-bullseye text-primary mr-1"></i>
+                            Tipologia Obiettivo <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select 
                         name="tipologia_obiettivo" 
@@ -121,9 +152,12 @@
                 </div>
                 
                 {{-- Nome KPI --}}
-                <div class="form-control md:col-span-2">
+                <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Nome KPI <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-chart-line text-info mr-1"></i>
+                            Nome KPI <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select 
                         name="nome_kpi" 
@@ -145,14 +179,20 @@
                 </div>
                 
                 {{-- Tipo KPI --}}
-                <div class="form-control md:col-span-2">
+                <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Tipo KPI</span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-tags text-secondary mr-1"></i>
+                            Tipo KPI
+                        </span>
                     </label>
                     <select name="tipo_kpi" class="select select-bordered uppercase @error('tipo_kpi') select-error @enderror" style="text-transform: uppercase;">
-                        <option value="NON ASSEGNATO">NON ASSEGNATO</option>
-                        <option value="RESIDENZIALI" {{ old('tipo_kpi') == 'RESIDENZIALI' ? 'selected' : '' }}>RESIDENZIALI</option>
-                        <option value="BUSINESS" {{ old('tipo_kpi') == 'BUSINESS' ? 'selected' : '' }}>BUSINESS</option>
+                        <option value="">-- Seleziona tipo --</option>
+                        @foreach($tipiKpi as $tipo)
+                            <option value="{{ $tipo }}" {{ old('tipo_kpi') == $tipo ? 'selected' : '' }}>
+                                {{ strtoupper($tipo) }}
+                            </option>
+                        @endforeach
                     </select>
                     @error('tipo_kpi')
                         <label class="label">
@@ -160,14 +200,17 @@
                         </label>
                     @enderror
                     <label class="label">
-                        <span class="label-text-alt">Tipologia del KPI (Residenziali, Business o Non Assegnato)</span>
+                        <span class="label-text-alt">Tipologia del KPI (Residenziali o Business)</span>
                     </label>
                 </div>
                 
                 {{-- Anno --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Anno <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-calendar text-info mr-1"></i>
+                            Anno <span class="text-error">*</span>
+                        </span>
                     </label>
                     <input 
                         type="number" 
@@ -188,7 +231,10 @@
                 {{-- Mese --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Mese <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-calendar-alt text-success mr-1"></i>
+                            Mese <span class="text-error">*</span>
+                        </span>
                     </label>
                     <select name="mese" class="select select-bordered @error('mese') select-error @enderror" required>
                         <option value="">Seleziona mese</option>
@@ -215,7 +261,10 @@
                 {{-- Valore KPI --}}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">Valore KPI <span class="text-error">*</span></span>
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-calculator text-warning mr-1"></i>
+                            Valore KPI <span class="text-error">*</span>
+                        </span>
                     </label>
                     <input 
                         type="number" 
@@ -313,10 +362,11 @@
             {{-- Pulsanti --}}
             <div class="flex justify-end gap-4 mt-8">
                 <a href="{{ route('admin.produzione.kpi_target') }}" class="btn btn-ghost">
+                    <i class="fas fa-times mr-2"></i>
                     Annulla
                 </a>
                 <button type="submit" class="btn btn-success">
-                    <x-ui.icon name="save" class="h-4 w-4" />
+                    <i class="fas fa-save mr-2"></i>
                     Salva KPI
                 </button>
             </div>
@@ -324,17 +374,163 @@
     </x-admin.card>
     
     <script>
+        // Dati gerarchici caricati dal controller
+        const datiGerarchici = @json(json_decode($datiGerarchici));
+        console.log('Dati caricati:', datiGerarchici);
+        
+        // Filtra commesse in base all'istanza selezionata
+        function filtraCommesse() {
+            const istanza = document.getElementById('select-istanza').value;
+            const selectCommessa = document.getElementById('select-commessa');
+            const selectMacro = document.getElementById('select-macro');
+            
+            // Reset commessa, macro e sede
+            selectCommessa.innerHTML = '<option value="">-- Seleziona commessa --</option>';
+            selectMacro.innerHTML = '<option value="">-- Seleziona prima una commessa --</option>';
+            selectMacro.disabled = true;
+            
+            document.getElementById('sede-container').innerHTML = `
+                <p class="text-sm text-base-content/50 text-center py-4">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleziona istanza, commessa e macro campagna
+                </p>
+            `;
+            
+            if (!istanza || !datiGerarchici[istanza]) {
+                selectCommessa.disabled = true;
+                return;
+            }
+            
+            // Popola commesse
+            selectCommessa.disabled = false;
+            const commesse = Object.keys(datiGerarchici[istanza]).sort();
+            commesse.forEach(commessa => {
+                const option = document.createElement('option');
+                option.value = commessa;
+                option.textContent = commessa.toUpperCase();
+                selectCommessa.appendChild(option);
+            });
+        }
+        
+        // Filtra macro campagne in base a istanza e commessa
+        function filtraMacroCampagne() {
+            const istanza = document.getElementById('select-istanza').value;
+            const commessa = document.getElementById('select-commessa').value;
+            const selectMacro = document.getElementById('select-macro');
+            
+            // Reset macro e sede
+            selectMacro.innerHTML = '<option value="">-- Seleziona macro campagna --</option>';
+            document.getElementById('sede-container').innerHTML = `
+                <p class="text-sm text-base-content/50 text-center py-4">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleziona istanza, commessa e macro campagna
+                </p>
+            `;
+            
+            if (!istanza || !commessa || !datiGerarchici[istanza]?.[commessa]) {
+                selectMacro.disabled = true;
+                return;
+            }
+            
+            // Popola macro campagne
+            selectMacro.disabled = false;
+            const macroCampagne = Object.keys(datiGerarchici[istanza][commessa]).sort();
+            macroCampagne.forEach(macro => {
+                const option = document.createElement('option');
+                option.value = macro;
+                option.textContent = macro.toUpperCase();
+                selectMacro.appendChild(option);
+            });
+        }
+        
+        // Filtra sedi in base a istanza, commessa e macro campagna
+        function filtraSedi() {
+            const istanza = document.getElementById('select-istanza').value;
+            const commessa = document.getElementById('select-commessa').value;
+            const macro = document.getElementById('select-macro').value;
+            const container = document.getElementById('sede-container');
+            
+            if (!istanza || !commessa || !macro || !datiGerarchici[istanza]?.[commessa]?.[macro]) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Seleziona istanza, commessa e macro campagna
+                    </p>
+                `;
+                return;
+            }
+            
+            // Ottieni sedi (ora sono oggetti con {id, nome})
+            const sedi = datiGerarchici[istanza][commessa][macro];
+            
+            if (sedi.length === 0) {
+                container.innerHTML = `
+                    <p class="text-sm text-base-content/50 text-center py-4">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        Nessuna sede disponibile
+                    </p>
+                `;
+                return;
+            }
+            
+            // Crea radio buttons per ogni sede con campo nascosto per sede_id
+            let html = '<div class="grid grid-cols-1 gap-1">';
+            sedi.forEach(sede => {
+                html += `
+                    <label class="flex items-center gap-2 p-2 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200 transition-all sede-label">
+                        <input type="radio" 
+                               name="sede_crm" 
+                               value="${sede.nome}" 
+                               data-sede-id="${sede.id}"
+                               class="radio radio-success radio-sm sede-radio"
+                               required>
+                        <div class="flex items-center gap-2 flex-1">
+                            <i class="fas fa-map-marker-alt text-error text-xs"></i>
+                            <span class="font-medium uppercase text-sm">${sede.nome.toUpperCase()}</span>
+                        </div>
+                        <i class="fas fa-check text-success hidden radio-icon"></i>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            
+            // Aggiungi campo nascosto per sede_id
+            html += '<input type="hidden" name="sede_id" id="sede_id_hidden" value="">';
+            
+            container.innerHTML = html;
+            
+            // Aggiungi event listener per mostrare/nascondere icona check e aggiornare sede_id
+            document.querySelectorAll('.sede-radio').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Rimuovi evidenziazione da tutte le label
+                    document.querySelectorAll('.sede-label').forEach(label => {
+                        label.classList.remove('bg-success/10', 'border-success');
+                        label.querySelector('.radio-icon').classList.add('hidden');
+                    });
+                    
+                    // Aggiungi evidenziazione alla label selezionata
+                    if (this.checked) {
+                        const label = this.closest('.sede-label');
+                        label.classList.add('bg-success/10', 'border-success');
+                        label.querySelector('.radio-icon').classList.remove('hidden');
+                        
+                        // Aggiorna campo nascosto sede_id
+                        document.getElementById('sede_id_hidden').value = this.getAttribute('data-sede-id');
+                    }
+                });
+            });
+        }
+        
         // Abilita/disabilita campi data in base a kpi_variato
         document.getElementById('kpi_variato').addEventListener('input', function() {
             const dataInizio = document.getElementById('data_validita_inizio');
             if (this.value) {
                 dataInizio.required = true;
-                dataInizio.parentElement.querySelector('.label-text').innerHTML = 'Data Cambio <span class="text-error">*</span>';
+                dataInizio.parentElement.querySelector('.label-text').innerHTML = '<i class="fas fa-calendar-plus text-info mr-1"></i> Data Cambio <span class="text-error">*</span>';
             } else {
                 dataInizio.required = false;
-                dataInizio.parentElement.querySelector('.label-text').innerHTML = 'Data Cambio';
+                dataInizio.parentElement.querySelector('.label-text').innerHTML = '<i class="fas fa-calendar-plus text-info mr-1"></i> Data Cambio';
             }
         });
     </script>
 </x-admin.wrapper>
-

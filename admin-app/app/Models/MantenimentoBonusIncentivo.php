@@ -14,6 +14,7 @@ class MantenimentoBonusIncentivo extends Model
         'macro_campagna',
         'tipologia_ripartizione',
         'sedi_ripartizione',
+        'sede_id',
         'liste_ripartizione',
         'extra_bonus',
         'valido_dal',
@@ -59,45 +60,7 @@ class MantenimentoBonusIncentivo extends Model
     }
     
     /**
-     * Ottieni sedi come array
-     */
-    public function getSediArray()
-    {
-        if (empty($this->sedi_ripartizione)) {
-            return [];
-        }
-        
-        // Se è JSON
-        $decoded = json_decode($this->sedi_ripartizione, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded;
-        }
-        
-        // Altrimenti tratta come CSV
-        return array_map('trim', explode(',', $this->sedi_ripartizione));
-    }
-    
-    /**
-     * Ottieni macro campagne come array
-     */
-    public function getMacroCampagneArray()
-    {
-        if (empty($this->macro_campagna)) {
-            return [];
-        }
-        
-        // Se è JSON
-        $decoded = json_decode($this->macro_campagna, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded;
-        }
-        
-        // Altrimenti tratta come stringa singola (per retrocompatibilità)
-        return [$this->macro_campagna];
-    }
-    
-    /**
-     * Ottieni liste come array
+     * Ottieni liste come array (supporta CSV)
      */
     public function getListeArray()
     {
@@ -105,13 +68,7 @@ class MantenimentoBonusIncentivo extends Model
             return [];
         }
         
-        // Se è JSON
-        $decoded = json_decode($this->liste_ripartizione, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded;
-        }
-        
-        // Altrimenti tratta come CSV
+        // Tratta come CSV
         return array_map('trim', explode(',', $this->liste_ripartizione));
     }
 }

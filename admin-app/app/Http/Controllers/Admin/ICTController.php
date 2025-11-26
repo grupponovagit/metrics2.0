@@ -1086,35 +1086,36 @@ class ICTController extends Controller
     {
         $this->authorize('ict.create');
         
-        // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
-        // Istanza, Commessa, Macro Campagna da tabella campagne
-        // Sedi da tabella sedi (tutte le sedi disponibili per ogni combinazione istanza/commessa/macro)
+        // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
         $campagne = DB::table('campagne')
-            ->select('istanza', 'commessa', 'macro_campagna')
-            ->whereNotNull('istanza')
-            ->whereNotNull('commessa')
-            ->whereNotNull('macro_campagna')
-            ->where('macro_campagna', '!=', 'non usata')
+            ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->whereNotNull('campagne.istanza')
+            ->whereNotNull('campagne.cliente_committente')
+            ->whereNotNull('campagne.macro_campagna')
+            ->whereNotNull('sedi.nome_sede')
+            ->where('campagne.macro_campagna', '!=', 'non usata')
+            ->where('sedi.nome_sede', '!=', '')
             ->distinct()
-            ->orderBy('istanza')
-            ->orderBy('commessa')
-            ->orderBy('macro_campagna')
+            ->orderBy('campagne.istanza')
+            ->orderBy('campagne.cliente_committente')
+            ->orderBy('campagne.macro_campagna')
+            ->orderBy('sedi.nome_sede')
             ->get();
         
-        // Recupera tutte le sedi disponibili
-        $sediDisponibili = DB::table('sedi')
-            ->select('nome_sede')
-            ->whereNotNull('nome_sede')
-            ->orderBy('nome_sede')
-            ->pluck('nome_sede');
-        
         // Raggruppa i dati in struttura gerarchica
-        // Per ogni combinazione istanza/commessa/macro, assegna tutte le sedi disponibili
-        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) use ($sediDisponibili) {
-            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) use ($sediDisponibili) {
-                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) use ($sediDisponibili) {
-                    // Restituisce tutte le sedi disponibili per questa combinazione
-                    return $sediDisponibili->values();
+        // Per ogni combinazione istanza/cliente_committente/macro, assegna solo le sedi di quella istanza
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('cliente_committente')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    // Restituisce array di oggetti con id e nome_sede
+                    return $macroGroup->map(function($item) {
+                        return [
+                            'id' => $item->sede_id,
+                            'nome' => $item->nome_sede
+                        ];
+                    })->unique('id')->sortBy('nome')->values();
                 });
             });
         });
@@ -1138,11 +1139,10 @@ class ICTController extends Controller
         $validated = $request->validate([
             'istanza' => 'nullable|string|max:255',
             'commessa' => 'nullable|string|max:255',
-            'macro_campagna' => 'nullable|array',
-            'macro_campagna.*' => 'string',
+            'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
-            'sedi_ripartizione' => 'nullable|array',
-            'sedi_ripartizione.*' => 'string',
+            'sedi_ripartizione' => 'nullable|string|max:255',
+            'sede_id' => 'nullable|integer|exists:sedi,id',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
@@ -1152,16 +1152,6 @@ class ICTController extends Controller
         ]);
         
         try {
-            // Converti array in JSON per macro campagne
-            if (isset($validated['macro_campagna']) && is_array($validated['macro_campagna'])) {
-                $validated['macro_campagna'] = json_encode($validated['macro_campagna']);
-            }
-            
-            // Converti array in JSON per sedi
-            if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {
-                $validated['sedi_ripartizione'] = json_encode($validated['sedi_ripartizione']);
-            }
-            
             MantenimentoBonusIncentivo::create($validated);
             
             return redirect()
@@ -1185,35 +1175,36 @@ class ICTController extends Controller
         
         $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
         
-        // Recupera TUTTI i dati con relazioni per filtro dinamico lato client
-        // Istanza, Commessa, Macro Campagna da tabella campagne
-        // Sedi da tabella sedi (tutte le sedi disponibili per ogni combinazione istanza/commessa/macro)
+        // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
         $campagne = DB::table('campagne')
-            ->select('istanza', 'commessa', 'macro_campagna')
-            ->whereNotNull('istanza')
-            ->whereNotNull('commessa')
-            ->whereNotNull('macro_campagna')
-            ->where('macro_campagna', '!=', 'non usata')
+            ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->whereNotNull('campagne.istanza')
+            ->whereNotNull('campagne.cliente_committente')
+            ->whereNotNull('campagne.macro_campagna')
+            ->whereNotNull('sedi.nome_sede')
+            ->where('campagne.macro_campagna', '!=', 'non usata')
+            ->where('sedi.nome_sede', '!=', '')
             ->distinct()
-            ->orderBy('istanza')
-            ->orderBy('commessa')
-            ->orderBy('macro_campagna')
+            ->orderBy('campagne.istanza')
+            ->orderBy('campagne.cliente_committente')
+            ->orderBy('campagne.macro_campagna')
+            ->orderBy('sedi.nome_sede')
             ->get();
         
-        // Recupera tutte le sedi disponibili
-        $sediDisponibili = DB::table('sedi')
-            ->select('nome_sede')
-            ->whereNotNull('nome_sede')
-            ->orderBy('nome_sede')
-            ->pluck('nome_sede');
-        
         // Raggruppa i dati in struttura gerarchica
-        // Per ogni combinazione istanza/commessa/macro, assegna tutte le sedi disponibili
-        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) use ($sediDisponibili) {
-            return $istanzaGroup->groupBy('commessa')->map(function($commessaGroup) use ($sediDisponibili) {
-                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) use ($sediDisponibili) {
-                    // Restituisce tutte le sedi disponibili per questa combinazione
-                    return $sediDisponibili->values();
+        // Per ogni combinazione istanza/cliente_committente/macro, assegna solo le sedi di quella istanza
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('cliente_committente')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    // Restituisce array di oggetti con id e nome_sede
+                    return $macroGroup->map(function($item) {
+                        return [
+                            'id' => $item->sede_id,
+                            'nome' => $item->nome_sede
+                        ];
+                    })->unique('id')->sortBy('nome')->values();
                 });
             });
         });
@@ -1221,16 +1212,10 @@ class ICTController extends Controller
         // Recupera istanze univoche
         $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
-        // Decodifica sedi e macro campagne salvate
-        $sediSelezionate = $mantenimento->getSediArray();
-        $macroCampagneSelezionate = $mantenimento->getMacroCampagneArray();
-        
         return view('admin.modules.ict.mantenimenti-bonus-incentivi.edit', [
             'mantenimento' => $mantenimento,
             'istanze' => $istanze,
             'datiGerarchici' => $datiGerarchici->toJson(),
-            'sediSelezionate' => $sediSelezionate,
-            'macroCampagneSelezionate' => $macroCampagneSelezionate,
         ]);
     }
 
@@ -1244,11 +1229,10 @@ class ICTController extends Controller
         $validated = $request->validate([
             'istanza' => 'nullable|string|max:255',
             'commessa' => 'nullable|string|max:255',
-            'macro_campagna' => 'nullable|array',
-            'macro_campagna.*' => 'string',
+            'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
-            'sedi_ripartizione' => 'nullable|array',
-            'sedi_ripartizione.*' => 'string',
+            'sedi_ripartizione' => 'nullable|string|max:255',
+            'sede_id' => 'nullable|integer|exists:sedi,id',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
@@ -1259,16 +1243,6 @@ class ICTController extends Controller
         
         try {
             $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
-            
-            // Converti array in JSON per macro campagne
-            if (isset($validated['macro_campagna']) && is_array($validated['macro_campagna'])) {
-                $validated['macro_campagna'] = json_encode($validated['macro_campagna']);
-            }
-            
-            // Converti array in JSON per sedi
-            if (isset($validated['sedi_ripartizione']) && is_array($validated['sedi_ripartizione'])) {
-                $validated['sedi_ripartizione'] = json_encode($validated['sedi_ripartizione']);
-            }
             
             $mantenimento->update($validated);
             

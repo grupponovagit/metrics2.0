@@ -999,30 +999,43 @@ class ProduzioneController extends Controller
     {
         $this->authorize('produzione.create');
         
-        // Lista commesse e sedi disponibili
-        $commesse = DB::table('kpi_target_mensile')
+        // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
+        $campagne = DB::table('campagne')
+            ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->whereNotNull('campagne.istanza')
+            ->whereNotNull('campagne.cliente_committente')
+            ->whereNotNull('campagne.macro_campagna')
+            ->whereNotNull('sedi.nome_sede')
+            ->where('campagne.macro_campagna', '!=', 'non usata')
+            ->where('sedi.nome_sede', '!=', '')
             ->distinct()
-            ->pluck('commessa')
-            ->sort()
-            ->values();
+            ->orderBy('campagne.istanza')
+            ->orderBy('campagne.cliente_committente')
+            ->orderBy('campagne.macro_campagna')
+            ->orderBy('sedi.nome_sede')
+            ->get();
         
-        $sedi = DB::table('kpi_target_mensile')
-            ->distinct()
-            ->pluck('sede_crm')
-            ->filter()
-            ->sort()
-            ->values();
+        // Raggruppa per istanza -> cliente_committente -> macro_campagne -> sedi (filtrate per istanza)
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('cliente_committente')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    // Restituisce array di oggetti con id e nome_sede
+                    return $macroGroup->map(function($item) {
+                        return [
+                            'id' => $item->sede_id,
+                            'nome' => $item->nome_sede
+                        ];
+                    })->unique('id')->sortBy('nome')->values();
+                });
+            });
+        });
         
-        // Recupera macro campagne dalla tabella campagne (esclusi NULL e "non usata")
-        $macroCampagne = DB::table('campagne')
-            ->select('macro_campagna')
-            ->whereNotNull('macro_campagna')
-            ->where('macro_campagna', '!=', 'non usata')
-            ->distinct()
-            ->orderBy('macro_campagna')
-            ->pluck('macro_campagna');
+        // Recupera istanze univoche
+        $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
-        // Recupera nomi KPI univoci
+        // Recupera nomi KPI univoci dalla tabella kpi_target_mensile
         $nomiKpi = DB::table('kpi_target_mensile')
             ->distinct()
             ->pluck('nome_kpi')
@@ -1030,20 +1043,37 @@ class ProduzioneController extends Controller
             ->sort()
             ->values();
         
-        // Recupera tipologie obiettivo univoche
-        $tipologieObiettivo = DB::table('kpi_target_mensile')
-            ->distinct()
-            ->pluck('tipologia_obiettivo')
-            ->filter()
-            ->sort()
-            ->values();
+        // Se la tabella è vuota, usa un mapping di default
+        if ($nomiKpi->isEmpty()) {
+            $nomiKpi = collect([
+                'LEADS',
+                'CONVERSIONI',
+                'COSTO',
+                'CPL',
+                'CPA',
+                'RICAVI',
+                'ROI',
+                'ROAS',
+                'VENDITE',
+                'CONTATTI UTILI',
+                'CONTATTI CHIUSI',
+                'FATTURATO',
+                'MARGINE'
+            ]);
+        }
+        
+        // Tipologie Obiettivo: TARGET, GARE, OBIETTIVO
+        $tipologieObiettivo = ['TARGET', 'GARE', 'OBIETTIVO'];
+        
+        // Tipo KPI: solo RESIDENZIALI e BUSINESS
+        $tipiKpi = ['RESIDENZIALI', 'BUSINESS'];
         
         return view('admin.modules.produzione.kpi-target.create', [
-            'commesse' => $commesse,
-            'sedi' => $sedi,
-            'macroCampagne' => $macroCampagne,
+            'istanze' => $istanze,
+            'datiGerarchici' => $datiGerarchici->toJson(),
             'nomiKpi' => $nomiKpi,
             'tipologieObiettivo' => $tipologieObiettivo,
+            'tipiKpi' => $tipiKpi,
         ]);
     }
     
@@ -1055,8 +1085,10 @@ class ProduzioneController extends Controller
         $this->authorize('produzione.create');
         
         $validated = $request->validate([
+            'istanza' => 'required|string|max:100',
             'commessa' => 'required|string|max:100',
             'sede_crm' => 'required|string|max:100',
+            'sede_id' => 'nullable|integer|exists:sedi,id',
             'sede_estesa' => 'nullable|string|max:255',
             'macro_campagna' => 'nullable|string|max:255',
             'nome_kpi' => 'required|string|max:100',
@@ -1070,6 +1102,7 @@ class ProduzioneController extends Controller
             'data_validita_inizio' => 'nullable|date',
             'data_validita_fine' => 'nullable|date|after_or_equal:data_validita_inizio',
         ], [
+            'istanza.required' => 'L\'istanza è obbligatoria',
             'commessa.required' => 'La commessa è obbligatoria',
             'sede_crm.required' => 'La sede CRM è obbligatoria',
             'nome_kpi.required' => 'Il nome KPI è obbligatorio',
