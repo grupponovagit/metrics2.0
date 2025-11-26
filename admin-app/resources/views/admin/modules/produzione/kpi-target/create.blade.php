@@ -258,6 +258,52 @@
                     @enderror
                 </div>
                 
+                {{-- Tipologia Valore Obiettivo --}}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">
+                            <i class="fas fa-percent text-purple-600 mr-1"></i>
+                            Tipologia Valore <span class="text-error">*</span>
+                        </span>
+                    </label>
+                    <div class="btn-group w-full">
+                        <input 
+                            type="radio" 
+                            name="tipologia_valore_obiettivo" 
+                            value="INTERO" 
+                            class="btn btn-outline" 
+                            id="tipo-intero"
+                            {{ old('tipologia_valore_obiettivo', 'INTERO') == 'INTERO' ? 'checked' : '' }}
+                            required
+                        />
+                        <label for="tipo-intero" class="btn">
+                            <i class="fas fa-hashtag mr-1"></i>
+                            INTERO
+                        </label>
+                        
+                        <input 
+                            type="radio" 
+                            name="tipologia_valore_obiettivo" 
+                            value="DECIMALE" 
+                            class="btn btn-outline" 
+                            id="tipo-decimale"
+                            {{ old('tipologia_valore_obiettivo') == 'DECIMALE' ? 'checked' : '' }}
+                        />
+                        <label for="tipo-decimale" class="btn">
+                            <i class="fas fa-percentage mr-1"></i>
+                            DECIMALE (%)
+                        </label>
+                    </div>
+                    @error('tipologia_valore_obiettivo')
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ $message }}</span>
+                        </label>
+                    @enderror
+                    <label class="label">
+                        <span class="label-text-alt">Seleziona se il valore è un numero intero o una percentuale decimale</span>
+                    </label>
+                </div>
+                
                 {{-- Valore KPI --}}
                 <div class="form-control">
                     <label class="label">
@@ -269,6 +315,7 @@
                     <input 
                         type="number" 
                         name="valore_kpi" 
+                        id="input-valore-kpi"
                         value="{{ old('valore_kpi') }}"
                         step="0.01"
                         min="0"
@@ -281,6 +328,9 @@
                             <span class="label-text-alt text-error">{{ $message }}</span>
                         </label>
                     @enderror
+                    <label class="label">
+                        <span class="label-text-alt" id="hint-valore-kpi">Inserisci un numero intero</span>
+                    </label>
                 </div>
             </div>
             
@@ -473,15 +523,15 @@
                 return;
             }
             
-            // Crea radio buttons per ogni sede con campo nascosto per sede_id
+            // Crea radio buttons per ogni sede con campo nascosto per sede_estesa
             let html = '<div class="grid grid-cols-1 gap-1">';
             sedi.forEach(sede => {
                 html += `
                     <label class="flex items-center gap-2 p-2 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200 transition-all sede-label">
                         <input type="radio" 
                                name="sede_crm" 
-                               value="${sede.nome}" 
-                               data-sede-id="${sede.id}"
+                               value="${sede.id}" 
+                               data-sede-nome="${sede.nome}"
                                class="radio radio-success radio-sm sede-radio"
                                required>
                         <div class="flex items-center gap-2 flex-1">
@@ -494,8 +544,8 @@
             });
             html += '</div>';
             
-            // Aggiungi campo nascosto per sede_id
-            html += '<input type="hidden" name="sede_id" id="sede_id_hidden" value="">';
+            // Aggiungi campo nascosto per sede_estesa (nome della sede)
+            html += '<input type="hidden" name="sede_estesa" id="sede_estesa_hidden" value="">';
             
             container.innerHTML = html;
             
@@ -514,8 +564,8 @@
                         label.classList.add('bg-success/10', 'border-success');
                         label.querySelector('.radio-icon').classList.remove('hidden');
                         
-                        // Aggiorna campo nascosto sede_id
-                        document.getElementById('sede_id_hidden').value = this.getAttribute('data-sede-id');
+                        // Aggiorna campo nascosto sede_estesa con il nome della sede
+                        document.getElementById('sede_estesa_hidden').value = this.getAttribute('data-sede-nome');
                     }
                 });
             });
@@ -532,5 +582,32 @@
                 dataInizio.parentElement.querySelector('.label-text').innerHTML = '<i class="fas fa-calendar-plus text-info mr-1"></i> Data Cambio';
             }
         });
+        
+        // Gestione tipologia valore obiettivo (INTERO vs DECIMALE)
+        function aggiornaInputValoreKpi() {
+            const inputValoreKpi = document.getElementById('input-valore-kpi');
+            const hintValoreKpi = document.getElementById('hint-valore-kpi');
+            const tipoIntero = document.getElementById('tipo-intero');
+            const tipoDecimale = document.getElementById('tipo-decimale');
+            
+            if (tipoIntero.checked) {
+                // Modalità INTERO
+                inputValoreKpi.step = "1";
+                inputValoreKpi.placeholder = "Valore intero (es: 1000)";
+                hintValoreKpi.textContent = "Inserisci un numero intero";
+            } else if (tipoDecimale.checked) {
+                // Modalità DECIMALE/PERCENTUALE
+                inputValoreKpi.step = "0.01";
+                inputValoreKpi.placeholder = "Valore percentuale (es: 15.50)";
+                hintValoreKpi.textContent = "Inserisci una percentuale decimale (es: 15.50 per 15,50%)";
+            }
+        }
+        
+        // Aggiungi listener ai radio button
+        document.getElementById('tipo-intero').addEventListener('change', aggiornaInputValoreKpi);
+        document.getElementById('tipo-decimale').addEventListener('change', aggiornaInputValoreKpi);
+        
+        // Imposta stato iniziale
+        aggiornaInputValoreKpi();
     </script>
 </x-admin.wrapper>

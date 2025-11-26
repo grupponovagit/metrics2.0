@@ -201,7 +201,7 @@ class ProduzioneController extends Controller
         
         // === RECUPERA OBIETTIVI DA kpi_target_mensile ===
         // IMPORTANTE: Prendiamo SOLO i record con tipologia_obiettivo = 'OBIETTIVO'
-        // Ora usa direttamente sede_crm senza mapping
+        // Ora usa direttamente sede_crm senza mapping e include macro_campagna per matching preciso
         $obiettiviKpi = DB::table('kpi_target_mensile')
             ->where('anno', $annoCorrente)
             ->where('mese', $meseCorrente)
@@ -209,7 +209,7 @@ class ProduzioneController extends Controller
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->get()
             ->keyBy(function($item) {
-                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_crm);
+                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_crm) . '|' . strtoupper($item->macro_campagna ?? '');
             })
             ->map(function($item) {
                 $kpiTemp = new KpiTargetMensile();
@@ -224,7 +224,7 @@ class ProduzioneController extends Controller
         $queryBase = DB::table('report_produzione_pivot_cache')
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('nome_sede', $sedeFilters))
+            ->when(!empty($sedeFilters), fn($q) => $q->whereIn('report_produzione_pivot_cache.nome_sede', $sedeFilters))
             ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('macro_campagna', $macroCampagnaFilters));
         
         // === KPI TOTALI (aggregazione SQL diretta) ===
@@ -295,24 +295,29 @@ class ProduzioneController extends Controller
         ];
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
+        // LEFT JOIN con sedi per ottenere l'ID sede per matching KPI
         $datiDettagliati = (clone $queryBase)
+            ->leftJoin('sedi', function($join) {
+                $join->on(DB::raw('UPPER(TRIM(report_produzione_pivot_cache.nome_sede))'), '=', DB::raw('UPPER(TRIM(sedi.nome_sede))'));
+            })
             ->selectRaw('
-                commessa as cliente,
-                macro_campagna as campagna,
-                nome_sede as sede,
-                SUM(totale_vendite) as prodotto_pda,
-                SUM(ok_definitivo) as inserito_pda,
-                SUM(ko_definitivo) as ko_pda,
-                SUM(backlog) as backlog_pda,
-                SUM(backlog_partner) as backlog_partner_pda,
-                SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo,
-                SUM(totale_abbattuto) as fatturato
+                report_produzione_pivot_cache.commessa as cliente,
+                report_produzione_pivot_cache.macro_campagna as campagna,
+                report_produzione_pivot_cache.nome_sede as sede,
+                sedi.id_sede as sede_id,
+                SUM(report_produzione_pivot_cache.totale_vendite) as prodotto_pda,
+                SUM(report_produzione_pivot_cache.ok_definitivo) as inserito_pda,
+                SUM(report_produzione_pivot_cache.ko_definitivo) as ko_pda,
+                SUM(report_produzione_pivot_cache.backlog) as backlog_pda,
+                SUM(report_produzione_pivot_cache.backlog_partner) as backlog_partner_pda,
+                SUM(report_produzione_pivot_cache.ore_lavorate) as ore,
+                SUM(report_produzione_pivot_cache.totale_kpi) as obiettivo,
+                SUM(report_produzione_pivot_cache.totale_abbattuto) as fatturato
             ')
-            ->groupBy('commessa', 'macro_campagna', 'nome_sede')
-            ->orderBy('commessa')
-            ->orderBy('nome_sede')
-            ->orderBy('macro_campagna')
+            ->groupBy('report_produzione_pivot_cache.commessa', 'report_produzione_pivot_cache.macro_campagna', 'report_produzione_pivot_cache.nome_sede', 'sedi.id_sede')
+            ->orderBy('report_produzione_pivot_cache.commessa')
+            ->orderBy('report_produzione_pivot_cache.nome_sede')
+            ->orderBy('report_produzione_pivot_cache.macro_campagna')
             ->get()
             ->groupBy('cliente')
             ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
@@ -324,8 +329,8 @@ class ProduzioneController extends Controller
                         $ore = (float)$data->ore;
                         $fatturato = (float)($data->fatturato ?? 0);
                         
-                        // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
-                        $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
+                        // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE_ID/MACRO_CAMPAGNA ===
+                        $chiaveObiettivo = strtoupper($data->cliente) . '|' . ($data->sede_id ?? '') . '|' . strtoupper($data->campagna ?? '');
                         $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
                         
                         // === CALCOLI RESA ===
@@ -403,22 +408,27 @@ class ProduzioneController extends Controller
             });
         
         // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
+        // LEFT JOIN con sedi per ottenere l'ID sede
         $datiSintetici = (clone $queryBase)
+            ->leftJoin('sedi as sedi_sintetica', function($join) {
+                $join->on(DB::raw('UPPER(TRIM(report_produzione_pivot_cache.nome_sede))'), '=', DB::raw('UPPER(TRIM(sedi_sintetica.nome_sede))'));
+            })
             ->selectRaw('
-                commessa as cliente,
-                nome_sede as sede,
-                SUM(totale_vendite) as prodotto_pda,
-                SUM(ok_definitivo) as inserito_pda,
-                SUM(ko_definitivo) as ko_pda,
-                SUM(backlog) as backlog_pda,
-                SUM(backlog_partner) as backlog_partner_pda,
-                SUM(ore_lavorate) as ore,
-                SUM(totale_kpi) as obiettivo,
-                SUM(totale_abbattuto) as fatturato
+                report_produzione_pivot_cache.commessa as cliente,
+                report_produzione_pivot_cache.nome_sede as sede,
+                sedi_sintetica.id_sede as sede_id,
+                SUM(report_produzione_pivot_cache.totale_vendite) as prodotto_pda,
+                SUM(report_produzione_pivot_cache.ok_definitivo) as inserito_pda,
+                SUM(report_produzione_pivot_cache.ko_definitivo) as ko_pda,
+                SUM(report_produzione_pivot_cache.backlog) as backlog_pda,
+                SUM(report_produzione_pivot_cache.backlog_partner) as backlog_partner_pda,
+                SUM(report_produzione_pivot_cache.ore_lavorate) as ore,
+                SUM(report_produzione_pivot_cache.totale_kpi) as obiettivo,
+                SUM(report_produzione_pivot_cache.totale_abbattuto) as fatturato
             ')
-            ->groupBy('commessa', 'nome_sede')
-            ->orderBy('commessa')
-            ->orderBy('nome_sede')
+            ->groupBy('report_produzione_pivot_cache.commessa', 'report_produzione_pivot_cache.nome_sede', 'sedi_sintetica.id_sede')
+            ->orderBy('report_produzione_pivot_cache.commessa')
+            ->orderBy('report_produzione_pivot_cache.nome_sede')
             ->get()
             ->groupBy('cliente')
             ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
@@ -429,9 +439,12 @@ class ProduzioneController extends Controller
                     $ore = (float)$data->ore;
                     $fatturato = (float)($data->fatturato ?? 0);
                     
-                    // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE ===
-                    $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede);
-                    $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
+                    // === RECUPERA SOMMA OBIETTIVI PER QUESTA COMMESSA/SEDE (tutte le macro campagne) ===
+                    // Filtra tutti gli obiettivi che matchano commessa e sede_id
+                    $obiettivoMensile = $obiettiviKpi->filter(function($obiettivo, $key) use ($data) {
+                        [$commessa, $sede_id, $macro] = explode('|', $key);
+                        return $commessa === strtoupper($data->cliente) && $sede_id == ($data->sede_id ?? '');
+                    })->sum();
                     
                     // === CALCOLI RESA ===
                     $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
@@ -1000,10 +1013,10 @@ class ProduzioneController extends Controller
         $this->authorize('produzione.create');
         
         // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
-        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con id_sede)
         $campagne = DB::table('campagne')
             ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
-            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id_sede as sede_id', 'sedi.nome_sede')
             ->whereNotNull('campagne.istanza')
             ->whereNotNull('campagne.cliente_committente')
             ->whereNotNull('campagne.macro_campagna')
@@ -1077,8 +1090,7 @@ class ProduzioneController extends Controller
         $validated = $request->validate([
             'istanza' => 'required|string|max:100',
             'commessa' => 'required|string|max:100',
-            'sede_crm' => 'required|string|max:100',
-            'sede_id' => 'nullable|integer|exists:sedi,id',
+            'sede_crm' => 'required|string|max:50|exists:sedi,id_sede',
             'sede_estesa' => 'nullable|string|max:255',
             'macro_campagna' => 'nullable|string|max:255',
             'nome_kpi' => 'required|string|max:100',
@@ -1094,7 +1106,8 @@ class ProduzioneController extends Controller
         ], [
             'istanza.required' => 'L\'istanza è obbligatoria',
             'commessa.required' => 'La commessa è obbligatoria',
-            'sede_crm.required' => 'La sede CRM è obbligatoria',
+            'sede_crm.required' => 'La sede è obbligatoria',
+            'sede_crm.exists' => 'Sede non trovata',
             'nome_kpi.required' => 'Il nome KPI è obbligatorio',
             'anno.required' => 'L\'anno è obbligatorio',
             'mese.required' => 'Il mese è obbligatorio',
@@ -1122,7 +1135,7 @@ class ProduzioneController extends Controller
         // Istanza, Cliente Committente (commessa), Macro Campagna e Nome Sede dalla combinazione campagne + sedi
         $campagne = DB::table('campagne')
             ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
-            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id_sede as sede_id', 'sedi.nome_sede')
             ->whereNotNull('campagne.istanza')
             ->whereNotNull('campagne.cliente_committente')
             ->whereNotNull('campagne.macro_campagna')
@@ -1199,8 +1212,7 @@ class ProduzioneController extends Controller
         $validated = $request->validate([
             'istanza' => 'required|string|max:100',
             'commessa' => 'required|string|max:100',
-            'sede_crm' => 'required|string|max:100',
-            'sede_id' => 'nullable|integer|exists:sedi,id',
+            'sede_crm' => 'required|string|max:50|exists:sedi,id_sede',
             'sede_estesa' => 'nullable|string|max:255',
             'macro_campagna' => 'nullable|string|max:255',
             'nome_kpi' => 'required|string|max:100',
@@ -1216,7 +1228,8 @@ class ProduzioneController extends Controller
         ], [
             'istanza.required' => 'L\'istanza è obbligatoria',
             'commessa.required' => 'La commessa è obbligatoria',
-            'sede_crm.required' => 'La sede CRM è obbligatoria',
+            'sede_crm.required' => 'La sede è obbligatoria',
+            'sede_crm.exists' => 'Sede non trovata',
             'nome_kpi.required' => 'Il nome KPI è obbligatorio',
             'anno.required' => 'L\'anno è obbligatorio',
             'mese.required' => 'Il mese è obbligatorio',
