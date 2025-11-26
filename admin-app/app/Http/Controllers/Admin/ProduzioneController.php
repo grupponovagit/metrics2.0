@@ -1035,32 +1035,22 @@ class ProduzioneController extends Controller
         // Recupera istanze univoche
         $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
-        // Recupera nomi KPI univoci dalla tabella kpi_target_mensile
-        $nomiKpi = DB::table('kpi_target_mensile')
-            ->distinct()
-            ->pluck('nome_kpi')
-            ->filter()
-            ->sort()
-            ->values();
-        
-        // Se la tabella è vuota, usa un mapping di default
-        if ($nomiKpi->isEmpty()) {
-            $nomiKpi = collect([
-                'LEADS',
-                'CONVERSIONI',
-                'COSTO',
-                'CPL',
-                'CPA',
-                'RICAVI',
-                'ROI',
-                'ROAS',
-                'VENDITE',
-                'CONTATTI UTILI',
-                'CONTATTI CHIUSI',
-                'FATTURATO',
-                'MARGINE'
-            ]);
-        }
+        // Nomi KPI standard (sempre usati, indipendentemente dalla tabella)
+        $nomiKpi = collect([
+            'LEADS',
+            'CONVERSIONI',
+            'COSTO',
+            'CPL',
+            'CPA',
+            'RICAVI',
+            'ROI',
+            'ROAS',
+            'VENDITE',
+            'CONTATTI UTILI',
+            'CONTATTI CHIUSI',
+            'FATTURATO',
+            'MARGINE'
+        ]);
         
         // Tipologie Obiettivo: TARGET, GARE, OBIETTIVO
         $tipologieObiettivo = ['TARGET', 'GARE', 'OBIETTIVO'];
@@ -1164,32 +1154,22 @@ class ProduzioneController extends Controller
         // Recupera istanze univoche
         $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
         
-        // Recupera nomi KPI univoci dalla tabella kpi_target_mensile
-        $nomiKpi = DB::table('kpi_target_mensile')
-            ->distinct()
-            ->pluck('nome_kpi')
-            ->filter()
-            ->sort()
-            ->values();
-        
-        // Se la tabella è vuota, usa un mapping di default
-        if ($nomiKpi->isEmpty()) {
-            $nomiKpi = collect([
-                'LEADS',
-                'CONVERSIONI',
-                'COSTO',
-                'CPL',
-                'CPA',
-                'RICAVI',
-                'ROI',
-                'ROAS',
-                'VENDITE',
-                'CONTATTI UTILI',
-                'CONTATTI CHIUSI',
-                'FATTURATO',
-                'MARGINE'
-            ]);
-        }
+        // Nomi KPI standard (sempre usati, indipendentemente dalla tabella)
+        $nomiKpi = collect([
+            'LEADS',
+            'CONVERSIONI',
+            'COSTO',
+            'CPL',
+            'CPA',
+            'RICAVI',
+            'ROI',
+            'ROAS',
+            'VENDITE',
+            'CONTATTI UTILI',
+            'CONTATTI CHIUSI',
+            'FATTURATO',
+            'MARGINE'
+        ]);
         
         // Tipologie Obiettivo: TARGET, GARE, OBIETTIVO
         $tipologieObiettivo = ['TARGET', 'GARE', 'OBIETTIVO'];
