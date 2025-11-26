@@ -396,6 +396,10 @@ class ProduzioneController extends Controller
                                 $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                                 $fatturato_paf = max(0, round($fatturato / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                            } else if ($fatturato > 0 && $ore == 0) {
+                                // CASO SPECIALE: Campagne senza vendite ma con fatturato (es: GLOBAL)
+                                // Usa il fatturato effettivo come fatturato PAF senza calcoli
+                                $fatturato_paf = $fatturato;
                             }
                         }
                         
@@ -533,6 +537,10 @@ class ProduzioneController extends Controller
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                                 $fatturato_paf = max(0, round($fatturato / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                             }
+                        } else if ($fatturato > 0 && $ore == 0) {
+                            // CASO SPECIALE: Sedi senza vendite ma con fatturato (es: GLOBAL)
+                            // Usa il fatturato effettivo come fatturato PAF senza calcoli
+                            $fatturato_paf = $fatturato;
                         }
                     }
                     

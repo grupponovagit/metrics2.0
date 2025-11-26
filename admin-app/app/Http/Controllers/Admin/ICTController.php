@@ -1087,10 +1087,10 @@ class ICTController extends Controller
         $this->authorize('ict.create');
         
         // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
-        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con id_sede)
         $campagne = DB::table('campagne')
             ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
-            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id_sede as sede_id', 'sedi.nome_sede')
             ->whereNotNull('campagne.istanza')
             ->whereNotNull('campagne.cliente_committente')
             ->whereNotNull('campagne.macro_campagna')
@@ -1142,7 +1142,7 @@ class ICTController extends Controller
             'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
             'sedi_ripartizione' => 'nullable|string|max:255',
-            'sede_id' => 'nullable|integer|exists:sedi,id',
+            'sede_id' => 'nullable|string|max:50|exists:sedi,id_sede',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
@@ -1176,10 +1176,10 @@ class ICTController extends Controller
         $mantenimento = MantenimentoBonusIncentivo::findOrFail($id);
         
         // Recupera combinazioni istanza/cliente_committente/macro_campagna dalla tabella campagne
-        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con ID)
+        // e fai JOIN con sedi per ottenere solo le sedi dell'istanza specifica (con id_sede)
         $campagne = DB::table('campagne')
             ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
-            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id_sede as sede_id', 'sedi.nome_sede')
             ->whereNotNull('campagne.istanza')
             ->whereNotNull('campagne.cliente_committente')
             ->whereNotNull('campagne.macro_campagna')
@@ -1232,7 +1232,7 @@ class ICTController extends Controller
             'macro_campagna' => 'nullable|string|max:255',
             'tipologia_ripartizione' => 'nullable|in:Fissa,Pezzi,Fatturato,Ore,ContattiUtili,ContattiChiusi',
             'sedi_ripartizione' => 'nullable|string|max:255',
-            'sede_id' => 'nullable|integer|exists:sedi,id',
+            'sede_id' => 'nullable|string|max:50|exists:sedi,id_sede',
             'liste_ripartizione' => 'nullable|string|max:500',
             'extra_bonus' => 'nullable|numeric|min:0',
             'valido_dal' => 'nullable|date',
