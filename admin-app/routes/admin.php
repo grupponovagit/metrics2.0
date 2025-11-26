@@ -169,6 +169,8 @@ Route::group([
         Route::post('/kpi-target/store', 'ProduzioneController@storeKpiTarget')->name('kpi_target.store');
         Route::post('/kpi-target/inizializza-mese', 'ProduzioneController@inizializzaMese')->name('kpi_target.inizializza_mese');
         Route::get('/kpi-target/{id}', 'ProduzioneController@showKpiTarget')->name('kpi_target.show');
+        Route::get('/kpi-target/{id}/edit', 'ProduzioneController@editKpiTarget')->name('kpi_target.edit');
+        Route::put('/kpi-target/{id}', 'ProduzioneController@updateKpiTargetFull')->name('kpi_target.update_full');
         Route::post('/kpi-target/{id}/update-field', 'ProduzioneController@updateKpiField')->name('kpi_target.update_field');
         Route::post('/kpi-target/{id}/update-variazione', 'ProduzioneController@updateKpiVariazione')->name('kpi_target.update_variazione');
         Route::post('/kpi-target/update', 'ProduzioneController@updateKpiTarget')->name('kpi_target.update');

@@ -343,6 +343,7 @@
                             <th class="w-10">
                                 <input type="checkbox" id="select-all-target" class="checkbox checkbox-xs" onchange="toggleAllTarget(this)">
                             </th>
+                            <th class="font-bold">Istanza</th>
                             <th class="font-bold">Commessa</th>
                             <th class="font-bold">Sede CRM</th>
                             <th class="font-bold">Macro Campagna</th>
@@ -362,108 +363,48 @@
                                 <td class="py-2">
                                     <input type="checkbox" class="checkbox checkbox-xs kpi-checkbox-target" value="{{ $kpi->id }}" onchange="updateBulkActionsTarget()">
                                 </td>
-                                <td class="font-medium editable-cell py-2" contenteditable="true" data-field="commessa" data-id="{{ $kpi->id }}" data-original="{{ $kpi->commessa }}">{{ $kpi->commessa }}</td>
                                 
-                                {{-- SELECT SEDE CRM --}}
+                                {{-- Istanza --}}
+                                <td class="font-medium py-2">{{ strtoupper($kpi->istanza ?? '-') }}</td>
+                                
+                                {{-- Commessa --}}
+                                <td class="font-medium py-2">{{ $kpi->commessa }}</td>
+                                
+                                {{-- Sede CRM --}}
+                                <td class="py-2">{{ strtoupper($kpi->sede_crm) }}</td>
+                                
+                                {{-- Macro Campagna --}}
+                                <td class="py-2">{{ strtoupper($kpi->macro_campagna ?? 'TUTTE') }}</td>
+                                
+                                {{-- Nome KPI --}}
+                                <td class="py-2">{{ $kpi->nome_kpi }}</td>
+                                
+                                {{-- Tipo KPI --}}
                                 <td class="py-2">
-                                    <select 
-                                        class="select select-md select-bordered w-full sede-select uppercase" 
-                                        data-field="sede_crm" 
-                                        data-id="{{ $kpi->id }}" 
-                                        onchange="saveFieldChangeSelect(this)"
-                                        style="text-transform: uppercase;">
-                                        <option value="">-- Non assegnata --</option>
-                                        @foreach($sediSelect as $sede)
-                                            @php
-                                                // Determina se questa sede è selezionata
-                                                $isSelected = ($kpi->sede_crm == $sede->id_sede) ||
-                                                             ($kpi->sede_crm == $sede->nome_sede);
-                                            @endphp
-                                            <option value="{{ $sede->id_sede }}" {{ $isSelected ? 'selected' : '' }}>
-                                                {{ strtoupper($sede->nome_sede) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <span class="badge badge-primary badge-sm">
+                                        {{ strtoupper($kpi->tipo_kpi ?? 'Non assegnato') }}
+                                    </span>
                                 </td>
                                 
-                                {{-- SELECT MACRO CAMPAGNA --}}
-                                <td class="py-2">
-                                    <select 
-                                        class="select select-md select-bordered w-full uppercase" 
-                                        data-field="macro_campagna" 
-                                        data-id="{{ $kpi->id }}" 
-                                        onchange="saveFieldChangeSelect(this)"
-                                        style="text-transform: uppercase;">
-                                        <option value="TUTTE" {{ ($kpi->macro_campagna ?? 'TUTTE') == 'TUTTE' ? 'selected' : '' }}>TUTTE</option>
-                                        @foreach($macroCampagne as $macro)
-                                            <option value="{{ $macro }}" {{ ($kpi->macro_campagna ?? '') == $macro ? 'selected' : '' }}>
-                                                {{ strtoupper($macro) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
+                                {{-- Tipologia Obiettivo --}}
+                                <td class="py-2">{{ strtoupper($kpi->tipologia_obiettivo) }}</td>
                                 
-                                {{-- SELECT NOME KPI --}}
-                                <td class="py-2">
-                                    <select 
-                                        class="select select-md select-bordered w-full" 
-                                        data-field="nome_kpi" 
-                                        data-id="{{ $kpi->id }}" 
-                                        onchange="saveFieldChangeSelect(this)">
-                                        @foreach($nomiKpi as $nomeKpi)
-                                            <option value="{{ $nomeKpi }}" {{ $kpi->nome_kpi == $nomeKpi ? 'selected' : '' }}>
-                                                {{ $nomeKpi }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                
-                                {{-- TIPO KPI - Badge con Select al click --}}
-                                <td class="relative py-2">
-                                    <div class="tipo-kpi-container" data-id="{{ $kpi->id }}">
-                                        {{-- Badge visibile --}}
-                                        <span 
-                                            class="badge badge-primary badge-sm cursor-pointer hover:badge-primary-focus transition-all tipo-kpi-badge" 
-                                            onclick="toggleTipoKpiSelect({{ $kpi->id }})"
-                                            id="badge-tipo-{{ $kpi->id }}">
-                                            {{ strtoupper($kpi->tipo_kpi ?? 'Non assegnato') }}
-                                        </span>
-                                        
-                                        {{-- Select nascosta --}}
-                                        <select 
-                                            class="select select-md select-bordered absolute top-0 left-0 w-full hidden uppercase tipo-kpi-select" 
-                                            data-field="tipo_kpi" 
-                                            data-id="{{ $kpi->id }}" 
-                                            id="select-tipo-{{ $kpi->id }}"
-                                            onchange="saveTipoKpi(this)"
-                                            onblur="hideTipoKpiSelect({{ $kpi->id }})"
-                                            style="text-transform: uppercase; z-index: 10;">
-                                            <option value="">NON ASSEGNATO</option>
-                                            <option value="RESIDENZIALI" {{ strtoupper($kpi->tipo_kpi ?? '') == 'RESIDENZIALI' ? 'selected' : '' }}>RESIDENZIALI</option>
-                                            <option value="BUSINESS" {{ strtoupper($kpi->tipo_kpi ?? '') == 'BUSINESS' ? 'selected' : '' }}>BUSINESS</option>
-                                        </select>
-                                    </div>
-                                </td>
-                                
-                                {{-- SELECT TIPOLOGIA OBIETTIVO --}}
-                                <td class="py-2">
-                                    <select 
-                                        class="select select-md select-bordered w-full uppercase" 
-                                        data-field="tipologia_obiettivo" 
-                                        data-id="{{ $kpi->id }}" 
-                                        onchange="saveFieldChangeSelect(this)"
-                                        style="text-transform: uppercase;">
-                                        @foreach($tipologieObiettivo as $tipologia)
-                                            <option value="{{ $tipologia }}" {{ $kpi->tipologia_obiettivo == $tipologia ? 'selected' : '' }}>
-                                                {{ strtoupper($tipologia) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                
+                                {{-- Anno --}}
                                 <td class="text-center py-2">{{ $kpi->anno }}</td>
+                                
+                                {{-- Mese --}}
                                 <td class="text-center py-2">{{ $kpi->mese }}</td>
-                                <td class="text-center font-semibold editable-cell py-2" contenteditable="true" data-field="valore_kpi" data-id="{{ $kpi->id }}" data-original="{{ $kpi->valore_kpi }}">{{ number_format($kpi->valore_kpi, 2) }}</td>
+                                
+                                {{-- Valore (EDITABILE) --}}
+                                <td class="text-center font-semibold editable-cell py-2" 
+                                    contenteditable="true" 
+                                    data-field="valore_kpi" 
+                                    data-id="{{ $kpi->id }}" 
+                                    data-original="{{ $kpi->valore_kpi }}">
+                                    {{ number_format($kpi->valore_kpi, 2) }}
+                                </td>
+                                
+                                {{-- Variazione KPI --}}
                                 <td class="text-center py-2">
                                     <div class="flex items-center justify-center gap-1">
                                         @if($kpi->kpi_variato)
@@ -479,13 +420,15 @@
                                         @else
                                             <span class="badge badge-ghost badge-xs">Nessuna</span>
                                         @endif
-                                        <button type="button" onclick="openVariazioneModal({{ json_encode($kpi) }})" class="btn btn-xs btn-outline" title="Modifica Variazione">
-                                            <x-ui.icon name="pencil" class="h-3 w-3" />
-                                        </button>
                                     </div>
                                 </td>
+                                
+                                {{-- Azioni --}}
                                 <td class="text-center py-2">
                                     <div class="flex gap-1 justify-center">
+                                        <a href="{{ route('admin.produzione.kpi_target.edit', $kpi->id) }}" class="btn btn-xs btn-warning" title="Modifica">
+                                            <x-ui.icon name="pencil" class="h-3 w-3" />
+                                        </a>
                                         <a href="{{ route('admin.produzione.kpi_target.show', $kpi->id) }}" class="btn btn-xs btn-info" title="Visualizza">
                                             <x-ui.icon name="eye" class="h-3 w-3" />
                                         </a>
@@ -501,7 +444,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" class="text-center py-8">
+                                <td colspan="13" class="text-center py-8">
                                     <div>
                                         <h3 class="text-base font-semibold text-base-content mb-1">Nessun target trovato</h3>
                                         <p class="text-sm text-base-content/60">Prova con filtri diversi o crea un nuovo KPI</p>

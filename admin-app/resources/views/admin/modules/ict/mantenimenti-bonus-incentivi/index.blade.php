@@ -96,8 +96,10 @@
                         <th>Macro Campagna</th>
                         <th>Tipologia</th>
                         <th>Sedi</th>
+                        <th>Liste</th>
                         <th>Extra Bonus</th>
                         <th>Valido Dal</th>
+                        <th>Valido Al</th>
                         <th>Azioni</th>
                     </tr>
                 </thead>
@@ -135,7 +137,14 @@
                         </td>
                         <td>
                             @if($mantenimento->sedi_ripartizione)
-                                <span class="text-xs">{{ Str::limit($mantenimento->sedi_ripartizione, 30) }}</span>
+                                <span class="text-xs uppercase">{{ Str::limit($mantenimento->sedi_ripartizione, 30) }}</span>
+                            @else
+                                <span class="text-base-content/50">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($mantenimento->liste_ripartizione)
+                                <span class="text-xs">{{ Str::limit($mantenimento->liste_ripartizione, 25) }}</span>
                             @else
                                 <span class="text-base-content/50">-</span>
                             @endif
@@ -149,7 +158,14 @@
                         </td>
                         <td>
                             @if($mantenimento->valido_dal)
-                                {{ $mantenimento->valido_dal->format('d/m/Y') }}
+                                <span class="badge badge-outline badge-sm">{{ $mantenimento->valido_dal->format('d/m/Y') }}</span>
+                            @else
+                                <span class="text-base-content/50">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($mantenimento->valido_al)
+                                <span class="badge badge-outline badge-sm badge-warning">{{ $mantenimento->valido_al->format('d/m/Y') }}</span>
                             @else
                                 <span class="text-base-content/50">-</span>
                             @endif
@@ -174,7 +190,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-8">
+                        <td colspan="11" class="text-center py-8">
                             <div class="text-base-content/50">
                                 <x-ui.icon name="inbox" class="h-12 w-12 mx-auto mb-2" />
                                 <p>Nessun mantenimento trovato</p>

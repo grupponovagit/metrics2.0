@@ -272,6 +272,15 @@ Breadcrumbs::for('admin.produzione.kpi_target.create', function (BreadcrumbTrail
     $trail->push('Nuovo KPI', route('admin.produzione.kpi_target.create'));
 });
 
+Breadcrumbs::for('admin.produzione.kpi_target.edit', function (BreadcrumbTrail $trail, $id) {
+    $trail->parent('admin.produzione.kpi_target');
+    
+    // Se $id è un oggetto, usa la sua proprietà id, altrimenti usa il valore diretto
+    $kpiId = is_object($id) ? $id->id : $id;
+    
+    $trail->push('Modifica KPI #' . $kpiId);
+});
+
 Breadcrumbs::for('admin.produzione.kpi_target.show', function (BreadcrumbTrail $trail, $id) {
     $trail->parent('admin.produzione.kpi_target');
     

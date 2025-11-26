@@ -1120,6 +1120,138 @@ class ProduzioneController extends Controller
     }
     
     /**
+     * Mostra form modifica KPI Target
+     */
+    public function editKpiTarget($id)
+    {
+        $this->authorize('produzione.edit');
+        
+        $kpi = KpiTargetMensile::findOrFail($id);
+        
+        // Recupera dati da tabelle master per filtri dinamici con JOIN alla tabella sedi
+        // Istanza, Cliente Committente (commessa), Macro Campagna e Nome Sede dalla combinazione campagne + sedi
+        $campagne = DB::table('campagne')
+            ->join('sedi', 'campagne.istanza', '=', 'sedi.istanza')
+            ->select('campagne.istanza', 'campagne.cliente_committente', 'campagne.macro_campagna', 'sedi.id as sede_id', 'sedi.nome_sede')
+            ->whereNotNull('campagne.istanza')
+            ->whereNotNull('campagne.cliente_committente')
+            ->whereNotNull('campagne.macro_campagna')
+            ->whereNotNull('sedi.nome_sede')
+            ->where('campagne.macro_campagna', '!=', 'non usata')
+            ->where('sedi.nome_sede', '!=', '')
+            ->distinct()
+            ->orderBy('campagne.istanza')
+            ->orderBy('campagne.cliente_committente')
+            ->orderBy('campagne.macro_campagna')
+            ->orderBy('sedi.nome_sede')
+            ->get();
+        
+        // Raggruppa per istanza -> cliente_committente -> macro_campagne -> sedi (filtrate per istanza)
+        $datiGerarchici = $campagne->groupBy('istanza')->map(function($istanzaGroup) {
+            return $istanzaGroup->groupBy('cliente_committente')->map(function($commessaGroup) {
+                return $commessaGroup->groupBy('macro_campagna')->map(function($macroGroup) {
+                    // Restituisce array di oggetti con id e nome_sede
+                    return $macroGroup->map(function($item) {
+                        return [
+                            'id' => $item->sede_id,
+                            'nome' => $item->nome_sede
+                        ];
+                    })->unique('id')->sortBy('nome')->values();
+                });
+            });
+        });
+        
+        // Recupera istanze univoche
+        $istanze = $campagne->pluck('istanza')->unique()->sort()->values();
+        
+        // Recupera nomi KPI univoci dalla tabella kpi_target_mensile
+        $nomiKpi = DB::table('kpi_target_mensile')
+            ->distinct()
+            ->pluck('nome_kpi')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // Se la tabella è vuota, usa un mapping di default
+        if ($nomiKpi->isEmpty()) {
+            $nomiKpi = collect([
+                'LEADS',
+                'CONVERSIONI',
+                'COSTO',
+                'CPL',
+                'CPA',
+                'RICAVI',
+                'ROI',
+                'ROAS',
+                'VENDITE',
+                'CONTATTI UTILI',
+                'CONTATTI CHIUSI',
+                'FATTURATO',
+                'MARGINE'
+            ]);
+        }
+        
+        // Tipologie Obiettivo: TARGET, GARE, OBIETTIVO
+        $tipologieObiettivo = ['TARGET', 'GARE', 'OBIETTIVO'];
+        
+        // Tipo KPI: solo RESIDENZIALI e BUSINESS
+        $tipiKpi = ['RESIDENZIALI', 'BUSINESS'];
+        
+        return view('admin.modules.produzione.kpi-target.edit', [
+            'kpi' => $kpi,
+            'istanze' => $istanze,
+            'datiGerarchici' => $datiGerarchici->toJson(),
+            'nomiKpi' => $nomiKpi,
+            'tipologieObiettivo' => $tipologieObiettivo,
+            'tipiKpi' => $tipiKpi,
+        ]);
+    }
+    
+    /**
+     * Aggiorna KPI Target (form completo)
+     */
+    public function updateKpiTargetFull(Request $request, $id)
+    {
+        $this->authorize('produzione.edit');
+        
+        $kpi = KpiTargetMensile::findOrFail($id);
+        
+        $validated = $request->validate([
+            'istanza' => 'required|string|max:100',
+            'commessa' => 'required|string|max:100',
+            'sede_crm' => 'required|string|max:100',
+            'sede_id' => 'nullable|integer|exists:sedi,id',
+            'sede_estesa' => 'nullable|string|max:255',
+            'macro_campagna' => 'nullable|string|max:255',
+            'nome_kpi' => 'required|string|max:100',
+            'tipo_kpi' => 'nullable|string|max:50',
+            'anno' => 'required|integer|min:2020|max:2030',
+            'mese' => 'required|integer|min:1|max:12',
+            'valore_kpi' => 'required|numeric|min:0',
+            'tipologia_obiettivo' => 'nullable|string|max:50',
+            'tipologia_valore_obiettivo' => 'nullable|string|max:50',
+            'kpi_variato' => 'nullable|numeric|min:0',
+            'data_validita_inizio' => 'nullable|date',
+            'data_validita_fine' => 'nullable|date|after_or_equal:data_validita_inizio',
+        ], [
+            'istanza.required' => 'L\'istanza è obbligatoria',
+            'commessa.required' => 'La commessa è obbligatoria',
+            'sede_crm.required' => 'La sede CRM è obbligatoria',
+            'nome_kpi.required' => 'Il nome KPI è obbligatorio',
+            'anno.required' => 'L\'anno è obbligatorio',
+            'mese.required' => 'Il mese è obbligatorio',
+            'valore_kpi.required' => 'Il valore KPI è obbligatorio',
+            'data_validita_fine.after_or_equal' => 'La data fine deve essere uguale o successiva alla data inizio',
+        ]);
+        
+        $kpi->update($validated);
+        
+        return redirect()
+            ->route('admin.produzione.kpi_target', ['anno' => $validated['anno'], 'mese' => sprintf('%02d', $validated['mese'])])
+            ->with('success', 'KPI Target aggiornato con successo');
+    }
+    
+    /**
      * Mostra dettaglio KPI Target
      */
     public function showKpiTarget($id)
