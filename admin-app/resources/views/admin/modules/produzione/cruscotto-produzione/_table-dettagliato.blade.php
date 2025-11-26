@@ -258,6 +258,7 @@
                         'pezzi_paf' => 0,
                         'fatturato_paf' => 0,
                         'obiettivo_mensile' => 0,
+                        'passo_giorno' => 0,
                     ];
 
                     foreach ($sediData as $campagneData) {
@@ -273,6 +274,7 @@
                             $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
                             $totaleCliente['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
                             $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
+                            $totaleCliente['passo_giorno'] += $dati['passo_giorno'] ?? 0;
                         }
                     }
 
@@ -297,15 +299,8 @@
                     // Calcoli obiettivi
                     $diffObjCliente = $totaleCliente['obiettivo_mensile'] - $totaleCliente['inserito_pda'];
 
-                    // Passo giorno: solo se ci sono giorni rimanenti E differenza positiva
-                    $passoGiornoCliente = 0;
-                    if (
-                        isset($kpiArray['giorni_lavorativi_rimanenti']) &&
-                        $kpiArray['giorni_lavorativi_rimanenti'] > 0 &&
-                        $diffObjCliente > 0
-                    ) {
-                        $passoGiornoCliente = round($diffObjCliente / $kpiArray['giorni_lavorativi_rimanenti'], 2);
-                    }
+                    // Passo giorno: SOMMATO dalle righe
+                    $passoGiornoCliente = $totaleCliente['passo_giorno'];
                 @endphp
                 <tr class="bg-slate-100 font-semibold border-t-2 border-slate-300">
                     <td colspan="3"
@@ -343,7 +338,8 @@
                         class="col-obiettivi col-obiettivi-mensile text-center text-xs bg-teal-100 border-r border-slate-200">
                         {{ number_format($totaleCliente['obiettivo_mensile'], 0) }}</td>
                     <td
-                        class="col-obiettivi col-obiettivi-passo text-center text-xs bg-teal-100 border-r border-slate-200">
+                        class="col-obiettivi col-obiettivi-passo text-center text-xs bg-teal-100 border-r border-slate-200"
+                        title="Somma passi giorno delle righe">
                         {{ $passoGiornoCliente }}</td>
                     <td
                         class="col-obiettivi col-obiettivi-diff text-center text-xs bg-teal-100 border-r-2 border-slate-300 {{ $diffObjCliente < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
@@ -392,6 +388,8 @@
                         'pezzi_paf' => 0,
                         'fatturato_paf' => 0,
                         'resa_paf' => 0,
+                        'obiettivo_mensile' => 0,
+                        'passo_giorno' => 0,
                     ];
 
                     foreach ($datiRaggruppati as $sediData) {
@@ -407,6 +405,8 @@
                                 $totali['ore_paf'] += $dati['ore_paf'] ?? 0;
                                 $totali['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
                                 $totali['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
+                                $totali['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
+                                $totali['passo_giorno'] += $dati['passo_giorno'] ?? 0;
                             }
                         }
                     }
@@ -420,6 +420,12 @@
                         $totali['ore'] > 0 ? round($totali['fatturato'] / $totali['ore'], 2) : 0;
                     $totali['resa_paf'] =
                         $totali['ore_paf'] > 0 ? round($totali['pezzi_paf'] / $totali['ore_paf'], 2) : 0;
+                    
+                    // Calcoli obiettivi
+                    $diffObjTotale = $totali['obiettivo_mensile'] - $totali['inserito_pda'];
+                    
+                    // Passo giorno: SOMMATO dalle righe
+                    $passoGiornoTotale = $totali['passo_giorno'];
                 @endphp
                 <tr class="bg-slate-200 font-bold border-t-4 border-slate-400">
                     <td colspan="3"
@@ -452,16 +458,17 @@
                     <td class="col-resa col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totali['resa_oraria'] ?? 0 }}</td>
 
-                    {{-- Obiettivi (al momento a 0) --}}
+                    {{-- Obiettivi --}}
                     <td
                         class="col-obiettivi col-obiettivi-mensile text-center text-sm bg-teal-100 border-r border-slate-200">
-                        0</td>
+                        {{ number_format($totali['obiettivo_mensile'], 0) }}</td>
                     <td
-                        class="col-obiettivi col-obiettivi-passo text-center text-sm bg-teal-100 border-r border-slate-200">
-                        0</td>
+                        class="col-obiettivi col-obiettivi-passo text-center text-sm bg-teal-100 border-r border-slate-200"
+                        title="Somma passi giorno di tutte le righe">
+                        {{ $passoGiornoTotale }}</td>
                     <td
-                        class="col-obiettivi col-obiettivi-diff text-center text-sm bg-teal-100 border-r-2 border-slate-300">
-                        0</td>
+                        class="col-obiettivi col-obiettivi-diff text-center text-sm bg-teal-100 border-r-2 border-slate-300 {{ $diffObjTotale < 0 ? 'text-green-700 font-bold' : 'text-red-700' }}">
+                        {{ number_format($diffObjTotale, 0) }}</td>
 
                     {{-- PAF Mensile --}}
                     <td

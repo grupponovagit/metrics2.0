@@ -202,14 +202,30 @@ class ProduzioneController extends Controller
         // === RECUPERA OBIETTIVI DA kpi_target_mensile ===
         // IMPORTANTE: Prendiamo SOLO i record con tipologia_obiettivo = 'OBIETTIVO'
         // Ora usa direttamente sede_crm senza mapping e include macro_campagna per matching preciso
-        $obiettiviKpi = DB::table('kpi_target_mensile')
+        $obiettiviKpiRaw = DB::table('kpi_target_mensile')
             ->where('anno', $annoCorrente)
             ->where('mese', $meseCorrente)
             ->where('tipologia_obiettivo', 'OBIETTIVO')
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
-            ->get()
+            ->get();
+        
+        // Mappa principale con chiave per sede_crm (id_sede)
+        $obiettiviKpi = $obiettiviKpiRaw
             ->keyBy(function($item) {
-                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_crm) . '|' . strtoupper($item->macro_campagna ?? '');
+                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_crm ?? '') . '|' . strtoupper($item->macro_campagna ?? '');
+            })
+            ->map(function($item) {
+                $kpiTemp = new KpiTargetMensile();
+                foreach((array)$item as $key => $value) {
+                    $kpiTemp->{$key} = $value;
+                }
+                return $kpiTemp->getMediaPonderata();
+            });
+        
+        // Mappa alternativa con chiave per sede_estesa (nome sede) come fallback
+        $obiettiviKpiByNome = $obiettiviKpiRaw
+            ->keyBy(function($item) {
+                return strtoupper($item->commessa) . '|' . strtoupper($item->sede_estesa ?? '') . '|' . strtoupper($item->macro_campagna ?? '');
             })
             ->map(function($item) {
                 $kpiTemp = new KpiTargetMensile();
@@ -320,9 +336,9 @@ class ProduzioneController extends Controller
             ->orderBy('report_produzione_pivot_cache.macro_campagna')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
-                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
+                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
                         $data = $campagneGroup->first();
                         $inseriti = (int)$data->inserito_pda;
                         $prodotto = (int)$data->prodotto_pda;
@@ -330,8 +346,20 @@ class ProduzioneController extends Controller
                         $fatturato = (float)($data->fatturato ?? 0);
                         
                         // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE_ID/MACRO_CAMPAGNA ===
-                        $chiaveObiettivo = strtoupper($data->cliente) . '|' . ($data->sede_id ?? '') . '|' . strtoupper($data->campagna ?? '');
-                        $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
+                        // Prima prova con sede_id, poi con nome sede come fallback
+                        $obiettivoMensile = 0;
+                        
+                        if ($data->sede_id) {
+                            // Match per sede_id se disponibile
+                            $chiaveObiettivo = strtoupper($data->cliente) . '|' . $data->sede_id . '|' . strtoupper($data->campagna ?? '');
+                            $obiettivoMensile = $obiettiviKpi->get($chiaveObiettivo, 0);
+                        }
+                        
+                        // Fallback: se sede_id è null o non ha trovato obiettivi, prova con il nome della sede
+                        if ($obiettivoMensile == 0 && $data->sede) {
+                            $chiaveObiettivo = strtoupper($data->cliente) . '|' . strtoupper($data->sede) . '|' . strtoupper($data->campagna ?? '');
+                            $obiettivoMensile = $obiettiviKpiByNome->get($chiaveObiettivo, 0);
+                        }
                         
                         // === CALCOLI RESA ===
                         $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
@@ -431,8 +459,8 @@ class ProduzioneController extends Controller
             ->orderBy('report_produzione_pivot_cache.nome_sede')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $giorniLavoratiPerCampagna, $mostraPaf) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
+                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
                     $data = $sedeGroup->first();
                     $inseriti = (int)$data->inserito_pda;
                     $prodotto = (int)$data->prodotto_pda;
@@ -440,11 +468,24 @@ class ProduzioneController extends Controller
                     $fatturato = (float)($data->fatturato ?? 0);
                     
                     // === RECUPERA SOMMA OBIETTIVI PER QUESTA COMMESSA/SEDE (tutte le macro campagne) ===
-                    // Filtra tutti gli obiettivi che matchano commessa e sede_id
-                    $obiettivoMensile = $obiettiviKpi->filter(function($obiettivo, $key) use ($data) {
-                        [$commessa, $sede_id, $macro] = explode('|', $key);
-                        return $commessa === strtoupper($data->cliente) && $sede_id == ($data->sede_id ?? '');
-                    })->sum();
+                    // Prima prova con sede_id, poi con nome sede come fallback
+                    $obiettivoMensile = 0;
+                    
+                    if ($data->sede_id) {
+                        // Match per sede_id se disponibile
+                        $obiettivoMensile = $obiettiviKpi->filter(function($obiettivo, $key) use ($data) {
+                            [$commessa, $sede_id, $macro] = explode('|', $key);
+                            return $commessa === strtoupper($data->cliente) && $sede_id == $data->sede_id;
+                        })->sum();
+                    }
+                    
+                    // Fallback: se sede_id è null o non ha trovato obiettivi, prova con il nome della sede
+                    if ($obiettivoMensile == 0 && $data->sede) {
+                        $obiettivoMensile = $obiettiviKpiByNome->filter(function($obiettivo, $key) use ($data) {
+                            [$commessa, $nome_sede, $macro] = explode('|', $key);
+                            return $commessa === strtoupper($data->cliente) && $nome_sede === strtoupper($data->sede);
+                        })->sum();
+                    }
                     
                     // === CALCOLI RESA ===
                     $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
