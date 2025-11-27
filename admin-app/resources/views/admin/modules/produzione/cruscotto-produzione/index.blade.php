@@ -150,7 +150,8 @@
                 </div>
             </div>
             
-            {{-- RIGA 3: Opzioni Bonus e Incentivi --}}
+            @hasanyrole('CEO|CFO|CTO|super-admin|IT')
+            {{-- RIGA 3: Opzioni Bonus e Incentivi (solo per CEO, CFO, CTO, super-admin, IT) --}}
             <div class="divider my-2"></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {{-- Checkbox Includi Bonus --}}
@@ -167,16 +168,8 @@
                     </p>
                 </div>
                 
-                {{-- Info Bonus --}}
-                <div class="col-span-2">
-                    <div class="alert alert-info py-2 px-4">
-                        <x-ui.icon name="info-circle" class="h-4 w-4" />
-                        <div class="text-xs">
-                            <strong>Nota:</strong> I bonus saranno calcolati in base al periodo selezionato (data inizio/fine) e verranno aggiunti al fatturato. I bonus globali vengono contati una sola volta per macro campagna.
-                        </div>
-                    </div>
-                </div>
             </div>
+            @endhasanyrole
         </form>
     </x-admin.card>
     
@@ -191,29 +184,6 @@
         <div>
             <div class="font-bold">Attenzione</div>
             <div class="text-sm">I dati PAF (Proiezione A Fine mese) sono visibili solo quando si filtra esclusivamente il mese corrente. Le colonne PAF verranno mostrate come zero poiché il periodo filtrato non corrisponde al mese corrente.</div>
-        </div>
-    </div>
-    @endif
-    
-    {{-- DEBUG BONUS (solo se attivato) --}}
-    @if(request('includi_bonus') && isset($kpiTotali['bonus_totale']) && $kpiTotali['bonus_totale'] > 0)
-    <div class="alert alert-info mb-4">
-        <x-ui.icon name="gift" class="h-5 w-5" />
-        <div class="flex-1">
-            <div class="font-bold">DEBUG BONUS ATTIVI</div>
-            <div class="text-sm mt-2 space-y-1">
-                <div><strong>Bonus Globali (FISSI):</strong> € {{ number_format($kpiTotali['bonus_globali'] ?? 0, 2, ',', '.') }}</div>
-                <div><strong>Bonus per Sede:</strong> € {{ number_format($kpiTotali['bonus_per_sede'] ?? 0, 2, ',', '.') }}</div>
-                <div class="pt-2 border-t border-info/20"><strong>TOTALE BONUS:</strong> € {{ number_format($kpiTotali['bonus_totale'] ?? 0, 2, ',', '.') }}</div>
-                @if(isset($kpiTotali['bonus_dettaglio']) && $kpiTotali['bonus_dettaglio']->isNotEmpty())
-                <div class="pt-2 text-xs opacity-75">
-                    <strong>Dettaglio Bonus Globali:</strong>
-                    @foreach($kpiTotali['bonus_dettaglio'] as $bonus)
-                    <div class="ml-4">• {{ $bonus['macro_campagna'] }}: € {{ number_format($bonus['importo'], 2, ',', '.') }} ({{ $bonus['tipo'] }}, {{ $bonus['valido_dal'] }} → {{ $bonus['valido_al'] ?? 'aperto' }})</div>
-                    @endforeach
-                </div>
-                @endif
-            </div>
         </div>
     </div>
     @endif

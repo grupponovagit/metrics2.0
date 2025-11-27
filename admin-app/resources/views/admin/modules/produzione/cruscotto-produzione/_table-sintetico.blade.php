@@ -122,15 +122,32 @@
         <tbody>
             @forelse($datiSintetici as $cliente => $sediData)
                 @php
-                    $clienteRowspan = $sediData->count();
+                    // Calcola il rowspan totale includendo tutte le righe (totali + bonus)
+                    $clienteRowspan = 0;
+                    foreach ($sediData as $datiSede) {
+                        $datiSedeArray = $datiSede instanceof \Illuminate\Support\Collection ? $datiSede->toArray() : $datiSede;
+                        $righe = is_array($datiSedeArray) ? $datiSedeArray : ['totale' => $datiSedeArray];
+                        $clienteRowspan += count($righe);
+                    }
                     $firstCliente = true;
                 @endphp
 
                 @foreach ($sediData as $sede => $datiSede)
                     @php
-                        $dati = $datiSede['totale'];
+                        // Converti Collection in array se necessario
+                        $datiSedeArray = $datiSede instanceof \Illuminate\Support\Collection ? $datiSede->toArray() : $datiSede;
+                        
+                        // Itera su tutte le righe della sede (totale + eventuali bonus)
+                        $righe = is_array($datiSedeArray) ? $datiSedeArray : ['totale' => $datiSedeArray];
                     @endphp
-                    <tr>
+                    
+                    @foreach ($righe as $tipoRiga => $dati)
+                    @php
+                        $isBonusSede = isset($dati['is_bonus_sede']) && $dati['is_bonus_sede'];
+                        $isBonusGlobale = isset($dati['is_bonus_globale']) && $dati['is_bonus_globale'];
+                        $isAnyBonus = $isBonusSede || $isBonusGlobale;
+                    @endphp
+                    <tr class="{{ $isAnyBonus ? 'bg-warning/10' : '' }}">
                         {{-- Cliente --}}
                         @if ($firstCliente)
                             <td class="sticky-table-sintetico-cliente font-bold border-r-2 border-base-300 bg-base-200/30"
@@ -141,11 +158,48 @@
                             @php $firstCliente = false; @endphp
                         @endif
 
-                        {{-- Sede --}}
-                        <td class="sticky-table-sintetico-sede font-semibold border-r-2 border-base-300 bg-base-100">
-                            {{ $sede }}
+                        {{-- Sede (o "Bonus Sede"/"Bonus Globali" per righe bonus) --}}
+                        <td class="sticky-table-sintetico-sede font-semibold border-r-2 border-base-300 {{ $isAnyBonus ? 'bg-warning/20' : 'bg-base-100' }}">
+                            @if ($isBonusSede)
+                                <span class="text-warning font-bold">Bonus Sede</span>
+                            @elseif ($isBonusGlobale)
+                                <span class="text-warning font-bold">Bonus Globali</span>
+                            @else
+                                {{ $sede }}
+                            @endif
+                        </td>
+                        
+                        {{-- Prodotto (o BONUS per righe bonus) --}}
+                        @if ($isAnyBonus)
+                        <td class="col-prodotto text-center text-sm font-semibold bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
                         </td>
 
+                        {{-- Inserito --}}
+                        <td class="col-inserito text-center text-sm bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
+                        </td>
+
+                        {{-- KO --}}
+                        <td class="col-ko text-center text-sm bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
+                        </td>
+
+                        {{-- BackLog --}}
+                        <td class="col-backlog text-center text-sm bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
+                        </td>
+
+                        {{-- BackLog Partner --}}
+                        <td class="col-backlog_partner text-center text-sm bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
+                        </td>
+
+                        {{-- Ore --}}
+                        <td class="col-ore text-center text-sm bg-warning/20 border-r-2 border-base-300">
+                            <span class="text-warning">BONUS</span>
+                        </td>
+                        @else
                         {{-- Prodotto --}}
                         <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">
                             {{ number_format($dati['prodotto_pda']) }}</td>
@@ -170,53 +224,94 @@
                         <td class="col-ore text-center text-sm bg-cyan-50 border-r-2 border-base-300">
                             {{ ($dati['ore'] ?? 0) > 0 ? number_format($dati['ore'], 2) : '-' }}
                         </td>
+                        @endif
 
-                        {{-- ECONOMICS --}}
-                        <td class="col-economics col-fatturato text-center text-sm bg-amber-50 border-r border-base-200">
+                        {{-- ECONOMICS (mostrato sempre) --}}
+                        <td class="col-economics col-fatturato text-center text-sm {{ $isAnyBonus ? 'bg-warning/30 font-bold' : 'bg-amber-50' }} border-r border-base-200">
                             {{ ($dati['fatturato'] ?? 0) > 0 ? '€ ' . number_format($dati['fatturato'], 2, ',', '.') : '-' }}
                         </td>
-                        <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r border-base-200">
-                            {{ ($dati['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($dati['ricavo_orario'], 2, ',', '.') : '-' }}
+                        <td class="col-economics col-ricavo_orario text-center text-sm {{ $isAnyBonus ? 'bg-warning/20' : 'bg-amber-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ ($dati['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($dati['ricavo_orario'], 2, ',', '.') : '-' }}
+                            @endif
                         </td>
-                        <td class="col-economics col-fatturato_paf text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                        <td class="col-economics col-fatturato_paf text-center text-sm {{ $isAnyBonus ? 'bg-warning/30 font-bold' : 'bg-amber-50' }} border-r-2 border-base-300">
                             {{ ($dati['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($dati['fatturato_paf'], 2, ',', '.') : '-' }}
                         </td>
 
                         {{-- RESA --}}
-                        <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-50 border-r border-base-200">
-                            {{ $dati['resa_prodotto'] ?? '-' }}
+                        <td class="col-resa col-resa_prodotto text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['resa_prodotto'] ?? '-' }}
+                            @endif
                         </td>
-                        <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-50 border-r border-base-200">
-                            {{ $dati['resa_inserito'] ?? '-' }}
+                        <td class="col-resa col-resa_inserito text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['resa_inserito'] ?? '-' }}
+                            @endif
                         </td>
-                        <td class="col-resa col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
-                            {{ $dati['resa_oraria'] ?? '-' }}
+                        <td class="col-resa col-resa_oraria text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r-2 border-base-300">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['resa_oraria'] ?? '-' }}
+                            @endif
                         </td>
 
                         {{-- OBIETTIVI --}}
-                        <td
-                            class="col-obiettivi col-obiettivi-mensile text-center text-xs bg-teal-50 border-r border-base-200">
-                            {{ $dati['obiettivo_mensile'] ?? 0 }}</td>
-                        <td
-                            class="col-obiettivi col-obiettivi-passo text-center text-xs bg-teal-50 border-r border-base-200">
-                            {{ $dati['passo_giorno'] ?? 0 }}</td>
-                        <td
-                            class="col-obiettivi col-obiettivi-diff text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($dati['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
-                            {{ $dati['differenza_obj'] ?? 0 }}
+                        <td class="col-obiettivi col-obiettivi-mensile text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['obiettivo_mensile'] ?? 0 }}
+                            @endif
+                        </td>
+                        <td class="col-obiettivi col-obiettivi-passo text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['passo_giorno'] ?? 0 }}
+                            @endif
+                        </td>
+                        <td class="col-obiettivi col-obiettivi-diff text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r-2 border-base-300 {{ (!$isAnyBonus && ($dati['differenza_obj'] ?? 0) < 0) ? 'text-green-600 font-bold' : 'text-red-600' }}">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['differenza_obj'] ?? 0 }}
+                            @endif
                         </td>
 
                         {{-- PAF MENSILE --}}
-                        <td
-                            class="col-paf-mensile col-paf-ore text-center text-xs bg-purple-50 border-r border-base-200">
-                            {{ number_format($dati['ore_paf'] ?? 0, 2) }}</td>
-                        <td
-                            class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-50 border-r border-base-200">
-                            {{ number_format($dati['pezzi_paf'] ?? 0, 0) }}</td>
-                        <td
-                            class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r-2 border-base-300">
-                            {{ $dati['resa_paf'] ?? 0 }}</td>
+                        <td class="col-paf-mensile col-paf-ore text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ number_format($dati['ore_paf'] ?? 0, 2) }}
+                            @endif
+                        </td>
+                        <td class="col-paf-mensile col-paf-pezzi text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r border-base-200">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ number_format($dati['pezzi_paf'] ?? 0, 0) }}
+                            @endif
+                        </td>
+                        <td class="col-paf-mensile col-paf-resa text-center text-xs {{ $isAnyBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r-2 border-base-300">
+                            @if($isAnyBonus)
+                                <span class="text-warning">BONUS</span>
+                            @else
+                                {{ $dati['resa_paf'] ?? 0 }}
+                            @endif
+                        </td>
                     </tr>
-                @endforeach
+                    @endforeach {{-- Fine ciclo righe (totale + bonus) --}}
+                @endforeach {{-- Fine ciclo sedi --}}
 
                 {{-- RIGA TOTALE PER CLIENTE --}}
                 @php
@@ -236,19 +331,26 @@
                     ];
 
                     foreach ($sediData as $datiSede) {
-                        $dati = $datiSede['totale'];
-                        $totaleCliente['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
-                        $totaleCliente['inserito_pda'] += $dati['inserito_pda'] ?? 0;
-                        $totaleCliente['ko_pda'] += $dati['ko_pda'] ?? 0;
-                        $totaleCliente['backlog_pda'] += $dati['backlog_pda'] ?? 0;
-                        $totaleCliente['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
-                        $totaleCliente['ore'] += $dati['ore'] ?? 0;
-                        $totaleCliente['fatturato'] += $dati['fatturato'] ?? 0;
-                        $totaleCliente['ore_paf'] += $dati['ore_paf'] ?? 0;
-                        $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
-                        $totaleCliente['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
-                        $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
-                        $totaleCliente['passo_giorno'] += $dati['passo_giorno'] ?? 0;
+                        // Converti Collection in array se necessario
+                        $datiSedeArray = $datiSede instanceof \Illuminate\Support\Collection ? $datiSede->toArray() : $datiSede;
+                        
+                        // Gestisci sia la vecchia struttura che la nuova
+                        $righe = is_array($datiSedeArray) && isset($datiSedeArray['totale']) ? $datiSedeArray : ['totale' => $datiSedeArray];
+                        
+                        foreach ($righe as $tipoRiga => $dati) {
+                            $totaleCliente['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
+                            $totaleCliente['inserito_pda'] += $dati['inserito_pda'] ?? 0;
+                            $totaleCliente['ko_pda'] += $dati['ko_pda'] ?? 0;
+                            $totaleCliente['backlog_pda'] += $dati['backlog_pda'] ?? 0;
+                            $totaleCliente['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
+                            $totaleCliente['ore'] += $dati['ore'] ?? 0;
+                            $totaleCliente['fatturato'] += $dati['fatturato'] ?? 0;
+                            $totaleCliente['ore_paf'] += $dati['ore_paf'] ?? 0;
+                            $totaleCliente['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                            $totaleCliente['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
+                            $totaleCliente['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
+                            $totaleCliente['passo_giorno'] += $dati['passo_giorno'] ?? 0;
+                        }
                     }
 
                     // Calcoli resa
@@ -365,19 +467,26 @@
 
                     foreach ($datiSintetici as $sediData) {
                         foreach ($sediData as $datiSede) {
-                            $dati = $datiSede['totale'];
-                            $totali['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
-                            $totali['inserito_pda'] += $dati['inserito_pda'] ?? 0;
-                            $totali['ko_pda'] += $dati['ko_pda'] ?? 0;
-                            $totali['backlog_pda'] += $dati['backlog_pda'] ?? 0;
-                            $totali['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
-                            $totali['ore'] += $dati['ore'] ?? 0;
-                            $totali['fatturato'] += $dati['fatturato'] ?? 0;
-                            $totali['ore_paf'] += $dati['ore_paf'] ?? 0;
-                            $totali['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
-                            $totali['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
-                            $totali['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
-                            $totali['passo_giorno'] += $dati['passo_giorno'] ?? 0;
+                            // Converti Collection in array se necessario
+                            $datiSedeArray = $datiSede instanceof \Illuminate\Support\Collection ? $datiSede->toArray() : $datiSede;
+                            
+                            // Gestisci sia la vecchia struttura che la nuova
+                            $righe = is_array($datiSedeArray) && isset($datiSedeArray['totale']) ? $datiSedeArray : ['totale' => $datiSedeArray];
+                            
+                            foreach ($righe as $tipoRiga => $dati) {
+                                $totali['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
+                                $totali['inserito_pda'] += $dati['inserito_pda'] ?? 0;
+                                $totali['ko_pda'] += $dati['ko_pda'] ?? 0;
+                                $totali['backlog_pda'] += $dati['backlog_pda'] ?? 0;
+                                $totali['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
+                                $totali['ore'] += $dati['ore'] ?? 0;
+                                $totali['fatturato'] += $dati['fatturato'] ?? 0;
+                                $totali['ore_paf'] += $dati['ore_paf'] ?? 0;
+                                $totali['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                                $totali['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
+                                $totali['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
+                                $totali['passo_giorno'] += $dati['passo_giorno'] ?? 0;
+                            }
                         }
                     }
 

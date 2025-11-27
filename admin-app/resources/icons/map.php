@@ -154,6 +154,7 @@ return [
     'heart' => ['set' => 'heroicon-o', 'icon' => 'heart'],
     'heartbeat' => ['set' => 'heroicon-o', 'icon' => 'heart'],
     'trophy' => ['set' => 'heroicon-o', 'icon' => 'trophy'],
+    'gift' => ['set' => 'heroicon-o', 'icon' => 'gift'],
     'percentage' => ['set' => 'heroicon-o', 'icon' => 'hashtag'],
     'flag-checkered' => ['set' => 'heroicon-o', 'icon' => 'flag'],
     'flag' => ['set' => 'heroicon-o', 'icon' => 'flag'],

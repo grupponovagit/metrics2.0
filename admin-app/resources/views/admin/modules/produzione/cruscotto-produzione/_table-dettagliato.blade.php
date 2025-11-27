@@ -137,7 +137,10 @@
                     @endphp
 
                     @foreach ($campagneData as $datiCampagna)
-                        <tr>
+                        @php
+                            $isBonus = (isset($datiCampagna['is_bonus_sede']) && $datiCampagna['is_bonus_sede']) || (isset($datiCampagna['is_bonus_globale']) && $datiCampagna['is_bonus_globale']);
+                        @endphp
+                        <tr class="{{ $isBonus ? 'bg-warning/10' : '' }}">
                             {{-- Cliente --}}
                             @if ($firstMandato)
                                 <td class="sticky-table-dettagliato-cliente font-bold border-r-2 border-base-300 bg-base-200/30"
@@ -158,8 +161,8 @@
                             @endif
 
                             {{-- Campagna/Prodotto --}}
-                            <td class="sticky-table-dettagliato-campagna border-r-2 border-base-300">
-                                <div class="text-sm font-medium">{{ $datiCampagna['campagna'] }}</div>
+                            <td class="sticky-table-dettagliato-campagna border-r-2 border-base-300 {{ $isBonus ? 'bg-warning/20' : '' }}">
+                                <div class="text-sm {{ $isBonus ? 'font-bold text-warning' : 'font-medium' }}">{{ $datiCampagna['campagna'] }}</div>
 
                                 {{-- Prodotti Aggiuntivi --}}
                                 @if (!empty($datiCampagna['prodotti_aggiuntivi']))
@@ -172,74 +175,142 @@
                             </td>
 
                             {{-- Prodotto --}}
-                            <td class="col-prodotto text-center text-sm bg-orange-50 border-r-2 border-base-300">
-                                {{ number_format($datiCampagna['prodotto_pda']) }}</td>
+                            <td class="col-prodotto text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-orange-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['prodotto_pda']) }}
+                                @endif
+                            </td>
 
                             {{-- Inserito --}}
-                            <td class="col-inserito text-center text-sm bg-green-50 border-r-2 border-base-300">
-                                {{ number_format($datiCampagna['inserito_pda']) }}</td>
+                            <td class="col-inserito text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-green-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['inserito_pda']) }}
+                                @endif
+                            </td>
 
                             {{-- KO --}}
-                            <td class="col-ko text-center text-sm bg-red-50 border-r-2 border-base-300">
-                                {{ number_format($datiCampagna['ko_pda']) }}</td>
+                            <td class="col-ko text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-red-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['ko_pda']) }}
+                                @endif
+                            </td>
 
                             {{-- BackLog --}}
-                            <td class="col-backlog text-center text-sm bg-yellow-50 border-r-2 border-base-300">
-                                {{ number_format($datiCampagna['backlog_pda']) }}</td>
+                            <td class="col-backlog text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-yellow-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['backlog_pda']) }}
+                                @endif
+                            </td>
 
                             {{-- BackLog Partner --}}
-                            <td class="col-backlog_partner text-center text-sm bg-blue-50 border-r-2 border-base-300">
-                                {{ number_format($datiCampagna['backlog_partner_pda']) }}</td>
+                            <td class="col-backlog_partner text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-blue-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['backlog_partner_pda']) }}
+                                @endif
+                            </td>
 
                             {{-- Ore --}}
-                            <td class="col-ore text-center text-sm bg-cyan-50 border-r-2 border-base-300">
-                                {{ ($datiCampagna['ore'] ?? 0) > 0 ? number_format($datiCampagna['ore'], 2) : '-' }}
+                            <td class="col-ore text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-cyan-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ ($datiCampagna['ore'] ?? 0) > 0 ? number_format($datiCampagna['ore'], 2) : '-' }}
+                                @endif
                             </td>
 
                             {{-- ECONOMICS --}}
-                            <td class="col-economics col-fatturato text-center text-sm bg-amber-50 border-r border-base-200">
+                            <td class="col-economics col-fatturato text-center text-sm {{ $isBonus ? 'bg-warning/30 font-bold' : 'bg-amber-50' }} border-r border-base-200">
                                 {{ ($datiCampagna['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato'], 2, ',', '.') : '-' }}
                             </td>
-                            <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r border-base-200">
-                                {{ ($datiCampagna['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['ricavo_orario'], 2, ',', '.') : '-' }}
+                            <td class="col-economics col-ricavo_orario text-center text-sm {{ $isBonus ? 'bg-warning/20' : 'bg-amber-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ ($datiCampagna['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['ricavo_orario'], 2, ',', '.') : '-' }}
+                                @endif
                             </td>
-                            <td class="col-economics col-fatturato_paf text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                            <td class="col-economics col-fatturato_paf text-center text-sm {{ $isBonus ? 'bg-warning/30 font-bold' : 'bg-amber-50' }} border-r-2 border-base-300">
                                 {{ ($datiCampagna['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato_paf'], 2, ',', '.') : '-' }}
                             </td>
 
                             {{-- RESA --}}
-                            <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-50 border-r border-base-200">
-                                {{ $datiCampagna['resa_prodotto'] ?? '-' }}
+                            <td class="col-resa col-resa_prodotto text-center text-sm {{ $isBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['resa_prodotto'] ?? '-' }}
+                                @endif
                             </td>
-                            <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-50 border-r border-base-200">
-                                {{ $datiCampagna['resa_inserito'] ?? '-' }}
+                            <td class="col-resa col-resa_inserito text-center text-sm {{ $isBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['resa_inserito'] ?? '-' }}
+                                @endif
                             </td>
-                            <td class="col-resa col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
-                                {{ $datiCampagna['resa_oraria'] ?? '-' }}
+                            <td class="col-resa col-resa_oraria text-center text-sm {{ $isBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['resa_oraria'] ?? '-' }}
+                                @endif
                             </td>
 
                             {{-- OBIETTIVI --}}
-                            <td
-                                class="col-obiettivi col-obiettivi-mensile text-center text-xs bg-teal-50 border-r border-base-200">
-                                {{ $datiCampagna['obiettivo_mensile'] ?? 0 }}</td>
-                            <td
-                                class="col-obiettivi col-obiettivi-passo text-center text-xs bg-teal-50 border-r border-base-200">
-                                {{ $datiCampagna['passo_giorno'] ?? 0 }}</td>
-                            <td
-                                class="col-obiettivi col-obiettivi-diff text-center text-xs bg-teal-50 border-r-2 border-base-300 {{ ($datiCampagna['differenza_obj'] ?? 0) < 0 ? 'text-green-600 font-bold' : 'text-red-600' }}">
-                                {{ $datiCampagna['differenza_obj'] ?? 0 }}
+                            <td class="col-obiettivi col-obiettivi-mensile text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['obiettivo_mensile'] ?? 0 }}
+                                @endif
+                            </td>
+                            <td class="col-obiettivi col-obiettivi-passo text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['passo_giorno'] ?? 0 }}
+                                @endif
+                            </td>
+                            <td class="col-obiettivi col-obiettivi-diff text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-teal-50' }} border-r-2 border-base-300 {{ (!$isBonus && ($datiCampagna['differenza_obj'] ?? 0) < 0) ? 'text-green-600 font-bold' : '' }}">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['differenza_obj'] ?? 0 }}
+                                @endif
                             </td>
 
                             {{-- PAF MENSILE --}}
-                            <td
-                                class="col-paf-mensile col-paf-ore text-center text-xs bg-purple-50 border-r border-base-200">
-                                {{ number_format($datiCampagna['ore_paf'] ?? 0, 2) }}</td>
-                            <td
-                                class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-50 border-r border-base-200">
-                                {{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}</td>
-                            <td
-                                class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r-2 border-base-300">
-                                {{ $datiCampagna['resa_paf'] ?? 0 }}</td>
+                            <td class="col-paf-mensile col-paf-ore text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['ore_paf'] ?? 0, 2) }}
+                                @endif
+                            </td>
+                            <td class="col-paf-mensile col-paf-pezzi text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r border-base-200">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}
+                                @endif
+                            </td>
+                            <td class="col-paf-mensile col-paf-resa text-center text-xs {{ $isBonus ? 'bg-warning/10' : 'bg-purple-50' }} border-r-2 border-base-300">
+                                @if($isBonus)
+                                    <span class="text-warning">BONUS</span>
+                                @else
+                                    {{ $datiCampagna['resa_paf'] ?? 0 }}
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 @endforeach
