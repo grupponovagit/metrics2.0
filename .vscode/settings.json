@@ -1,15 +1,26 @@
 {
+  // Disabilita PHP Intellisense (zobo) - causa crash di memoria
   "php.suggest.basic": false,
   "php.validate.enable": false,
+  "phpLanguageServer.enable": false,
+  
+  // Configurazione Intelephense (più performante)
+  "intelephense.files.maxSize": 5000000,
   "intelephense.files.exclude": [
-    "**/vendor/**",
+    "**/vendor/**/{tests,test,Tests,Test}/**",
+    "**/vendor/**/vendor/**",
     "**/node_modules/**",
     "**/storage/**",
     "**/public/build/**",
-    "**/admin-app/vendor/**",
+    "**/admin-app/vendor/**/{tests,test,Tests,Test}/**",
     "**/admin-app/storage/**",
     "**/admin-app/bootstrap/cache/**"
   ],
+  "intelephense.environment.includePaths": [
+    "admin-app/vendor"
+  ],
+  
+  // Ottimizzazione file watcher
   "files.watcherExclude": {
     "**/vendor/**": true,
     "**/node_modules/**": true,
@@ -19,6 +30,8 @@
     "**/admin-app/storage/**": true,
     "**/admin-app/bootstrap/cache/**": true
   },
+  
+  // Ottimizzazione ricerca
   "search.exclude": {
     "**/vendor/**": true,
     "**/node_modules/**": true,
