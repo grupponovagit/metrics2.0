@@ -116,17 +116,24 @@
                     $totaleGiornaliero['fatturato'] += $datiGiorno['fatturato'] ?? 0;
                 @endphp
 
-                <tr>
+                <tr class="{{ isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'] ? 'bg-warning/10 border-l-4 border-warning' : '' }}">
                     {{-- Data --}}
                     <td
-                        class="sticky-table-giornaliero-data text-sm font-semibold border-r-2 border-base-300 bg-base-100">
+                        class="sticky-table-giornaliero-data text-sm font-semibold border-r-2 border-base-300 {{ isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'] ? 'bg-warning/20' : 'bg-base-100' }}">
                         {{ \Carbon\Carbon::parse($datiGiorno['data'])->format('d/m/Y') }}
                     </td>
 
                     {{-- Commessa --}}
                     <td
-                        class="sticky-table-giornaliero-cliente text-sm font-bold border-r-2 border-base-300 bg-base-50">
-                        {{ $datiGiorno['commessa'] }}
+                        class="sticky-table-giornaliero-cliente text-sm border-r-2 border-base-300 {{ isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'] ? 'bg-warning/20' : 'bg-base-50 font-bold' }}">
+                        @if(isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'])
+                            <div>
+                                <div class="font-bold">{{ $datiGiorno['commessa'] }}</div>
+                                <div class="text-xs text-warning/80 font-normal">{{ $datiGiorno['bonus_info'] ?? 'Bonus Globale' }}</div>
+                            </div>
+                        @else
+                            {{ $datiGiorno['commessa'] }}
+                        @endif
                     </td>
 
                     {{-- Prodotto --}}
@@ -160,10 +167,10 @@
                     </td>
 
                     {{-- ECONOMICS --}}
-                    <td class="col-economics col-fatturato text-center text-sm bg-amber-50 border-r border-base-200">
+                    <td class="col-economics col-fatturato text-center text-sm border-r border-base-200 {{ isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'] ? 'bg-warning/30 font-bold' : 'bg-amber-50' }}">
                         {{ ($datiGiorno['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['fatturato'], 2, ',', '.') : '-' }}
                     </td>
-                    <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                    <td class="col-economics col-ricavo_orario text-center text-sm border-r-2 border-base-300 {{ isset($datiGiorno['is_bonus']) && $datiGiorno['is_bonus'] ? 'bg-warning/20' : 'bg-amber-50' }}">
                         {{ ($datiGiorno['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiGiorno['ricavo_orario'], 2, ',', '.') : '-' }}
                     </td>
 

@@ -146,6 +146,7 @@ class ProduzioneController extends Controller
         $commessaFilter = $request->input('commessa'); // Singola commessa
         $sedeFilters = $request->input('sede', []); // Array di sedi
         $macroCampagnaFilters = $request->input('macro_campagna', []); // Array di campagne
+        $includiBonus = $request->input('includi_bonus', false); // Checkbox bonus
         
         // === CALCOLI CALENDARIO (per metriche PAF e Obiettivi) ===
         $annoCorrente = date('Y');
@@ -237,7 +238,9 @@ class ProduzioneController extends Controller
         
         // === QUERY UNIFICATA OTTIMIZZATA ===
         // Recupera TUTTI i dati necessari in una sola query, poi li elabora in memoria
+        // ESCLUDI sempre i bonus dalla query principale (saranno gestiti separatamente se richiesto)
         $queryBase = DB::table('report_produzione_pivot_cache')
+            ->where('campagna_id', '!=', 'bonus') // Esclude i bonus dalla query principale
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->when($commessaFilter, fn($q) => $q->where('commessa', $commessaFilter))
             ->when(!empty($sedeFilters), fn($q) => $q->whereIn('report_produzione_pivot_cache.nome_sede', $sedeFilters))
@@ -257,6 +260,69 @@ class ProduzioneController extends Controller
             ')
             ->first();
         
+        // === CALCOLO BONUS (se richiesto) ===
+        $bonusTotale = 0;
+        $bonusPerSedeECampagna = collect(); // Chiave: sede|campagna => importo
+        $bonusGlobali = 0; // Totale bonus globali (senza sede)
+        $bonusGlobaliDettaglio = collect(); // Array di bonus globali per debug
+        
+        if ($includiBonus && $dataInizio && $dataFine && $commessaFilter) {
+            // Recupera i bonus dalla tabella mantenimenti_bonus_incentivi
+            // IMPORTANTE: I bonus globali non guardano i filtri di macro_campagna/sede - sono sulla commessa
+            $bonusQuery = DB::table('mantenimenti_bonus_incentivi')
+                ->where('commessa', $commessaFilter)
+                // Filtro date: bonus valido se (valido_dal <= data_fine) E (valido_al >= data_inizio O valido_al IS NULL)
+                ->where('valido_dal', '<=', $dataFine)
+                ->where(function($q) use ($dataInizio) {
+                    $q->where('valido_al', '>=', $dataInizio)
+                      ->orWhereNull('valido_al');
+                })
+                ->get();
+            
+            foreach ($bonusQuery as $bonus) {
+                // Determina se è un bonus GLOBALE o per sede specifica
+                if (empty($bonus->sede_id)) {
+                    // BONUS GLOBALE: conta UNA VOLTA SOLA in totale (ignora filtri macro_campagna e sede)
+                    $bonusGlobali += floatval($bonus->extra_bonus);
+                    $bonusGlobaliDettaglio->push([
+                        'macro_campagna' => $bonus->macro_campagna,
+                        'importo' => floatval($bonus->extra_bonus),
+                        'tipo' => $bonus->tipologia_ripartizione,
+                        'valido_dal' => $bonus->valido_dal,
+                        'valido_al' => $bonus->valido_al,
+                    ]);
+                } else {
+                    // BONUS PER SEDE SPECIFICA: applica filtri
+                    $includiQuesto = true;
+                    
+                    // Filtro macro_campagna (se specificato)
+                    if (!empty($macroCampagnaFilters) && !in_array($bonus->macro_campagna, $macroCampagnaFilters)) {
+                        $includiQuesto = false;
+                    }
+                    
+                    // Filtro sede (se specificato) - NOTA: confronta con nome_sede dalla tabella sedi
+                    if (!empty($sedeFilters)) {
+                        // Recupera nome sede dall'id_sede
+                        $nomeSede = DB::table('sedi')->where('id_sede', $bonus->sede_id)->value('nome_sede');
+                        if (!in_array($nomeSede, $sedeFilters)) {
+                            $includiQuesto = false;
+                        }
+                    }
+                    
+                    if ($includiQuesto) {
+                        $chiave = strtoupper($bonus->sede_id) . '|' . strtoupper($bonus->macro_campagna ?? '');
+                        if (!$bonusPerSedeECampagna->has($chiave)) {
+                            $bonusPerSedeECampagna->put($chiave, 0);
+                        }
+                        $bonusPerSedeECampagna->put($chiave, $bonusPerSedeECampagna->get($chiave) + floatval($bonus->extra_bonus));
+                    }
+                }
+            }
+            
+            // Totale bonus = globali + per sede
+            $bonusTotale = $bonusGlobali + $bonusPerSedeECampagna->sum();
+        }
+        
         // === CALCOLI PAF GLOBALI (NUOVO METODO CON VISTA) ===
         $ore_paf_globale = 0;
         $pezzi_paf_globale = 0;
@@ -274,7 +340,12 @@ class ProduzioneController extends Controller
                 $ore_paf_globale = round(($kpiTotali->ore ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
                 $pezzi_paf_globale = round(($kpiTotali->inserito_pda ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
                 $resa_paf_globale = $ore_paf_globale > 0 ? round($pezzi_paf_globale / $ore_paf_globale, 2) : 0;
-                $fatturato_paf_globale = round(($kpiTotali->fatturato ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+                
+                // PAF Fatturato: proietta SOLO il fatturato operativo, poi aggiunge i bonus FISSI
+                $fatturato_operativo_paf = round(($kpiTotali->fatturato ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+                
+                // BONUS: sommati FISSI (NON proiettati), sia bonus per sede che globali
+                $fatturato_paf_globale = $fatturato_operativo_paf + $bonusTotale;
             }
         }
         
@@ -286,13 +357,13 @@ class ProduzioneController extends Controller
             'backlog_partner_pda' => $kpiTotali->backlog_partner_pda ?? 0,
             'ore' => $kpiTotali->ore ?? 0,
             'obiettivo' => $kpiTotali->obiettivo_totale ?? 0,
-            'fatturato' => $kpiTotali->fatturato ?? 0,
+            'fatturato' => ($kpiTotali->fatturato ?? 0) + $bonusTotale, // Aggiungi bonus al fatturato
             
             // Resa
             'resa_prodotto' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->prodotto_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_inserito' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_oraria' => 0, // R/H - Da implementare con dati futuri
-            'ricavo_orario' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->fatturato ?? 0) / $kpiTotali->ore, 2) : 0,
+            'ricavo_orario' => ($kpiTotali->ore ?? 0) > 0 ? round((($kpiTotali->fatturato ?? 0) + $bonusTotale) / $kpiTotali->ore, 2) : 0, // Include bonus
             
             // Obiettivi (al momento a 0 come richiesto)
             'obiettivo_mensile' => 0,
@@ -308,6 +379,12 @@ class ProduzioneController extends Controller
             // Dati calendario
             'giorni_lavorativi_rimanenti' => $giorniLavorativiRimanenti,
             'mostra_paf' => $mostraPaf, // Flag per sapere se mostrare la PAF nella vista
+            
+            // DEBUG BONUS
+            'bonus_globali' => $bonusGlobali,
+            'bonus_per_sede' => $bonusPerSedeECampagna->sum(),
+            'bonus_totale' => $bonusTotale,
+            'bonus_dettaglio' => $bonusGlobaliDettaglio,
         ];
         
         // === VISTA DETTAGLIATA: Campagna per Sede ===
@@ -336,14 +413,26 @@ class ProduzioneController extends Controller
             ->orderBy('report_produzione_pivot_cache.macro_campagna')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
-                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $bonusGlobali, $bonusGlobaliDettaglio, $includiBonus, $commessaFilter) {
+                $sediData = $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $bonusGlobali, $bonusGlobaliDettaglio, $includiBonus) {
+                    return $sedeGroup->groupBy('campagna')->map(function($campagneGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $bonusGlobali, $bonusGlobaliDettaglio, $includiBonus) {
                         $data = $campagneGroup->first();
                         $inseriti = (int)$data->inserito_pda;
                         $prodotto = (int)$data->prodotto_pda;
                         $ore = (float)$data->ore;
                         $fatturato = (float)($data->fatturato ?? 0);
+                        
+                        // === CALCOLA BONUS PER QUESTA SEDE E CAMPAGNA ===
+                        $bonusCampagna = 0;
+                        
+                        // Verifica bonus specifico per questa sede + campagna
+                        if ($data->sede_id) {
+                            $chiaveBonus = strtoupper($data->sede_id) . '|' . strtoupper($data->campagna ?? '');
+                            $bonusCampagna = $bonusPerSedeECampagna->get($chiaveBonus, 0);
+                        }
+                        
+                        // Aggiungi il bonus al fatturato (SOLO bonus specifici per sede, NON globali)
+                        $fatturato += $bonusCampagna;
                         
                         // === RECUPERA OBIETTIVO PER QUESTA COMMESSA/SEDE_ID/MACRO_CAMPAGNA ===
                         // Prima prova con sede_id, poi con nome sede come fallback
@@ -395,11 +484,15 @@ class ProduzioneController extends Controller
                                 $ore_paf = max(0, round($ore / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                                 $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
-                                $fatturato_paf = max(0, round($fatturato / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
-                            } else if ($fatturato > 0 && $ore == 0) {
-                                // CASO SPECIALE: Campagne senza vendite ma con fatturato (es: GLOBAL)
-                                // Usa il fatturato effettivo come fatturato PAF senza calcoli
-                                $fatturato_paf = $fatturato;
+                                
+                                // FATTURATO PAF: proietta SOLO il fatturato operativo, il bonus è già sommato FISSO
+                                $fatturato_operativo = $fatturato - $bonusCampagna; // Togli il bonus per proiettare solo l'operativo
+                                $fatturato_operativo_paf = max(0, round($fatturato_operativo / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                                $fatturato_paf = $fatturato_operativo_paf + $bonusCampagna; // Riaggiunge il bonus FISSO
+                            } else if ($bonusCampagna > 0 && $ore == 0) {
+                                // CASO SPECIALE: Campagne con solo bonus (senza vendite operative)
+                                // Il bonus rimane fisso senza proiezione
+                                $fatturato_paf = $bonusCampagna;
                             }
                         }
                         
@@ -437,6 +530,45 @@ class ProduzioneController extends Controller
                         ];
                     });
                 });
+                
+                // === AGGIUNGI RIGA ECONOMICS PER BONUS GLOBALI (DEBUG) ===
+                if ($includiBonus && $bonusGlobali > 0) {
+                    // Crea una riga speciale per mostrare i bonus globali
+                    $economicsData = collect();
+                    
+                    foreach ($bonusGlobaliDettaglio as $bonusDetail) {
+                        $economicsData->put($bonusDetail['macro_campagna'] ?? 'BONUS', [
+                            'campagna' => $bonusDetail['macro_campagna'] ?? 'BONUS',
+                            'prodotti_aggiuntivi' => [],
+                            'prodotto_pda' => 0,
+                            'inserito_pda' => 0,
+                            'ko_pda' => 0,
+                            'backlog_pda' => 0,
+                            'backlog_partner_pda' => 0,
+                            'cliente' => $commessaFilter,
+                            'cliente_originale' => $commessaFilter,
+                            'sede' => 'Bonus Globali',
+                            'ore' => 0,
+                            'obiettivo' => 0,
+                            'fatturato' => $bonusDetail['importo'], // BONUS FISSO
+                            'resa_prodotto' => 0,
+                            'resa_inserito' => 0,
+                            'resa_oraria' => 0,
+                            'ricavo_orario' => 0,
+                            'obiettivo_mensile' => 0,
+                            'passo_giorno' => 0,
+                            'differenza_obj' => 0,
+                            'ore_paf' => 0,
+                            'pezzi_paf' => 0,
+                            'resa_paf' => 0,
+                            'fatturato_paf' => $bonusDetail['importo'], // BONUS FISSO (NON proiettato)
+                        ]);
+                    }
+                    
+                    $sediData->put('Bonus Globali', $economicsData);
+                }
+                
+                return $sediData;
             });
         
         // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
@@ -463,13 +595,29 @@ class ProduzioneController extends Controller
             ->orderBy('report_produzione_pivot_cache.nome_sede')
             ->get()
             ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
-                return $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf) {
+            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $bonusGlobali, $includiBonus, $commessaFilter) {
+                $sediProcessate = $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna) {
                     $data = $sedeGroup->first();
                     $inseriti = (int)$data->inserito_pda;
                     $prodotto = (int)$data->prodotto_pda;
                     $ore = (float)$data->ore;
                     $fatturato = (float)($data->fatturato ?? 0);
+                    
+                    // === CALCOLA BONUS TOTALE PER QUESTA SEDE (tutte le campagne) ===
+                    // SOLO bonus specifici per sede, NON bonus globali (quelli vanno solo nel totale)
+                    $bonusTotaleSede = 0;
+                    
+                    if ($data->sede_id) {
+                        foreach ($bonusPerSedeECampagna as $chiave => $importo) {
+                            [$sedeBonus, $campagnaBonus] = explode('|', $chiave);
+                            if ($sedeBonus === strtoupper($data->sede_id)) {
+                                $bonusTotaleSede += $importo;
+                            }
+                        }
+                    }
+                    
+                    // Aggiungi il bonus al fatturato
+                    $fatturato += $bonusTotaleSede;
                     
                     // === RECUPERA SOMMA OBIETTIVI PER QUESTA COMMESSA/SEDE (tutte le macro campagne) ===
                     // Prima prova con sede_id, poi con nome sede come fallback
@@ -535,12 +683,16 @@ class ProduzioneController extends Controller
                                 $ore_paf = max(0, round($ore / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                                 $pezzi_paf = max(0, round($inseriti / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
-                                $fatturato_paf = max(0, round($fatturato / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
+                                
+                                // FATTURATO PAF: proietta SOLO il fatturato operativo, il bonus è già sommato FISSO
+                                $fatturato_operativo = $fatturato - $bonusTotaleSede; // Togli il bonus per proiettare solo l'operativo
+                                $fatturato_operativo_paf = max(0, round($fatturato_operativo / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
+                                $fatturato_paf = $fatturato_operativo_paf + $bonusTotaleSede; // Riaggiunge il bonus FISSO
                             }
-                        } else if ($fatturato > 0 && $ore == 0) {
-                            // CASO SPECIALE: Sedi senza vendite ma con fatturato (es: GLOBAL)
-                            // Usa il fatturato effettivo come fatturato PAF senza calcoli
-                            $fatturato_paf = $fatturato;
+                        } else if ($bonusTotaleSede > 0 && $ore == 0) {
+                            // CASO SPECIALE: Sedi con solo bonus (senza vendite operative)
+                            // Il bonus rimane fisso senza proiezione
+                            $fatturato_paf = $bonusTotaleSede;
                         }
                     }
                     
@@ -579,6 +731,41 @@ class ProduzioneController extends Controller
                         ]
                     ]);
                 });
+                
+                // === AGGIUNGI RIGA ECONOMICS PER BONUS GLOBALI ANCHE IN VISTA SINTETICA (DEBUG) ===
+                if ($includiBonus && $bonusGlobali > 0) {
+                    // Crea una riga speciale per mostrare i bonus globali
+                    $sediProcessate['Bonus Globali'] = collect([
+                        'totale' => [
+                            'campagna' => 'BONUS GLOBALE',
+                            'prodotti_aggiuntivi' => [],
+                            'prodotto_pda' => 0,
+                            'inserito_pda' => 0,
+                            'ko_pda' => 0,
+                            'backlog_pda' => 0,
+                            'backlog_partner_pda' => 0,
+                            'cliente' => $commessaFilter,
+                            'cliente_originale' => $commessaFilter,
+                            'sede' => 'Bonus Globali',
+                            'ore' => 0,
+                            'obiettivo' => 0,
+                            'fatturato' => $bonusGlobali, // BONUS FISSO
+                            'resa_prodotto' => 0,
+                            'resa_inserito' => 0,
+                            'resa_oraria' => 0,
+                            'ricavo_orario' => 0,
+                            'obiettivo_mensile' => 0,
+                            'passo_giorno' => 0,
+                            'differenza_obj' => 0,
+                            'ore_paf' => 0,
+                            'pezzi_paf' => 0,
+                            'resa_paf' => 0,
+                            'fatturato_paf' => $bonusGlobali, // BONUS FISSO (NON proiettato)
+                        ]
+                    ]);
+                }
+                
+                return $sediProcessate;
             });
         
         // === VISTA GIORNALIERA: Dati per Giorno, Sede e Campagna ===
@@ -626,9 +813,37 @@ class ProduzioneController extends Controller
                 ];
             });
         
+        // === AGGIUNGI RIGA BONUS ALLA VISTA GIORNALIERA (se attivi) ===
+        if ($includiBonus && $bonusGlobali > 0 && $bonusGlobaliDettaglio->isNotEmpty()) {
+            // Aggiungi una riga per ogni bonus globale alla data di inizio validità
+            foreach ($bonusGlobaliDettaglio as $bonus) {
+                $datiGiornalieri->push([
+                    'data' => $bonus['valido_dal'],
+                    'commessa' => $commessaFilter,
+                    'prodotto_pda' => 0,
+                    'inserito_pda' => 0,
+                    'ko_pda' => 0,
+                    'backlog_pda' => 0,
+                    'backlog_partner_pda' => 0,
+                    'ore' => 0,
+                    'fatturato' => $bonus['importo'],
+                    'resa_prodotto' => 0,
+                    'resa_inserito' => 0,
+                    'resa_oraria' => 0,
+                    'ricavo_orario' => 0,
+                    'is_bonus' => true, // Flag per evidenziare nella vista
+                    'bonus_info' => "BONUS: {$bonus['macro_campagna']} ({$bonus['tipo']}, €" . number_format($bonus['importo'], 2, ',', '.') . ")",
+                ]);
+            }
+            
+            // Riordina per data (i bonus potrebbero essere in date diverse)
+            $datiGiornalieri = $datiGiornalieri->sortByDesc('data')->values();
+        }
+        
         // === DATI PER FILTRI ===
-        // Lista tutte le commesse disponibili
+        // Lista tutte le commesse disponibili (escludi bonus)
         $commesse = DB::table('report_produzione_pivot_cache')
+            ->where('campagna_id', '!=', 'bonus')
             ->distinct()
             ->whereNotNull('commessa')
             ->orderBy('commessa')
@@ -639,8 +854,9 @@ class ProduzioneController extends Controller
         $sediFiltered = collect();
         
         if ($commessaFilter) {
-            // Carica campagne disponibili per la commessa selezionata
+            // Carica campagne disponibili per la commessa selezionata (escludi bonus)
             $campagneFiltered = DB::table('report_produzione_pivot_cache')
+                ->where('campagna_id', '!=', 'bonus')
                 ->where('commessa', $commessaFilter)
                 ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
                 ->distinct()
@@ -649,9 +865,10 @@ class ProduzioneController extends Controller
                 ->orderBy('macro_campagna')
                 ->pluck('macro_campagna');
             
-            // Se ci sono campagne selezionate, carica le sedi disponibili
+            // Se ci sono campagne selezionate, carica le sedi disponibili (escludi bonus)
             if (!empty($macroCampagnaFilters)) {
                 $sediFiltered = DB::table('report_produzione_pivot_cache')
+                    ->where('campagna_id', '!=', 'bonus')
                     ->where('commessa', $commessaFilter)
                     ->whereIn('macro_campagna', $macroCampagnaFilters)
                     ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
@@ -688,6 +905,7 @@ class ProduzioneController extends Controller
             'commessaFilter' => $commessaFilter ?? '',
             'sedeFilters' => $sedeFilters ?? [],
             'macroCampagnaFilters' => $macroCampagnaFilters ?? [],
+            'includiBonus' => $includiBonus,
         ]);
     }
 
@@ -709,6 +927,7 @@ class ProduzioneController extends Controller
         }
         
         $query = DB::table('report_produzione_pivot_cache')
+            ->where('campagna_id', '!=', 'bonus') // Escludi bonus
             ->where('commessa', $commessa)
             ->distinct()
             ->whereNotNull('nome_sede')
@@ -750,6 +969,7 @@ class ProduzioneController extends Controller
         }
         
         $campagne = DB::table('report_produzione_pivot_cache')
+            ->where('campagna_id', '!=', 'bonus') // Escludi bonus
             ->where('commessa', $commessa)
             ->when($dataInizio && $dataFine, fn($q) => $q->whereBetween('data_vendita', [$dataInizio, $dataFine]))
             ->distinct()

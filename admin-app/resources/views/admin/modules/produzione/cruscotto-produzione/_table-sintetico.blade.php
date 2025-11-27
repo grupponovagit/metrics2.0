@@ -79,10 +79,10 @@
                     style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Obiettivi</th>
 
-                {{-- PAF MENSILE (4 sottocolonne) --}}
+                {{-- PAF MENSILE (3 sottocolonne) --}}
                 <th class="col-paf-mensile font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300"
-                    colspan="4"
-                    style="min-width: 320px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="3"
+                    style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Paf Mensile</th>
             </tr>
             <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
@@ -115,10 +115,8 @@
                     style="min-width: 80px; width: auto;">Ore Paf</th>
                 <th class="col-paf-mensile col-paf-pezzi font-bold text-xs text-center bg-purple-50 border-r border-base-200"
                     style="min-width: 80px; width: auto;">Pezzi Paf</th>
-                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r border-base-200"
+                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
                     style="min-width: 80px; width: auto;">Resa Paf</th>
-                <th class="col-paf-mensile col-paf-fatturato font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
-                    style="min-width: 80px; width: auto;">Fatt. Paf</th>
             </tr>
         </thead>
         <tbody>
@@ -215,11 +213,8 @@
                             class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-50 border-r border-base-200">
                             {{ number_format($dati['pezzi_paf'] ?? 0, 0) }}</td>
                         <td
-                            class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r border-base-200">
+                            class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r-2 border-base-300">
                             {{ $dati['resa_paf'] ?? 0 }}</td>
-                        <td
-                            class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-50 border-r-2 border-base-300">
-                            {{ ($dati['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($dati['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                     </tr>
                 @endforeach
 
@@ -332,15 +327,12 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-100 border-r border-slate-200">
                         {{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r border-slate-200">
+                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_paf'] }}</td>
-                    <td
-                        class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-100 border-r-2 border-slate-300">
-                        {{ $totaleCliente['fatturato_paf'] > 0 ? '€ ' . number_format($totaleCliente['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="16" class="text-center py-12">
+                    <td colspan="15" class="text-center py-12">
                         <div>
                             <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                             <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati
@@ -456,11 +448,8 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-sm bg-purple-100 border-r border-slate-200">
                         {{ number_format($totali['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r border-slate-200">
+                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r-2 border-slate-300">
                         {{ $totali['resa_paf'] }}</td>
-                    <td
-                        class="col-paf-mensile col-paf-fatturato text-center text-sm bg-purple-100 border-r-2 border-slate-300">
-                        {{ $totali['fatturato_paf'] > 0 ? '€ ' . number_format($totali['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @endif
         </tbody>

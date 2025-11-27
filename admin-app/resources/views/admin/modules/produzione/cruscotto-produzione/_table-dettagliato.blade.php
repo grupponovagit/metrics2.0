@@ -65,10 +65,10 @@
                     style="min-width: 70px; width: auto; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Ore</th>
 
-                {{-- ECONOMICS (2 sottocolonne) --}}
+                {{-- ECONOMICS (3 sottocolonne) --}}
                 <th class="col-economics font-bold text-sm uppercase tracking-wider text-center bg-amber-100 border-r-2 border-base-300"
-                    colspan="2"
-                    style="min-width: 190px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="3"
+                    style="min-width: 290px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Economics</th>
 
                 {{-- RESA (3 sottocolonne) --}}
@@ -83,18 +83,20 @@
                     style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Obiettivi</th>
 
-                {{-- PAF MENSILE (4 sottocolonne) --}}
+                {{-- PAF MENSILE (3 sottocolonne) --}}
                 <th class="col-paf-mensile font-bold text-sm uppercase tracking-wider text-center bg-purple-100 border-r-2 border-base-300"
-                    colspan="4"
-                    style="min-width: 320px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="3"
+                    style="min-width: 240px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Paf Mensile</th>
             </tr>
             <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
                 {{-- Sottocolonne Economics --}}
                 <th class="col-economics col-fatturato font-bold text-xs text-center bg-amber-50 border-r border-base-200"
                     style="min-width: 100px; width: auto;">Fatturato</th>
-                <th class="col-economics col-ricavo_orario font-bold text-xs text-center bg-amber-50 border-r-2 border-base-300"
+                <th class="col-economics col-ricavo_orario font-bold text-xs text-center bg-amber-50 border-r border-base-200"
                     style="min-width: 90px; width: auto;">Ricavo/H</th>
+                <th class="col-economics col-fatturato_paf font-bold text-xs text-center bg-amber-50 border-r-2 border-base-300"
+                    style="min-width: 100px; width: auto;">Fatt. Paf</th>
                 
                 {{-- Sottocolonne Resa --}}
                 <th class="col-resa col-resa_prodotto font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
@@ -117,10 +119,8 @@
                     style="min-width: 80px; width: auto;">Ore Paf</th>
                 <th class="col-paf-mensile col-paf-pezzi font-bold text-xs text-center bg-purple-50 border-r border-base-200"
                     style="min-width: 80px; width: auto;">Pezzi Paf</th>
-                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r border-base-200"
+                <th class="col-paf-mensile col-paf-resa font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
                     style="min-width: 80px; width: auto;">Resa Paf</th>
-                <th class="col-paf-mensile col-paf-fatturato font-bold text-xs text-center bg-purple-50 border-r-2 border-base-300"
-                    style="min-width: 80px; width: auto;">Fatt. Paf</th>
             </tr>
         </thead>
         <tbody>
@@ -200,8 +200,11 @@
                             <td class="col-economics col-fatturato text-center text-sm bg-amber-50 border-r border-base-200">
                                 {{ ($datiCampagna['fatturato'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato'], 2, ',', '.') : '-' }}
                             </td>
-                            <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                            <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-50 border-r border-base-200">
                                 {{ ($datiCampagna['ricavo_orario'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['ricavo_orario'], 2, ',', '.') : '-' }}
+                            </td>
+                            <td class="col-economics col-fatturato_paf text-center text-sm bg-amber-50 border-r-2 border-base-300">
+                                {{ ($datiCampagna['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato_paf'], 2, ',', '.') : '-' }}
                             </td>
 
                             {{-- RESA --}}
@@ -235,11 +238,8 @@
                                 class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-50 border-r border-base-200">
                                 {{ number_format($datiCampagna['pezzi_paf'] ?? 0, 0) }}</td>
                             <td
-                                class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r border-base-200">
+                                class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-50 border-r-2 border-base-300">
                                 {{ $datiCampagna['resa_paf'] ?? 0 }}</td>
-                            <td
-                                class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-50 border-r-2 border-base-300">
-                                {{ ($datiCampagna['fatturato_paf'] ?? 0) > 0 ? '€ ' . number_format($datiCampagna['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                         </tr>
                     @endforeach
                 @endforeach
@@ -322,8 +322,10 @@
                     {{-- Economics --}}
                     <td class="col-economics col-fatturato text-center text-sm bg-amber-100 border-r border-slate-200">
                         {{ $totaleCliente['fatturato'] > 0 ? '€ ' . number_format($totaleCliente['fatturato'], 2, ',', '.') : '-' }}</td>
-                    <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-100 border-r-2 border-slate-300">
+                    <td class="col-economics col-ricavo_orario text-center text-sm bg-amber-100 border-r border-slate-200">
                         {{ $totaleCliente['ricavo_orario'] > 0 ? '€ ' . number_format($totaleCliente['ricavo_orario'], 2, ',', '.') : '-' }}</td>
+                    <td class="col-economics col-fatturato_paf text-center text-sm bg-amber-100 border-r-2 border-slate-300">
+                        {{ $totaleCliente['fatturato_paf'] > 0 ? '€ ' . number_format($totaleCliente['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                     
                     {{-- Resa --}}
                     <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-100 border-r border-slate-200">
@@ -353,15 +355,12 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-xs bg-purple-100 border-r border-slate-200">
                         {{ number_format($totaleCliente['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r border-slate-200">
+                        class="col-paf-mensile col-paf-resa text-center text-xs bg-purple-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_paf'] }}</td>
-                    <td
-                        class="col-paf-mensile col-paf-fatturato text-center text-xs bg-purple-100 border-r-2 border-slate-300">
-                        {{ $totaleCliente['fatturato_paf'] > 0 ? '€ ' . number_format($totaleCliente['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="17" class="text-center py-12">
+                    <td colspan="18" class="text-center py-12">
                         <div>
                             <h3 class="text-lg font-semibold text-base-content mb-1">Nessun dato disponibile</h3>
                             <p class="text-sm text-base-content/60">Prova a modificare i filtri per visualizzare i dati
@@ -447,8 +446,10 @@
                     {{-- Economics --}}
                     <td class="col-economics col-fatturato text-center text-base bg-amber-100 border-r border-slate-200">
                         {{ $totali['fatturato'] > 0 ? '€ ' . number_format($totali['fatturato'], 2, ',', '.') : '-' }}</td>
-                    <td class="col-economics col-ricavo_orario text-center text-base bg-amber-100 border-r-2 border-slate-300">
+                    <td class="col-economics col-ricavo_orario text-center text-base bg-amber-100 border-r border-slate-200">
                         {{ $totali['ricavo_orario'] > 0 ? '€ ' . number_format($totali['ricavo_orario'], 2, ',', '.') : '-' }}</td>
+                    <td class="col-economics col-fatturato_paf text-center text-base bg-amber-100 border-r-2 border-slate-300">
+                        {{ $totali['fatturato_paf'] > 0 ? '€ ' . number_format($totali['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                     
                     {{-- Resa --}}
                     <td class="col-resa col-resa_prodotto text-center text-base bg-indigo-100 border-r border-slate-200">
@@ -478,11 +479,8 @@
                         class="col-paf-mensile col-paf-pezzi text-center text-sm bg-purple-100 border-r border-slate-200">
                         {{ number_format($totali['pezzi_paf'], 0) }}</td>
                     <td
-                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r border-slate-200">
+                        class="col-paf-mensile col-paf-resa text-center text-sm bg-purple-100 border-r-2 border-slate-300">
                         {{ $totali['resa_paf'] }}</td>
-                    <td
-                        class="col-paf-mensile col-paf-fatturato text-center text-sm bg-purple-100 border-r-2 border-slate-300">
-                        {{ $totali['fatturato_paf'] > 0 ? '€ ' . number_format($totali['fatturato_paf'], 2, ',', '.') : '-' }}</td>
                 </tr>
             @endif
         </tbody>
