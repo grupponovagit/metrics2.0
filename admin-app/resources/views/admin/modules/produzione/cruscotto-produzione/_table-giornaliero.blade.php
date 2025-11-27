@@ -70,10 +70,10 @@
                     style="min-width: 190px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Economics</th>
 
-                {{-- RESA (3 sottocolonne) --}}
+                {{-- RESA (2 sottocolonne) --}}
                 <th class="col-resa font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    colspan="3"
-                    style="min-width: 250px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="2"
+                    style="min-width: 180px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Resa</th>
             </tr>
             <tr style="position: sticky !important; top: 48px !important; z-index: 9 !important;">
@@ -86,10 +86,8 @@
                 {{-- Sottocolonne Resa --}}
                 <th class="col-resa col-resa_prodotto font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
                     style="min-width: 90px; width: auto;">Resa Prod.</th>
-                <th class="col-resa col-resa_inserito font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
+                <th class="col-resa col-resa_inserito font-bold text-xs text-center bg-indigo-50 border-r-2 border-base-300"
                     style="min-width: 90px; width: auto;">Resa Ins.</th>
-                <th class="col-resa col-resa_oraria font-bold text-xs text-center bg-indigo-50 border-r-2 border-base-300"
-                    style="min-width: 70px; width: auto;">R/H</th>
             </tr>
         </thead>
         <tbody>
@@ -178,11 +176,8 @@
                     <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-50 border-r border-base-200">
                         {{ $datiGiorno['resa_prodotto'] ?? '-' }}
                     </td>
-                    <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-50 border-r border-base-200">
+                    <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-50 border-r-2 border-base-300">
                         {{ $datiGiorno['resa_inserito'] ?? '-' }}
-                    </td>
-                    <td class="col-resa col-resa_oraria text-center text-sm bg-indigo-50 border-r-2 border-base-300">
-                        {{ $datiGiorno['resa_oraria'] ?? '-' }}
                     </td>
                 </tr>
             @empty
@@ -240,9 +235,8 @@
                     {{-- Resa --}}
                     <td class="col-resa col-resa_prodotto text-center text-base bg-indigo-100 border-r border-slate-200">
                         {{ $totaleGiornaliero['resa_prodotto'] }}</td>
-                    <td class="col-resa col-resa_inserito text-center text-base bg-indigo-100 border-r border-slate-200">
+                    <td class="col-resa col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleGiornaliero['resa_inserito'] }}</td>
-                    <td class="col-resa col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">0</td>
                 </tr>
             @endif
         </tbody>

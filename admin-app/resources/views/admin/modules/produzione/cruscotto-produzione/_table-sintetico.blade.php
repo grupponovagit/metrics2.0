@@ -67,10 +67,10 @@
                     style="min-width: 290px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Economics</th>
 
-                {{-- RESA (3 sottocolonne) --}}
+                {{-- RESA (2 sottocolonne) --}}
                 <th class="col-resa font-bold text-sm uppercase tracking-wider text-center bg-indigo-100 border-r-2 border-base-300"
-                    colspan="3"
-                    style="min-width: 250px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
+                    colspan="2"
+                    style="min-width: 180px; position: sticky !important; top: 0 !important; z-index: 10 !important;">
                     Resa</th>
 
                 {{-- OBIETTIVI (3 sottocolonne) --}}
@@ -97,10 +97,8 @@
                 {{-- Sottocolonne Resa --}}
                 <th class="col-resa col-resa_prodotto font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
                     style="min-width: 90px; width: auto;">Resa Prod.</th>
-                <th class="col-resa col-resa_inserito font-bold text-xs text-center bg-indigo-50 border-r border-base-200"
+                <th class="col-resa col-resa_inserito font-bold text-xs text-center bg-indigo-50 border-r-2 border-base-300"
                     style="min-width: 90px; width: auto;">Resa Ins.</th>
-                <th class="col-resa col-resa_oraria font-bold text-xs text-center bg-indigo-50 border-r-2 border-base-300"
-                    style="min-width: 70px; width: auto;">R/H</th>
                 
                 {{-- Sottocolonne Obiettivi --}}
                 <th class="col-obiettivi col-obiettivi-mensile font-bold text-xs text-center bg-teal-50 border-r border-base-200"
@@ -249,18 +247,11 @@
                                 {{ $dati['resa_prodotto'] ?? '-' }}
                             @endif
                         </td>
-                        <td class="col-resa col-resa_inserito text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r border-base-200">
+                        <td class="col-resa col-resa_inserito text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r-2 border-base-300">
                             @if($isAnyBonus)
                                 <span class="text-warning">BONUS</span>
                             @else
                                 {{ $dati['resa_inserito'] ?? '-' }}
-                            @endif
-                        </td>
-                        <td class="col-resa col-resa_oraria text-center text-sm {{ $isAnyBonus ? 'bg-warning/10' : 'bg-indigo-50' }} border-r-2 border-base-300">
-                            @if($isAnyBonus)
-                                <span class="text-warning">BONUS</span>
-                            @else
-                                {{ $dati['resa_oraria'] ?? '-' }}
                             @endif
                         </td>
 
@@ -405,10 +396,8 @@
                     {{-- Resa --}}
                     <td class="col-resa col-resa_prodotto text-center text-sm bg-indigo-100 border-r border-slate-200">
                         {{ $totaleCliente['resa_prodotto'] }}</td>
-                    <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-100 border-r border-slate-200">
+                    <td class="col-resa col-resa_inserito text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totaleCliente['resa_inserito'] }}</td>
-                    <td class="col-resa col-resa_oraria text-center text-sm bg-indigo-100 border-r-2 border-slate-300">
-                        {{ $totaleCliente['resa_oraria'] ?? 0 }}</td>
 
                     {{-- Obiettivi --}}
                     <td
@@ -532,10 +521,8 @@
                     {{-- Resa --}}
                     <td class="col-resa col-resa_prodotto text-center text-base bg-indigo-100 border-r border-slate-200">
                         {{ $totali['resa_prodotto'] }}</td>
-                    <td class="col-resa col-resa_inserito text-center text-base bg-indigo-100 border-r border-slate-200">
+                    <td class="col-resa col-resa_inserito text-center text-base bg-indigo-100 border-r-2 border-slate-300">
                         {{ $totali['resa_inserito'] }}</td>
-                    <td class="col-resa col-resa_oraria text-center text-base bg-indigo-100 border-r-2 border-slate-300">
-                        {{ $totali['resa_oraria'] ?? 0 }}</td>
 
                     {{-- Obiettivi --}}
                     <td

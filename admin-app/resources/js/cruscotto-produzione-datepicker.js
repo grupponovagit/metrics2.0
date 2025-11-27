@@ -185,6 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Aggiorna gli input nascosti
                     updateHiddenInputs(preset.start, preset.end);
+                    
+                    // Chiudi il picker automaticamente
+                    picker.hide();
                 });
             } else if (preset.value === 'custom') {
                 // Inizialmente "Personalizzato" è attivo

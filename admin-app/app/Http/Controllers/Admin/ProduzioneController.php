@@ -346,7 +346,6 @@ class ProduzioneController extends Controller
             // Resa
             'resa_prodotto' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->prodotto_pda ?? 0) / $kpiTotali->ore, 2) : 0,
             'resa_inserito' => ($kpiTotali->ore ?? 0) > 0 ? round(($kpiTotali->inserito_pda ?? 0) / $kpiTotali->ore, 2) : 0,
-            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
             'ricavo_orario' => ($kpiTotali->ore ?? 0) > 0 ? round((($kpiTotali->fatturato ?? 0) + $bonusTotale) / $kpiTotali->ore, 2) : 0, // Include bonus
             
             // Obiettivi (al momento a 0 come richiesto)
@@ -482,7 +481,6 @@ class ProduzioneController extends Controller
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
-                            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
                             'ricavo_orario' => $ricavo_orario,
                             
                             // === OBIETTIVI ===
@@ -539,7 +537,6 @@ class ProduzioneController extends Controller
                                 'fatturato' => $importoTotale,
                                 'resa_prodotto' => 0,
                                 'resa_inserito' => 0,
-                                'resa_oraria' => 0,
                                 'ricavo_orario' => 0,
                                 'obiettivo_mensile' => 0,
                                 'passo_giorno' => 0,
@@ -721,7 +718,6 @@ class ProduzioneController extends Controller
                             // === RESA ===
                             'resa_prodotto' => $resa_prodotto,
                             'resa_inserito' => $resa_inserito,
-                            'resa_oraria' => 0, // R/H - Da implementare con dati futuri
                             'ricavo_orario' => $ricavo_orario,
                             
                             // === OBIETTIVI ===
@@ -769,7 +765,6 @@ class ProduzioneController extends Controller
                                 'fatturato' => $bonusTotaleSede,
                                 'resa_prodotto' => 0,
                                 'resa_inserito' => 0,
-                                'resa_oraria' => 0,
                                 'ricavo_orario' => 0,
                                 'obiettivo_mensile' => 0,
                                 'passo_giorno' => 0,
@@ -863,7 +858,6 @@ class ProduzioneController extends Controller
                     'fatturato' => $fatturato,
                     'resa_prodotto' => $resa_prodotto,
                     'resa_inserito' => $resa_inserito,
-                    'resa_oraria' => 0, // R/H - Da implementare
                     'ricavo_orario' => $ricavo_orario,
                 ];
             });
