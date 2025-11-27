@@ -1,0 +1,29 @@
+{
+  "php.suggest.basic": false,
+  "php.validate.enable": false,
+  "intelephense.files.exclude": [
+    "**/vendor/**",
+    "**/node_modules/**",
+    "**/storage/**",
+    "**/public/build/**",
+    "**/admin-app/vendor/**",
+    "**/admin-app/storage/**",
+    "**/admin-app/bootstrap/cache/**"
+  ],
+  "files.watcherExclude": {
+    "**/vendor/**": true,
+    "**/node_modules/**": true,
+    "**/storage/**": true,
+    "**/public/build/**": true,
+    "**/admin-app/vendor/**": true,
+    "**/admin-app/storage/**": true,
+    "**/admin-app/bootstrap/cache/**": true
+  },
+  "search.exclude": {
+    "**/vendor/**": true,
+    "**/node_modules/**": true,
+    "**/storage/**": true,
+    "**/public/build/**": true
+  }
+}
+
