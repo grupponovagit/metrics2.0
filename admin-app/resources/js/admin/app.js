@@ -1,4 +1,5 @@
 import './bootstrap';
+import '../cruscotto-produzione-datepicker';
 
 // === GESTIONE TEMA CENTRALIZZATA ===
 

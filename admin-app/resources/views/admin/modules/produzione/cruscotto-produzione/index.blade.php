@@ -19,28 +19,21 @@
     <x-admin.card tone="light" shadow="lg" padding="lg" class="mb-6">
         <form method="GET" action="{{ route('admin.produzione.cruscotto_produzione') }}" id="filterForm">
             
-            {{-- RIGA 1: Data Inizio, Data Fine, Commessa --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {{-- Data Inizio --}}
+            {{-- RIGA 1: Periodo, Commessa --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {{-- Periodo (Date Range Picker) --}}
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text font-semibold text-base">
                             <x-ui.icon name="calendar" class="h-5 w-5 inline" />
-                            Data Inizio
+                            Periodo
                         </span>
                     </label>
-                    <input type="date" name="data_inizio" value="{{ $dataInizio }}" class="input input-bordered input-md w-full text-base" required>
-                </div>
-                
-                {{-- Data Fine --}}
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold text-base">
-                            <x-ui.icon name="calendar" class="h-5 w-5 inline" />
-                            Data Fine
-                        </span>
-                    </label>
-                    <input type="date" name="data_fine" value="{{ $dataFine }}" class="input input-bordered input-md w-full text-base" required>
+                    <input type="text" id="dateRangePicker" class="input input-bordered input-md w-full text-base" placeholder="Seleziona periodo..." readonly>
+                    
+                    {{-- Input nascosti per il form submit --}}
+                    <input type="hidden" name="data_inizio" id="data_inizio_hidden" value="{{ $dataInizio }}">
+                    <input type="hidden" name="data_fine" id="data_fine_hidden" value="{{ $dataFine }}">
                 </div>
                 
                 {{-- Commessa --}}

@@ -1,0 +1,518 @@
+/* ========================================
+   LITEPICKER CUSTOM STYLES - Theme Colors
+   ======================================== */
+
+/* Container principale */
+.litepicker {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    border: none !important;
+    padding: 0;
+    min-width: 750px;
+}
+
+/* Container con preset */
+.litepicker .container__main {
+    display: flex !important;
+    flex-direction: row !important;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.litepicker .container__main > * {
+    flex-shrink: 0 !important;
+}
+
+/* ========================================
+   PRESET SIDEBAR - Sempre Visibile
+   ======================================== */
+.litepicker-presets {
+    width: 210px;
+    border-right: 1px solid #e5e7eb;
+    padding: 20px 12px;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: column;
+    gap: 3px;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.litepicker-preset-btn {
+    display: block !important;
+    width: 100%;
+    text-align: left;
+    padding: 11px 16px;
+    border: none;
+    background: transparent;
+    color: #854d0e;
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    white-space: nowrap;
+    position: relative;
+}
+
+.litepicker-preset-btn::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.litepicker-preset-btn:hover {
+    background: rgba(251, 191, 36, 0.2);
+    color: #78350f;
+    transform: translateX(2px);
+}
+
+.litepicker-preset-btn:hover::before {
+    background: #fbbf24;
+}
+
+.litepicker-preset-btn.active {
+    background: #fb923c;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.4);
+    transform: translateX(3px);
+}
+
+.litepicker-preset-btn.active::before {
+    background: white;
+    width: 6px;
+    height: 6px;
+}
+
+/* ========================================
+   CALENDARIO
+   ======================================== */
+.litepicker .container__months {
+    background: white;
+    padding: 24px;
+    flex: 1;
+    display: flex;
+}
+
+/* Header mesi - Minimale */
+.litepicker .container__months .month-item-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0;
+    background: transparent;
+    border-radius: 6px;
+    gap: 6px;
+}
+
+
+
+/* Dropdown selettori - Stesso padding per mese e anno */
+.litepicker .container__months select {
+    font-weight: 500;
+    font-size: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 8px !important;
+    background: white;
+    color: #78350f;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: auto;
+    margin: 0;
+    text-transform: capitalize;
+}
+
+.litepicker .container__months select option {
+    text-transform: capitalize;
+}
+
+.litepicker .container__months select:hover {
+    border-color: #fbbf24;
+    background: #fef3c7;
+}
+
+.litepicker .container__months select:focus {
+    outline: none;
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.1);
+}
+
+/* Bottoni navigazione - Minimali */
+.litepicker .container__months .button-previous-month,
+.litepicker .container__months .button-next-month {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #78350f;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.litepicker .container__months .button-previous-month:hover,
+.litepicker .container__months .button-next-month:hover {
+    background: #fef3c7;
+    border-color: #fbbf24;
+    color: #78350f;
+}
+
+.litepicker .container__months .button-previous-month:active,
+.litepicker .container__months .button-next-month:active {
+    transform: scale(0.95);
+}
+
+/* Giorni settimana */
+.litepicker .container__months .month-item-weekdays-row > div {
+    font-size: 11px;
+    font-weight: 700;
+    color: #92400e;
+    text-transform: uppercase;
+    padding: 10px 0;
+    letter-spacing: 0.5px;
+}
+
+/* Celle giorni */
+.litepicker .container__days .day-item {
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.litepicker .container__days .day-item:hover {
+    background: #fef3c7 !important;
+    color: #78350f;
+    box-shadow: 0 3px 8px rgba(251, 191, 36, 0.3);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Giorno selezionato */
+.litepicker .container__days .day-item.is-start-date,
+.litepicker .container__days .day-item.is-end-date {
+    background: #fb923c !important;
+    color: white !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.5);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Range di giorni */
+.litepicker .container__days .day-item.is-in-range {
+    background: #fef3c7 !important;
+    color: #78350f;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Giorno oggi */
+.litepicker .container__days .day-item.is-today {
+    border: 2px solid #fbbf24;
+    font-weight: 600;
+    color: #78350f !important;
+}
+
+.litepicker .container__days .day-item.is-today.is-start-date,
+.litepicker .container__days .day-item.is-today.is-end-date {
+    border: 2px solid white;
+    color: white !important;
+}
+
+/* Giorni disabilitati */
+.litepicker .container__days .day-item.is-locked {
+    color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.litepicker .container__days .day-item.is-locked:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ========================================
+   FOOTER CON BOTTONI
+   ======================================== */
+.litepicker .container__footer {
+    border-top: 1px solid #fbbf24;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    gap: 12px;
+    margin:0 !important;
+    border-radius: 0 0 16px 16px !important;
+}
+
+.litepicker .container__footer .button-cancel,
+.litepicker .container__footer .button-apply {
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.litepicker .container__footer .button-cancel {
+    background: white;
+    color: #78350f;
+    border: 2px solid #fbbf24;
+}
+
+.litepicker .container__footer .button-cancel:hover {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #78350f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.litepicker .container__footer .button-apply {
+    background: #fb923c;
+    color: white;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.4);
+}
+
+.litepicker .container__footer .button-apply:hover {
+    background: #f97316;
+    box-shadow: 0 6px 16px rgba(251, 146, 60, 0.5);
+    transform: translateY(-2px);
+}
+
+.litepicker .container__footer .button-apply:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   TOOLTIP - Nascosto
+   ======================================== */
+.litepicker .container__tooltip {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* ========================================
+   INPUT FIELD STYLING
+   ======================================== */
+#dateRangePicker {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fbbf24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 40px !important;
+}
+
+#dateRangePicker:focus {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .litepicker .container__main {
+        flex-direction: column;
+    }
+    
+    .litepicker-presets {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .litepicker-preset-btn {
+        flex-shrink: 0;
+        padding: 8px 16px;
+    }
+    
+    .litepicker .container__months {
+        padding: 16px;
+    }
+    
+    .litepicker {
+        max-width: 100%;
+    }
+}
+
+/* ========================================
+   DARK MODE SUPPORT - Migliorata Leggibilità
+   ======================================== */
+[data-theme="dark"] .litepicker {
+    background: #1f2937;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+
+[data-theme="dark"] .litepicker .container__main {
+    background: #1f2937;
+}
+
+/* Preset sidebar dark mode */
+[data-theme="dark"] .litepicker-presets {
+    background: #1f2937;
+    border-right-color: #78716c;
+}
+
+[data-theme="dark"] .litepicker-preset-btn {
+    color: #d6d3d1;
+}
+
+[data-theme="dark"] .litepicker-preset-btn::before {
+    background: transparent;
+}
+
+[data-theme="dark"] .litepicker-preset-btn:hover {
+    background: rgba(251, 146, 60, 0.2);
+    color: #fafaf9;
+}
+
+[data-theme="dark"] .litepicker-preset-btn:hover::before {
+    background: #fb923c;
+}
+
+[data-theme="dark"] .litepicker-preset-btn.active {
+    background: #fb923c;
+    color: white;
+}
+
+[data-theme="dark"] .litepicker-preset-btn.active::before {
+    background: white;
+}
+
+/* Calendario dark mode */
+[data-theme="dark"] .litepicker .container__months {
+    background: #1f2937;
+}
+
+/* Header mesi dark mode */
+[data-theme="dark"] .litepicker .container__months .month-item-header {
+    background: transparent;
+}
+
+[data-theme="dark"] .litepicker .container__months .month-item-name {
+    color: #fef3c7;
+}
+
+/* Dropdown dark mode */
+[data-theme="dark"] .litepicker .container__months select {
+    color: #fef3c7;
+    background: #374151;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .litepicker .container__months select:hover {
+    background: #4b5563;
+    border-color: #fbbf24;
+}
+
+/* Bottoni navigazione dark mode */
+[data-theme="dark"] .litepicker .container__months .button-previous-month,
+[data-theme="dark"] .litepicker .container__months .button-next-month {
+    background: transparent;
+    border-color: #4b5563;
+    color: #fde68a;
+}
+
+[data-theme="dark"] .litepicker .container__months .button-previous-month:hover,
+[data-theme="dark"] .litepicker .container__months .button-next-month:hover {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: #fbbf24;
+    color: #fef3c7;
+}
+
+/* Giorni settimana dark mode */
+[data-theme="dark"] .litepicker .container__months .month-item-weekdays-row > div {
+    color: #fde68a;
+}
+
+/* Celle giorni dark mode */
+[data-theme="dark"] .litepicker .container__days .day-item {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .litepicker .container__days .day-item:hover {
+    background: rgba(251, 191, 36, 0.2) !important;
+    color: #fef3c7;
+}
+
+[data-theme="dark"] .litepicker .container__days .day-item.is-start-date,
+[data-theme="dark"] .litepicker .container__days .day-item.is-end-date {
+    background: #fb923c !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .litepicker .container__days .day-item.is-in-range {
+    background: rgba(251, 191, 36, 0.15) !important;
+    color: #fde68a;
+}
+
+[data-theme="dark"] .litepicker .container__days .day-item.is-today {
+    border-color: #fbbf24;
+    color: #fef3c7;
+}
+
+[data-theme="dark"] .litepicker .container__days .day-item.is-locked {
+    color: #4b5563;
+}
+
+/* Footer dark mode */
+[data-theme="dark"] .litepicker .container__footer {
+    background: #1f2937;
+    border-top-color: #78716c;
+}
+
+[data-theme="dark"] .litepicker .container__footer .button-cancel {
+    background: #374151;
+    color: #fde68a;
+    border-color: #fbbf24;
+}
+
+[data-theme="dark"] .litepicker .container__footer .button-cancel:hover {
+    background: #4b5563;
+    color: #fef3c7;
+    border-color: #f59e0b;
+}
+
+[data-theme="dark"] .litepicker .container__footer .button-apply {
+    background: #fb923c;
+    color: white;
+}
+
+[data-theme="dark"] .litepicker .container__footer .button-apply:hover {
+    background: #f97316;
+    color: white;
+}
+
