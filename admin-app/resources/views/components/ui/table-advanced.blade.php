@@ -495,49 +495,52 @@
         
         // Inizializza drag-to-scroll
         initDragScroll: function(tableId) {
-            const container = document.getElementById(tableId);
-            if (!container) return;
+            const scrollContainer = document.getElementById(tableId + '-scroll-container');
+            if (!scrollContainer) return;
             
             let isDown = false;
             let startX;
             let scrollLeft;
             
-            container.style.cursor = 'grab';
+            scrollContainer.style.cursor = 'grab';
             
-            container.addEventListener('mousedown', (e) => {
+            scrollContainer.addEventListener('mousedown', (e) => {
+                // Ignora drag su elementi interattivi
                 if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || 
-                    e.target.closest('a') || e.target.closest('button')) {
+                    e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' ||
+                    e.target.closest('a') || e.target.closest('button') || 
+                    e.target.closest('input') || e.target.closest('select')) {
                     return;
                 }
                 
                 isDown = true;
-                container.style.cursor = 'grabbing';
-                container.style.userSelect = 'none';
+                scrollContainer.style.cursor = 'grabbing';
+                scrollContainer.style.userSelect = 'none';
                 
-                startX = e.pageX - container.offsetLeft;
-                scrollLeft = container.scrollLeft;
+                startX = e.pageX - scrollContainer.offsetLeft;
+                scrollLeft = scrollContainer.scrollLeft;
             });
             
-            container.addEventListener('mouseleave', () => {
+            scrollContainer.addEventListener('mouseleave', () => {
                 isDown = false;
-                container.style.cursor = 'grab';
-                container.style.userSelect = '';
+                scrollContainer.style.cursor = 'grab';
+                scrollContainer.style.userSelect = '';
             });
             
-            container.addEventListener('mouseup', () => {
+            scrollContainer.addEventListener('mouseup', () => {
                 isDown = false;
-                container.style.cursor = 'grab';
-                container.style.userSelect = '';
+                scrollContainer.style.cursor = 'grab';
+                scrollContainer.style.userSelect = '';
             });
             
-            container.addEventListener('mousemove', (e) => {
+            scrollContainer.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
                 e.preventDefault();
                 
-                const x = e.pageX - container.offsetLeft;
-                const walkX = (x - startX) * 1.5;
+                const x = e.pageX - scrollContainer.offsetLeft;
+                const walkX = (x - startX) * 2; // Aumentato da 1.5 a 2 per scroll più fluido
                 
-                container.scrollLeft = scrollLeft - walkX;
+                scrollContainer.scrollLeft = scrollLeft - walkX;
             });
         },
         

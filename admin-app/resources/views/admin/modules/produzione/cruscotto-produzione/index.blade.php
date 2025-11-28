@@ -281,6 +281,100 @@
             </span>
         </div>
 
+        {{-- DEBUG PAF - Mostra dati view_giorni_paf --}}
+        @if($mostraPaf && $giorniLavoratiPerCampagna->isNotEmpty())
+            <div class="mt-6">
+                <button type="button" 
+                        onclick="document.getElementById('debugPafSection').classList.toggle('hidden')"
+                        class="btn btn-sm btn-outline btn-info gap-2">
+                    <x-ui.icon name="bug" class="h-4 w-4" />
+                    Debug PAF
+                    <span class="badge badge-info badge-sm">{{ $giorniLavoratiPerCampagna->count() }}</span>
+                </button>
+                
+                <div id="debugPafSection" class="hidden mt-4">
+                    <x-admin.card tone="info" shadow="md" padding="md">
+                        <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                            <x-ui.icon name="table" class="h-5 w-5" />
+                            Dati PAF da view_giorni_paf
+                            <span class="text-sm font-normal text-base-content/60">(Mese corrente: {{ date('m/Y') }})</span>
+                        </h3>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra table-sm w-full">
+                                <thead class="bg-info text-info-content">
+                                    <tr>
+                                        <th class="font-bold">ID Sede</th>
+                                        <th class="font-bold">Nome Sede</th>
+                                        <th class="font-bold">Macro Campagna</th>
+                                        <th class="font-bold">Anno</th>
+                                        <th class="font-bold">Mese</th>
+                                        <th class="font-bold text-right">Giorni Lavorati</th>
+                                        <th class="font-bold text-right">Tot Giorni Mese</th>
+                                        <th class="font-bold text-right">Giorni Rimanenti</th>
+                                        <th class="font-bold text-right">% Completamento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($giorniLavoratiPerCampagna as $chiave => $paf)
+                                        @php
+                                            $percentualeCompletamento = $paf->tot_giorni_mese > 0 
+                                                ? round(($paf->giorni_lavorati / $paf->tot_giorni_mese) * 100, 1) 
+                                                : 0;
+                                            $colorClass = $percentualeCompletamento >= 75 ? 'text-success' : ($percentualeCompletamento >= 50 ? 'text-warning' : 'text-error');
+                                        @endphp
+                                        <tr>
+                                            <td class="font-mono text-xs">{{ $paf->id_sede }}</td>
+                                            <td class="font-semibold">{{ $paf->nome_sede }}</td>
+                                            <td class="text-primary">{{ $paf->macro_campagna }}</td>
+                                            <td class="text-center">{{ $paf->anno }}</td>
+                                            <td class="text-center">{{ str_pad($paf->mese, 2, '0', STR_PAD_LEFT) }}</td>
+                                            <td class="text-right font-semibold">{{ number_format($paf->giorni_lavorati, 2, ',', '.') }}</td>
+                                            <td class="text-right font-semibold text-info">{{ number_format($paf->tot_giorni_mese, 2, ',', '.') }}</td>
+                                            <td class="text-right font-semibold text-warning">{{ number_format($paf->giorni_rimanenti, 2, ',', '.') }}</td>
+                                            <td class="text-right {{ $colorClass }} font-bold">{{ $percentualeCompletamento }}%</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="bg-base-300 font-bold">
+                                    <tr>
+                                        <td colspan="5" class="text-right">MEDIE:</td>
+                                        <td class="text-right">{{ number_format($giorniLavoratiPerCampagna->avg('giorni_lavorati'), 2, ',', '.') }}</td>
+                                        <td class="text-right text-info">{{ number_format($giorniLavoratiPerCampagna->avg('tot_giorni_mese'), 2, ',', '.') }}</td>
+                                        <td class="text-right text-warning">{{ number_format($giorniLavoratiPerCampagna->avg('giorni_rimanenti'), 2, ',', '.') }}</td>
+                                        <td class="text-right">
+                                            @php
+                                                $mediaPct = $giorniLavoratiPerCampagna->avg(function($item) {
+                                                    return $item->tot_giorni_mese > 0 ? ($item->giorni_lavorati / $item->tot_giorni_mese) * 100 : 0;
+                                                });
+                                            @endphp
+                                            {{ number_format($mediaPct, 1, ',', '.') }}%
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <x-ui.icon name="info-circle" class="h-5 w-5" />
+                            <div class="text-sm">
+                                <p class="font-semibold mb-1">Legenda:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Giorni Lavorati:</strong> Giorni in cui la campagna ha effettivamente lavorato (con ore > 0)</li>
+                                    <li><strong>Tot Giorni Mese:</strong> Totale giorni lavorativi previsti per il mese (usato per calcolo PAF)</li>
+                                    <li><strong>Giorni Rimanenti:</strong> Giorni lavorativi ancora disponibili (REAL-TIME)</li>
+                                    <li><strong>% Completamento:</strong> Percentuale di giorni già lavorati sul totale del mese</li>
+                                </ul>
+                                <p class="mt-2 text-xs opacity-75">
+                                    <strong>Formula PAF:</strong> PAF = (Valori Attuali / Giorni Lavorati) × Tot Giorni Mese
+                                </p>
+                            </div>
+                        </div>
+                    </x-admin.card>
+                </div>
+            </div>
+        @endif
+
         {{-- Info periodo --}}
         <div class="p-4 bg-base-200/50 border-t border-base-300">
             <div class="flex items-center justify-between text-sm text-base-content/70">

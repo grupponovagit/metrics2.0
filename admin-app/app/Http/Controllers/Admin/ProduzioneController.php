@@ -168,11 +168,11 @@ class ProduzioneController extends Controller
             $mostraPaf = ($dataInizioObj >= $primoGiornoMeseCorrente && $dataFineObj <= $ultimoGiornoMeseCorrente);
         }
         
-        // Giorni rimanenti (incluso oggi se è un giorno lavorativo) - dal calendario generale
-        $giorniLavorativiRimanenti = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
-        
-        // === RECUPERA GIORNI LAVORATI PER SEDE E MACRO_CAMPAGNA DALLA VISTA ===
-        // Questa vista contiene i giorni effettivamente lavorati per ogni combinazione sede+campagna
+        // === RECUPERA DATI PAF DALLA VISTA view_giorni_paf ===
+        // Questa vista contiene per ogni sede+campagna:
+        // - giorni_lavorati: giorni già lavorati nel mese
+        // - tot_giorni_mese: totale giorni lavorativi del mese
+        // - giorni_rimanenti: giorni lavorativi rimanenti (REAL-TIME, specifico per campagna)
         $giorniLavoratiPerCampagna = collect();
         if ($mostraPaf) {
             $giorniLavoratiPerCampagna = DB::table('view_giorni_paf')
@@ -182,9 +182,13 @@ class ProduzioneController extends Controller
                 ->when(!empty($macroCampagnaFilters), fn($q) => $q->whereIn('macro_campagna', $macroCampagnaFilters))
                 ->get()
                 ->keyBy(function($item) {
-                    return strtoupper($item->nome_sede) . '|' . strtoupper($item->macro_campagna);
+                    // Chiave: ID_SEDE|MACRO_CAMPAGNA (per match preciso)
+                    return strtoupper($item->id_sede) . '|' . strtoupper($item->macro_campagna);
                 });
         }
+        
+        // Giorni rimanenti GENERALI (per obiettivi e calcoli non PAF)
+        $giorniLavorativiRimanenti = CalendarioAziendale::giorniLavorativiRimanenti($annoCorrente, $meseCorrente);
         
         // === MAPPING SEDI: RIMOSSO - ORA NELLA CACHE ===
         // Il campo nome_sede in report_produzione_pivot_cache contiene già il nome corretto
@@ -307,26 +311,25 @@ class ProduzioneController extends Controller
             $bonusTotale = $bonusGlobali + $bonusPerSedeECampagna->sum();
         }
         
-        // === CALCOLI PAF GLOBALI (NUOVO METODO CON VISTA) ===
+        // === CALCOLI PAF GLOBALI (METODO REAL-TIME CON view_giorni_paf) ===
         $ore_paf_globale = 0;
         $pezzi_paf_globale = 0;
         $resa_paf_globale = 0;
         $fatturato_paf_globale = 0;
         
         if ($mostraPaf && $giorniLavoratiPerCampagna->isNotEmpty()) {
-            // Media pesata dei giorni lavorati di tutte le campagne coinvolte
-            $mediaGiorniLavoratiGlobale = $giorniLavoratiPerCampagna->avg('giorni_lavorati');
+            // Usa la media dei giorni_lavorati e tot_giorni_mese dalla vista
+            $mediaGiorniLavorati = $giorniLavoratiPerCampagna->avg('giorni_lavorati');
+            $mediaTotGiorniMese = $giorniLavoratiPerCampagna->avg('tot_giorni_mese');
             
-            if ($mediaGiorniLavoratiGlobale > 0) {
-                $giorniTotaliPrevisti = $mediaGiorniLavoratiGlobale + $giorniLavorativiRimanenti;
-                
-                // PAF globale
-                $ore_paf_globale = round(($kpiTotali->ore ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
-                $pezzi_paf_globale = round(($kpiTotali->inserito_pda ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+            if ($mediaGiorniLavorati > 0 && $mediaTotGiorniMese > 0) {
+                // PAF globale basato sul totale giorni mese dalla vista
+                $ore_paf_globale = round(($kpiTotali->ore ?? 0) / $mediaGiorniLavorati * $mediaTotGiorniMese, 2);
+                $pezzi_paf_globale = round(($kpiTotali->inserito_pda ?? 0) / $mediaGiorniLavorati * $mediaTotGiorniMese, 2);
                 $resa_paf_globale = $ore_paf_globale > 0 ? round($pezzi_paf_globale / $ore_paf_globale, 2) : 0;
                 
                 // PAF Fatturato: proietta SOLO il fatturato operativo, poi aggiunge i bonus FISSI
-                $fatturato_operativo_paf = round(($kpiTotali->fatturato ?? 0) / $mediaGiorniLavoratiGlobale * $giorniTotaliPrevisti, 2);
+                $fatturato_operativo_paf = round(($kpiTotali->fatturato ?? 0) / $mediaGiorniLavorati * $mediaTotGiorniMese, 2);
                 
                 // BONUS: sommati FISSI (NON proiettati), sia bonus per sede che globali
                 $fatturato_paf_globale = $fatturato_operativo_paf + $bonusTotale;
@@ -438,28 +441,41 @@ class ProduzioneController extends Controller
                             $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
                         }
                         
-                        // === CALCOLI PAF MENSILE (NUOVO METODO CON VISTA) ===
+                        // === CALCOLI PAF MENSILE (METODO REAL-TIME CON view_giorni_paf) ===
                         $ore_paf = 0;
                         $pezzi_paf = 0;
                         $resa_paf = 0;
                         $fatturato_paf = 0;
                         
                         if ($mostraPaf) {
-                            // Cerca i giorni lavorati per questa specifica combinazione sede+campagna
-                            $chiavePaf = strtoupper($data->sede) . '|' . strtoupper($data->campagna);
-                            $infoPaf = $giorniLavoratiPerCampagna->get($chiavePaf);
+                            // Cerca i dati PAF per questa specifica combinazione id_sede+macro_campagna
+                            // PRIMA prova con sede_id (più preciso)
+                            $chiavePaf = null;
+                            $infoPaf = null;
                             
-                            if ($infoPaf && $infoPaf->giorni_lavorati > 0) {
-                                // Calcola PAF usando i giorni effettivamente lavorati + giorni rimanenti
-                                $giorniTotaliPrevisti = $infoPaf->giorni_lavorati + $giorniLavorativiRimanenti;
+                            if ($data->sede_id) {
+                                $chiavePaf = strtoupper($data->sede_id) . '|' . strtoupper($data->campagna);
+                                $infoPaf = $giorniLavoratiPerCampagna->get($chiavePaf);
+                            }
+                            
+                            // FALLBACK: prova con nome_sede se sede_id non ha dato risultati
+                            if (!$infoPaf && $data->sede) {
+                                $chiavePaf = strtoupper($data->sede) . '|' . strtoupper($data->campagna);
+                                $infoPaf = $giorniLavoratiPerCampagna->get($chiavePaf);
+                            }
+                            
+                            if ($infoPaf && $infoPaf->giorni_lavorati > 0 && $infoPaf->tot_giorni_mese > 0) {
+                                // USA tot_giorni_mese dalla vista (già include giorni_lavorati + giorni_rimanenti specifici)
+                                // Questo è REAL-TIME e specifico per questa campagna!
+                                $giorniTotaliMese = floatval($infoPaf->tot_giorni_mese);
                                 
-                                // PAF = (valori attuali / giorni lavorati) * giorni totali previsti
-                                $ore_paf = max(0, round($ore / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
-                                $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                                // PAF = (valori attuali / giorni già lavorati) * totale giorni mese
+                                $ore_paf = max(0, round($ore / $infoPaf->giorni_lavorati * $giorniTotaliMese, 2));
+                                $pezzi_paf = max(0, round($inseriti / $infoPaf->giorni_lavorati * $giorniTotaliMese, 2));
                                 $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
                                 
                                 // FATTURATO PAF: proietta il fatturato operativo
-                                $fatturato_paf = max(0, round($fatturato / $infoPaf->giorni_lavorati * $giorniTotaliPrevisti, 2));
+                                $fatturato_paf = max(0, round($fatturato / $infoPaf->giorni_lavorati * $giorniTotaliMese, 2));
                             }
                         }
                         
@@ -553,8 +569,11 @@ class ProduzioneController extends Controller
                     return $economicsData;
                 });
                 
-                // === AGGIUNGI BONUS GLOBALI ALLA VISTA DETTAGLIATA ===
-                if ($includiBonus && $bonusGlobali > 0) {
+                return $sediData;
+            })
+            ->map(function($sediData, $cliente) use ($includiBonus, $bonusGlobali, $bonusGlobaliDettaglio, $commessaFilter) {
+                // === AGGIUNGI BONUS GLOBALI UNA SOLA VOLTA PER COMMESSA (fuori dal ciclo sedi) ===
+                if ($includiBonus && $bonusGlobali > 0 && $cliente === $commessaFilter) {
                     // Crea una riga speciale per mostrare i bonus globali
                     $economicsData = collect();
                     
@@ -594,229 +613,137 @@ class ProduzioneController extends Controller
                 return $sediData;
             });
         
-        // === VISTA SINTETICA: Solo Sede (tutte le campagne aggregate) ===
-        // LEFT JOIN con sedi per ottenere l'ID sede
-        $datiSintetici = (clone $queryBase)
-            ->leftJoin('sedi as sedi_sintetica', function($join) {
-                $join->on(DB::raw('UPPER(TRIM(report_produzione_pivot_cache.nome_sede))'), '=', DB::raw('UPPER(TRIM(sedi_sintetica.nome_sede))'));
-            })
-            ->selectRaw('
-                report_produzione_pivot_cache.commessa as cliente,
-                report_produzione_pivot_cache.nome_sede as sede,
-                sedi_sintetica.id_sede as sede_id,
-                SUM(report_produzione_pivot_cache.totale_vendite) as prodotto_pda,
-                SUM(report_produzione_pivot_cache.ok_definitivo) as inserito_pda,
-                SUM(report_produzione_pivot_cache.ko_definitivo) as ko_pda,
-                SUM(report_produzione_pivot_cache.backlog) as backlog_pda,
-                SUM(report_produzione_pivot_cache.backlog_partner) as backlog_partner_pda,
-                SUM(report_produzione_pivot_cache.ore_lavorate) as ore,
-                SUM(report_produzione_pivot_cache.totale_kpi) as obiettivo,
-                SUM(report_produzione_pivot_cache.totale_abbattuto) as fatturato
-            ')
-            ->groupBy('report_produzione_pivot_cache.commessa', 'report_produzione_pivot_cache.nome_sede', 'sedi_sintetica.id_sede')
-            ->orderBy('report_produzione_pivot_cache.commessa')
-            ->orderBy('report_produzione_pivot_cache.nome_sede')
-            ->get()
-            ->groupBy('cliente')
-            ->map(function($clienteGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $bonusGlobali, $includiBonus, $commessaFilter, $bonusQuery) {
-                $sediProcessate = $clienteGroup->groupBy('sede')->map(function($sedeGroup) use ($giorniLavorativiRimanenti, $obiettiviKpi, $obiettiviKpiByNome, $giorniLavoratiPerCampagna, $mostraPaf, $bonusPerSedeECampagna, $includiBonus, $bonusQuery) {
-                    $data = $sedeGroup->first();
-                    $inseriti = (int)$data->inserito_pda;
-                    $prodotto = (int)$data->prodotto_pda;
-                    $ore = (float)$data->ore;
-                    $fatturato = (float)($data->fatturato ?? 0);
-                    
-                    // NON aggiungiamo più i bonus qui - saranno righe separate
-                    
-                    // === RECUPERA SOMMA OBIETTIVI PER QUESTA COMMESSA/SEDE (tutte le macro campagne) ===
-                    // Prima prova con sede_id, poi con nome sede come fallback
-                    $obiettivoMensile = 0;
-                    
-                    if ($data->sede_id) {
-                        // Match per sede_id se disponibile
-                        $obiettivoMensile = $obiettiviKpi->filter(function($obiettivo, $key) use ($data) {
-                            [$commessa, $sede_id, $macro] = explode('|', $key);
-                            return $commessa === strtoupper($data->cliente) && $sede_id == $data->sede_id;
-                        })->sum();
-                    }
-                    
-                    // Fallback: se sede_id è null o non ha trovato obiettivi, prova con il nome della sede
-                    if ($obiettivoMensile == 0 && $data->sede) {
-                        $obiettivoMensile = $obiettiviKpiByNome->filter(function($obiettivo, $key) use ($data) {
-                            [$commessa, $nome_sede, $macro] = explode('|', $key);
-                            return $commessa === strtoupper($data->cliente) && $nome_sede === strtoupper($data->sede);
-                        })->sum();
-                    }
-                    
-                    // === CALCOLI RESA ===
-                    $resa_prodotto = $ore > 0 ? round($prodotto / $ore, 2) : 0;
-                    $resa_inserito = $ore > 0 ? round($inseriti / $ore, 2) : 0;
-                    $ricavo_orario = $ore > 0 ? round($fatturato / $ore, 2) : 0;
-                    
-                    // === CALCOLI OBIETTIVI ===
-                    // Differenza Obj può essere negativa (è l'unico campo dove ha senso)
-                    $differenzaObj = $obiettivoMensile - $inseriti;
-                    
-                    // Passo Giorno: solo se ci sono giorni rimanenti E c'è ancora da raggiungere l'obiettivo
-                    $passoGiorno = 0;
-                    if ($giorniLavorativiRimanenti > 0 && $differenzaObj > 0) {
-                        $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
-                    }
-                    
-                    // === CALCOLI PAF MENSILE (NUOVO METODO CON VISTA) ===
-                    // Per la vista sintetica, sommiamo tutti i giorni lavorati delle campagne di questa sede
-                    $ore_paf = 0;
-                    $pezzi_paf = 0;
-                    $resa_paf = 0;
-                    $fatturato_paf = 0;
-                    
-                    if ($mostraPaf) {
-                        // Somma giorni lavorati per tutte le campagne di questa sede
-                        $giorniLavoratiTotaliSede = $giorniLavoratiPerCampagna
-                            ->filter(function($item) use ($data) {
-                                return stripos($item->nome_sede, $data->sede) !== false || stripos($data->sede, $item->nome_sede) !== false;
-                            })
-                            ->sum('giorni_lavorati');
-                        
-                        if ($giorniLavoratiTotaliSede > 0) {
-                            // Media pesata dei giorni lavorati per la sede
-                            $numCampagne = $giorniLavoratiPerCampagna->filter(function($item) use ($data) {
-                                return stripos($item->nome_sede, $data->sede) !== false || stripos($data->sede, $item->nome_sede) !== false;
-                            })->count();
-                            
-                            if ($numCampagne > 0) {
-                                $mediaGiorniLavorati = $giorniLavoratiTotaliSede / $numCampagne;
-                                $giorniTotaliPrevisti = $mediaGiorniLavorati + $giorniLavorativiRimanenti;
-                                
-                                // PAF = (valori attuali / media giorni lavorati) * giorni totali previsti
-                                $ore_paf = max(0, round($ore / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
-                                $pezzi_paf = max(0, round($inseriti / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
-                                $resa_paf = $ore_paf > 0 ? round($pezzi_paf / $ore_paf, 2) : 0;
-                                
-                                // FATTURATO PAF: proietta il fatturato operativo
-                                $fatturato_paf = max(0, round($fatturato / $mediaGiorniLavorati * $giorniTotaliPrevisti, 2));
-                            }
-                        }
-                    }
-                    
-                    $risultato = collect([
-                        'totale' => [
-                            'campagna' => 'TOTALE SEDE',
-                            'prodotti_aggiuntivi' => [],
-                            'prodotto_pda' => $prodotto,
-                            'inserito_pda' => $inseriti,
-                            'ko_pda' => (int)$data->ko_pda,
-                            'backlog_pda' => (int)$data->backlog_pda,
-                            'backlog_partner_pda' => (int)$data->backlog_partner_pda,
-                            'cliente' => $data->cliente,
-                            'cliente_originale' => $data->cliente,
-                            'sede' => $data->sede,
-                            'ore' => $ore,
-                            'obiettivo' => (int)($data->obiettivo ?? 0),
-                            'fatturato' => $fatturato,
-                            
-                            // === RESA ===
-                            'resa_prodotto' => $resa_prodotto,
-                            'resa_inserito' => $resa_inserito,
-                            'ricavo_orario' => $ricavo_orario,
-                            
-                            // === OBIETTIVI ===
-                            'obiettivo_mensile' => round($obiettivoMensile, 0),
-                            'passo_giorno' => $passoGiorno,
-                            'differenza_obj' => round($differenzaObj, 0),
-                            
-                            // === PAF MENSILE ===
-                            'ore_paf' => $ore_paf,
-                            'pezzi_paf' => $pezzi_paf,
-                            'resa_paf' => $resa_paf,
-                            'fatturato_paf' => $fatturato_paf,
-                        ]
-                    ]);
-                    
-                    // === AGGIUNGI RIGA BONUS PER QUESTA SEDE (se presenti) - DALLA PIVOT CACHE ===
-                    if ($includiBonus && $bonusQuery->isNotEmpty() && $data->sede_id) {
-                        // Calcola il totale bonus per questa sede dalla pivot cache
-                        $bonusTotaleSede = $bonusQuery
-                            ->filter(function($bonus) use ($data) {
-                                // Bonus per questa sede (non globali)
-                                $isGlobal = ($bonus->id_sede === 'GLOBAL' || empty($bonus->id_sede));
-                                if ($isGlobal) return false;
-                                
-                                // Match per id_sede o nome_sede
-                                return $bonus->id_sede === $data->sede_id || 
-                                       strtoupper($bonus->nome_sede) === strtoupper($data->sede);
-                            })
-                            ->sum('totale_abbattuto');
-                        
-                        if ($bonusTotaleSede > 0) {
-                            $risultato->put('bonus_sede', [
-                                'campagna' => 'Bonus Sede',
-                                'prodotti_aggiuntivi' => [],
-                                'prodotto_pda' => 0,
-                                'inserito_pda' => 0,
-                                'ko_pda' => 0,
-                                'backlog_pda' => 0,
-                                'backlog_partner_pda' => 0,
-                                'cliente' => $data->cliente,
-                                'cliente_originale' => $data->cliente,
-                                'sede' => $data->sede,
-                                'ore' => 0,
-                                'obiettivo' => 0,
-                                'fatturato' => $bonusTotaleSede,
-                                'resa_prodotto' => 0,
-                                'resa_inserito' => 0,
-                                'ricavo_orario' => 0,
-                                'obiettivo_mensile' => 0,
-                                'passo_giorno' => 0,
-                                'differenza_obj' => 0,
-                                'ore_paf' => 0,
-                                'pezzi_paf' => 0,
-                                'resa_paf' => 0,
-                                'fatturato_paf' => $bonusTotaleSede, // BONUS FISSO
-                                'is_bonus_sede' => true,
-                            ]);
-                        }
-                    }
-                    
-                    return $risultato;
-                });
+        // === VISTA SINTETICA: Aggregazione dei dati DETTAGLIATI per sede ===
+        // IMPORTANTE: Genero il sintetico DAI dati del dettagliato per garantire coerenza!
+        $datiSintetici = $datiDettagliati->map(function($sediData, $cliente) {
+            return $sediData->map(function($campagneData, $sede) use ($cliente) {
+                // Inizializza accumulatori per la sede
+                $totali = [
+                    'prodotto_pda' => 0,
+                    'inserito_pda' => 0,
+                    'ko_pda' => 0,
+                    'backlog_pda' => 0,
+                    'backlog_partner_pda' => 0,
+                    'ore' => 0,
+                    'fatturato' => 0,
+                    'ore_paf' => 0,
+                    'pezzi_paf' => 0,
+                    'fatturato_paf' => 0,
+                    'obiettivo_mensile' => 0,
+                ];
                 
-                // === AGGIUNGI BONUS GLOBALI ALLA VISTA SINTETICA ===
-                if ($includiBonus && $bonusGlobali > 0) {
-                    // Crea una riga speciale per mostrare i bonus globali
-                    $sediProcessate['Bonus Globali'] = collect([
-                        'totale' => [
-                            'campagna' => 'BONUS GLOBALE',
-                            'prodotti_aggiuntivi' => [],
-                            'prodotto_pda' => 0,
-                            'inserito_pda' => 0,
-                            'ko_pda' => 0,
-                            'backlog_pda' => 0,
-                            'backlog_partner_pda' => 0,
-                            'cliente' => $commessaFilter,
-                            'cliente_originale' => $commessaFilter,
-                            'sede' => 'Bonus Globali',
-                            'ore' => 0,
-                            'obiettivo' => 0,
-                            'fatturato' => $bonusGlobali, // BONUS FISSO
-                            'resa_prodotto' => 0,
-                            'resa_inserito' => 0,
-                            'resa_oraria' => 0,
-                            'ricavo_orario' => 0,
-                            'obiettivo_mensile' => 0,
-                            'passo_giorno' => 0,
-                            'differenza_obj' => 0,
-                            'ore_paf' => 0,
-                            'pezzi_paf' => 0,
-                            'resa_paf' => 0,
-                            'fatturato_paf' => $bonusGlobali, // BONUS FISSO (NON proiettato)
-                            'is_bonus_globale' => true, // Flag per identificare come riga bonus globale
-                        ]
-                    ]);
+                $isAnyBonus = false;
+                
+                // Somma tutti i dati delle campagne di questa sede
+                foreach ($campagneData as $campagna => $dati) {
+                    // Salta se è un bonus (lo gestiamo separatamente)
+                    if (isset($dati['is_bonus_sede']) || isset($dati['is_bonus_globale'])) {
+                        $isAnyBonus = true;
+                        continue;
+                    }
+                    
+                    $totali['prodotto_pda'] += $dati['prodotto_pda'] ?? 0;
+                    $totali['inserito_pda'] += $dati['inserito_pda'] ?? 0;
+                    $totali['ko_pda'] += $dati['ko_pda'] ?? 0;
+                    $totali['backlog_pda'] += $dati['backlog_pda'] ?? 0;
+                    $totali['backlog_partner_pda'] += $dati['backlog_partner_pda'] ?? 0;
+                    $totali['ore'] += $dati['ore'] ?? 0;
+                    $totali['fatturato'] += $dati['fatturato'] ?? 0;
+                    $totali['ore_paf'] += $dati['ore_paf'] ?? 0;
+                    $totali['pezzi_paf'] += $dati['pezzi_paf'] ?? 0;
+                    $totali['fatturato_paf'] += $dati['fatturato_paf'] ?? 0;
+                    $totali['obiettivo_mensile'] += $dati['obiettivo_mensile'] ?? 0;
                 }
                 
-                return $sediProcessate;
+                // Calcola metriche derivate
+                $totali['resa_prodotto'] = $totali['ore'] > 0 ? round($totali['prodotto_pda'] / $totali['ore'], 2) : 0;
+                $totali['resa_inserito'] = $totali['ore'] > 0 ? round($totali['inserito_pda'] / $totali['ore'], 2) : 0;
+                $totali['ricavo_orario'] = $totali['ore'] > 0 ? round($totali['fatturato'] / $totali['ore'], 2) : 0;
+                $totali['resa_paf'] = $totali['ore_paf'] > 0 ? round($totali['pezzi_paf'] / $totali['ore_paf'], 2) : 0;
+                
+                // Calcola obiettivi
+                $differenzaObj = $totali['obiettivo_mensile'] - $totali['inserito_pda'];
+                $giorniLavorativiRimanenti = CalendarioAziendale::giorniLavorativiRimanenti(date('Y'), date('m'));
+                $passoGiorno = 0;
+                if ($giorniLavorativiRimanenti > 0 && $differenzaObj > 0) {
+                    $passoGiorno = round($differenzaObj / $giorniLavorativiRimanenti, 2);
+                }
+                
+                $risultato = collect([
+                    'totale' => [
+                        'campagna' => 'TOTALE SEDE',
+                        'prodotti_aggiuntivi' => [],
+                        'prodotto_pda' => $totali['prodotto_pda'],
+                        'inserito_pda' => $totali['inserito_pda'],
+                        'ko_pda' => $totali['ko_pda'],
+                        'backlog_pda' => $totali['backlog_pda'],
+                        'backlog_partner_pda' => $totali['backlog_partner_pda'],
+                        'cliente' => $cliente,
+                        'cliente_originale' => $cliente,
+                        'sede' => $sede,
+                        'ore' => $totali['ore'],
+                        'obiettivo' => 0,
+                        'fatturato' => $totali['fatturato'],
+                        'resa_prodotto' => $totali['resa_prodotto'],
+                        'resa_inserito' => $totali['resa_inserito'],
+                        'ricavo_orario' => $totali['ricavo_orario'],
+                        'obiettivo_mensile' => round($totali['obiettivo_mensile'], 0),
+                        'passo_giorno' => $passoGiorno,
+                        'differenza_obj' => round($differenzaObj, 0),
+                        'ore_paf' => round($totali['ore_paf'], 2),
+                        'pezzi_paf' => round($totali['pezzi_paf'], 2),
+                        'resa_paf' => $totali['resa_paf'],
+                        'fatturato_paf' => round($totali['fatturato_paf'], 2),
+                    ]
+                ]);
+                
+                // Aggiungi righe bonus se presenti nella sede
+                foreach ($campagneData as $campagna => $dati) {
+                    if (isset($dati['is_bonus_sede']) && $dati['is_bonus_sede']) {
+                        $risultato->put('bonus_sede', $dati);
+                    }
+                }
+                
+                return $risultato;
             });
+        })
+        ->map(function($sediData, $cliente) use ($includiBonus, $bonusGlobali, $commessaFilter) {
+            // === AGGIUNGI BONUS GLOBALI UNA SOLA VOLTA PER COMMESSA (fuori dal ciclo sedi) ===
+            if ($includiBonus && $bonusGlobali > 0 && $cliente === $commessaFilter) {
+                // Crea una riga speciale per mostrare i bonus globali
+                $sediData['Bonus Globali'] = collect([
+                    'totale' => [
+                        'campagna' => 'BONUS GLOBALE',
+                        'prodotti_aggiuntivi' => [],
+                        'prodotto_pda' => 0,
+                        'inserito_pda' => 0,
+                        'ko_pda' => 0,
+                        'backlog_pda' => 0,
+                        'backlog_partner_pda' => 0,
+                        'cliente' => $commessaFilter,
+                        'cliente_originale' => $commessaFilter,
+                        'sede' => 'Bonus Globali',
+                        'ore' => 0,
+                        'obiettivo' => 0,
+                        'fatturato' => $bonusGlobali, // BONUS FISSO
+                        'resa_prodotto' => 0,
+                        'resa_inserito' => 0,
+                        'resa_oraria' => 0,
+                        'ricavo_orario' => 0,
+                        'obiettivo_mensile' => 0,
+                        'passo_giorno' => 0,
+                        'differenza_obj' => 0,
+                        'ore_paf' => 0,
+                        'pezzi_paf' => 0,
+                        'resa_paf' => 0,
+                        'fatturato_paf' => $bonusGlobali, // BONUS FISSO (NON proiettato)
+                        'is_bonus_globale' => true, // Flag per identificare come riga bonus globale
+                    ]
+                ]);
+            }
+            
+            return $sediData;
+        });
         
         // === VISTA GIORNALIERA: Dati per Giorno, Sede e Campagna ===
         $datiGiornalieri = (clone $queryBase)
@@ -959,6 +886,9 @@ class ProduzioneController extends Controller
             'sedeFilters' => $sedeFilters ?? [],
             'macroCampagnaFilters' => $macroCampagnaFilters ?? [],
             'includiBonus' => $includiBonus,
+            // Debug PAF
+            'giorniLavoratiPerCampagna' => $giorniLavoratiPerCampagna,
+            'mostraPaf' => $mostraPaf,
         ]);
     }
 
